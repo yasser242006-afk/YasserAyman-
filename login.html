@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تسجيل الدخول - بوابة الطلاب</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --text-light: #94a3b8;
+            --border: #e2e8f0;
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+            --radius-sm: 8px;
+            --radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-family: 'Cairo', 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-page {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-page::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(79,70,229,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(14,165,233,0.06) 0%, transparent 50%);
+            animation: authGlow 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes authGlow {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-5%, -5%); }
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid var(--border);
+        }
+
+        .auth-card .logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .auth-card .logo i {
+            font-size: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-card .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group { margin-bottom: 18px; position: relative; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79,70,229,0.1);
+        }
+
+        .input-with-icon { position: relative; }
+        .input-with-icon .form-input { padding-right: 44px; }
+        .input-with-icon i {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 18px;
+        }
+
+        .input-with-toggle { position: relative; }
+        .input-with-toggle .form-input { padding-left: 44px; }
+        .toggle-password {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(79,70,229,0.3);
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); }
+
+        .btn-google { background: #fff; color: #333; border: 2px solid #ddd; }
+        .btn-google:hover { border-color: #4285f4; color: #4285f4; }
+
+        .btn-facebook { background: #1877f2; color: #fff; }
+        .btn-facebook:hover { background: #166fe5; }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            box-shadow: var(--shadow-lg);
+            border-right: 4px solid var(--primary);
+            font-size: 14px;
+        }
+        .toast.error { border-right-color: var(--danger); }
+        .toast.success { border-right-color: var(--success); }
+    </style>
+</head>
+<body>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>بوابة الطلاب</h1>
+                <p class="text-sm text-[var(--text-secondary)] mt-1">كلية نظم المعلومات</p>
+            </div>
+
+            <!-- نموذج تسجيل الدخول -->
+            <div id="login-form">
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="login-email" class="form-input" placeholder="systems@gmail.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <div class="input-with-toggle">
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••">
+                        <button class="toggle-password" onclick="togglePassword('login-password', this)" type="button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between mb-6">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" id="remember-me" style="accent-color: var(--primary);">
+                        <span>تذكرني</span>
+                    </label>
+                    <button class="text-sm text-[var(--primary)] font-medium hover:underline bg-transparent border-none cursor-pointer" onclick="showForm('forgot')">نسيت كلمة المرور؟</button>
+                </div>
+                <button class="btn btn-primary mb-4" onclick="handleLogin()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>تسجيل الدخول</span>
+                </button>
+                
+                <div class="relative my-6 text-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[var(--border)]"></div></div>
+                    <span class="relative bg-[var(--bg-card)] px-4 text-xs text-[var(--text-secondary)]">أو استمر باستخدام</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button class="btn btn-google" onclick="handleOAuth('google')">
+                        <i class="fab fa-google"></i> Google
+                    </button>
+                    <button class="btn btn-facebook" onclick="handleOAuth('facebook')">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </button>
+                </div>
+                <p class="text-center text-sm text-[var(--text-secondary)]">
+                    ليس لديك حساب؟
+                    <button class="text-[var(--primary)] font-semibold hover:underline bg-transparent border-none cursor-pointer" onclick="showForm('signup')">إنشاء حساب جديد</button>
+                </p>
+            </div>
+
+            <!-- نموذج إنشاء حساب جديد -->
+            <div id="signup-form" style="display:none;">
+                <div class="form-group">
+                    <label>الاسم بالكامل</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="signup-name" class="form-input" placeholder="أحمد محمد">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="signup-email" class="form-input" placeholder="student@example.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="signup-phone" class="form-input" placeholder="+20 100 000 0000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>السنة الدراسية</label>
+                    <select id="signup-year" class="form-input">
+                        <option value="1">السنة الأولى</option>
+                        <option value="2">السنة الثانية</option>
+                        <option value="3">السنة الثالثة</option>
+                        <option value="4">السنة الرابعة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <div class="input-with-toggle">
+                        <input type="password" id="signup-password" class="form-input" placeholder="••••••••">
+                        <button class="toggle-password" onclick="togglePassword('signup-password', this)" type="button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn btn-primary mb-4" onclick="handleSignup()">
+                    <i class="fas fa-user-plus"></i>
+                    <span>إنشاء الحساب</span>
+                </button>
+                <p class="text-center text-sm text-[var(--text-secondary)]">
+                    لديك حساب بالفعل؟
+                    <button class="text-[var(--primary)] font-semibold hover:underline bg-transparent border-none cursor-pointer" onclick="showForm('login')">تسجيل الدخول</button>
+                </p>
+            </div>
+
+            <!-- الخطوة 1: استعادة كلمة المرور (إدخال البريد الإلكتروني) -->
+            <div id="forgot-form" style="display:none;">
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="forgot-email" class="form-input" placeholder="student@example.com">
+                    </div>
+                </div>
+                <button class="btn btn-primary mb-4" onclick="handleSendOTP()">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>إرسال رمز التحقق</span>
+                </button>
+                <p class="text-center text-sm text-[var(--text-secondary)]">
+                    <button class="text-[var(--primary)] font-semibold hover:underline bg-transparent border-none cursor-pointer" onclick="showForm('login')">العودة لتسجيل الدخول</button>
+                </p>
+            </div>
+
+            <!-- الخطوة 2: أدخل رمز التحقق -->
+            <div id="otp-form" style="display:none;">
+                <p class="text-xs text-[var(--text-secondary)] mb-4 text-center">تم إرسال رمز التحقق إلى: <strong id="target-email-display" class="text-[var(--primary)]"></strong></p>
+                <div class="form-group">
+                    <label>رمز التحقق (OTP)</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-shield-alt"></i>
+                        <input type="text" id="otp-code" class="form-input text-center tracking-widest font-bold text-lg" placeholder="123456" maxlength="6">
+                    </div>
+                </div>
+                <button class="btn btn-primary mb-4" onclick="handleVerifyOTP()">
+                    <i class="fas fa-check-circle"></i>
+                    <span>تأكيد الرمز</span>
+                </button>
+                <p class="text-center text-sm text-[var(--text-secondary)]">
+                    <button class="text-[var(--primary)] font-semibold hover:underline bg-transparent border-none cursor-pointer" onclick="showForm('forgot')">تغيير البريد الإلكتروني</button>
+                </p>
+            </div>
+
+            <!-- الخطوة 3: تعيين كلمة المرور الجديدة -->
+            <div id="reset-password-form" style="display:none; position: relative;">
+                <!-- زر تخطي أعلى اليمين -->
+                <div class="flex justify-end mb-2">
+                    <button type="button" onclick="skipPasswordReset()" class="text-sm text-[var(--text-secondary)] hover:text-[var(--primary)] font-semibold flex items-center gap-1 bg-transparent border-none cursor-pointer">
+                        <span>تخطي</span>
+                        <i class="fas fa-arrow-left text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label>كلمة المرور الجديدة</label>
+                    <div class="input-with-toggle">
+                        <input type="password" id="new-password" class="form-input" placeholder="••••••••">
+                        <button class="toggle-password" onclick="togglePassword('new-password', this)" type="button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>تأكيد كلمة المرور الجديدة</label>
+                    <div class="input-with-toggle">
+                        <input type="password" id="confirm-password" class="form-input" placeholder="••••••••">
+                        <button class="toggle-password" onclick="togglePassword('confirm-password', this)" type="button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn btn-primary mb-4" onclick="handleUpdatePassword()">
+                    <i class="fas fa-key"></i>
+                    <span>تحديث كلمة المرور والدخول</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // 1. تهيئة Supabase بالبيانات الخاصة بك
+        const SUPABASE_URL = 'https://mlujsnxdxafrfzykqzlh.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_hWkdonF5Y3kQQNaOMdMLqw_96kTdZpp';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let resetEmailStore = ''; // تخزين البريد الإلكتروني المخصص لاستعادة كلمة السر
+
+        // التنقل بين الشاشات
+        function showForm(formType) {
+            document.getElementById('login-form').style.display = formType === 'login' ? 'block' : 'none';
+            document.getElementById('signup-form').style.display = formType === 'signup' ? 'block' : 'none';
+            document.getElementById('forgot-form').style.display = formType === 'forgot' ? 'block' : 'none';
+            document.getElementById('otp-form').style.display = formType === 'otp' ? 'block' : 'none';
+            document.getElementById('reset-password-form').style.display = formType === 'reset' ? 'block' : 'none';
+        }
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // 2. مزامنة البيانات وتخزينها في الجدول الخاص بك yasser_ayman
+        async function saveUserToYasserAymanTable(user, extraData = {}) {
+            const userData = {
+                id: user.id,
+                email: user.email,
+                full_name: extraData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || '',
+                phone: extraData.phone || user.user_metadata?.phone || '',
+                academic_year: extraData.academic_year || '1',
+                avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
+                updated_at: new Date()
+            };
+
+            const { error } = await _supabase
+                .from('yasser_ayman')
+                .upsert(userData, { onConflict: 'id' });
+
+            if (error) {
+                console.error('جدول yasser_ayman خطا في حفظ البيانات:', error.message);
+            }
+        }
+
+// 3. تسجيل الدخول بواسطة Google أو Facebook
+async function handleOAuth(provider) {
+    try {
+        const options = {
+            redirectTo: window.location.origin + '/index.html'
+        };
+
+        // إعدادات خاصة بجوجل لإظهار الحسابات
+        if (provider === 'google') {
+            options.queryParams = {
+                prompt: 'select_account'
+            };
+        }
+
+        // إعدادات الفيسبوك (سيطلب الإذن بالدخول بالحساب المفتوح فوراً)
+        const { data, error } = await _supabase.auth.signInWithOAuth({
+            provider: provider,
+            options: options
+        });
+
+        if (error) throw error;
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+        // 4. إنشاء حساب جديد بالبريد الإلكتروني
+        async function handleSignup() {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const fullName = document.getElementById('signup-name').value;
+            const phone = document.getElementById('signup-phone').value;
+            const year = document.getElementById('signup-year').value;
+
+            if (!email || !password || !fullName) {
+                showToast('برجاء ملء جميع الحقول المطلوبة', 'error');
+                return;
+            }
+
+            try {
+                const { data, error } = await _supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { full_name: fullName, phone: phone, academic_year: year }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (data.user) {
+                    await saveUserToYasserAymanTable(data.user, { full_name: fullName, phone: phone, academic_year: year });
+                    showToast('تم إنشاء الحساب بنجاح!', 'success');
+                    setTimeout(() => window.location.href = 'index.html', 1500);
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // 5. تسجيل الدخول العادي
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showToast('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
+                return;
+            }
+
+            try {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                if (data.user) {
+                    await saveUserToYasserAymanTable(data.user);
+                    showToast('تم تسجيل الدخول بنجاح', 'success');
+                    setTimeout(() => window.location.href = 'index.html', 1000);
+                }
+            } catch (err) {
+                showToast('خطأ في تسجيل الدخول: ' + err.message, 'error');
+            }
+        }
+
+        // 6. خطوة 1: إرسال رمز التحقق OTP للبريد
+        async function handleSendOTP() {
+            const email = document.getElementById('forgot-email').value.trim();
+            if (!email) {
+                showToast('يرجى إدخال البريد الإلكتروني', 'error');
+                return;
+            }
+
+            resetEmailStore = email;
+
+            const { error } = await _supabase.auth.signInWithOtp({ email });
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                document.getElementById('target-email-display').innerText = email;
+                showToast('تم إرسال رمز التحقق إلى بريدك الإلكتروني', 'success');
+                showForm('otp');
+            }
+        }
+
+        // 7. خطوة 2: تأكيد الرمز المدخل
+        async function handleVerifyOTP() {
+            const token = document.getElementById('otp-code').value.trim();
+            if (!token) {
+                showToast('يرجى إدخال رمز التحقق', 'error');
+                return;
+            }
+
+            const { data, error } = await _supabase.auth.verifyOtp({
+                email: resetEmailStore,
+                token: token,
+                type: 'email'
+            });
+
+            if (error) {
+                showToast('رمز التحقق غير صحيح أو انتهت صلاحيته', 'error');
+            } else {
+                showToast('تم التأكد من الرمز بنجاح!', 'success');
+                showForm('reset');
+            }
+        }
+
+        // 8. خطوة 3: تحديث كلمة المرور الجديدة
+        async function handleUpdatePassword() {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (!newPassword || !confirmPassword) {
+                showToast('يرجى إدخال كلمة المرور وتأكيدها', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast('كلمتا المرور غير متطابقتين', 'error');
+                return;
+            }
+
+            const { error } = await _supabase.auth.updateUser({ password: newPassword });
+
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                showToast('تم تغيير كلمة المرور بنجاح!', 'success');
+                setTimeout(() => window.location.href = 'index.html', 1000);
+            }
+        }
+
+        // 9. زر تخطي لتجاوز مرحلة تغيير كلمة السر والدخول للموقع
+        function skipPasswordReset() {
+            showToast('تم التخطي، مرحباً بك!', 'info');
+            setTimeout(() => window.location.href = 'index.html', 500);
+        }
+
+        // فحص الجلسة تلقائياً عند فتح الصفحة
+        window.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session && document.getElementById('reset-password-form').style.display !== 'block') {
+                await saveUserToYasserAymanTable(session.user);
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
