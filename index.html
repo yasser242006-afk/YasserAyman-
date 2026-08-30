@@ -515,12 +515,6 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 
 
-
-
-
-
-
-  
 <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
@@ -534,7 +528,7 @@ let currentExamType = 'quiz';
 let currentPostIdForComments = null;
 let imageTargetType = null; // 'avatar' or 'cover'
 
-/* أفاتار افتراضي ديناميكي: بيرجع أول حرف من اسم الطالب الحقيقي بدل كلمة ثابتة */
+/* أفاتار افتراضي ديناميكي: بيرجع أول حرف من اسم الطالب الحقيقي */
 function getDefaultAvatar(){
   const name = currentProfile?.full_name || currentUser?.email || 'Student';
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
@@ -551,30 +545,30 @@ function showToast(message, type='info'){
   setTimeout(()=>toast.remove(), 3500);
 }
 
-
-
 /* ================== تهيئة الصفحة والتحقق من الحساب ================== */
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
   try {
-    // إعطاء وقت بسيط لمعالجة رمز الدخول القادم من جوجل/فيسبوك قبل التحقق من الجلسة
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // إعطاء وقت بسيط لمعالجة رمز الدخول القادم من Supabase Auth
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
 
+    // إذا لم يكن هناك جلسة تسجل خروج حقيقي للتوجيه إلى لصفحة الدخول
     if (sessionError || !session) {
-      await forceFullLogout();
+      window.location.href = 'login.html';
       return;
     }
 
     currentUser = session.user;
 
+    // جلب بيانات الحساب
     const result = await loadProfile();
 
-    // لو الحساب مش موجود في الجدول (سواء أول مرة يسجل، أو كان موجود واتمسح من القاعدة)
-    // نعامله كأنه بيسجل لأول مرة: نعمله صف جديد ونكمله عادي، مش نطرده
-    if (result === 'not_found') {
+    // لو الحساب غير موجود في قاعدة البيانات (سواء مستخدم جديد أو تم مسح بياناته)
+    // يتم إنشاء صف جديد له فوراً ويعامل كأنه مستخدم جديد دون أي طرد
+    if (result === 'not_found' || !currentProfile) {
       await createFreshProfileRow();
     }
 
@@ -585,8 +579,8 @@ async function init(){
 
   } catch(err) {
     console.error('Initialization error:', err);
-    // خطأ غير متوقع فقط - لا نسجل خروج المستخدم تلقائياً حفاظاً على تجربته
   } finally {
+    // إخفاء شاشة التحميل وإظهار الواجهة دائماً
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
     if(loadingScreen) loadingScreen.style.display = 'none';
@@ -595,38 +589,40 @@ async function init(){
 }
 
 async function loadProfile(){
-  const { data, error } = await _supabase.from('yasser_ayman')
-    .select('*')
-    .eq('id', currentUser.id)
-    .maybeSingle();
+  try {
+    const { data, error } = await _supabase.from('yasser_ayman')
+      .select('*')
+      .eq('id', currentUser.id)
+      .maybeSingle();
 
-  if (error) {
-    // خطأ فعلي (شبكة/صلاحيات) - ده مش دليل على إن الحساب اتمسح
-    console.error('Profile load error:', error);
+    if (error) {
+      console.error('Profile load error:', error);
+      return 'error';
+    }
+
+    if (!data) {
+      return 'not_found';
+    }
+
+    currentProfile = data;
+    return 'ok';
+  } catch(e) {
     return 'error';
   }
-
-  if (!data) {
-    // مفيش خطأ، ومفيش صف بردو = الصف غير موجود في الجدول (أول مرة أو كان محذوف)
-    return 'not_found';
-  }
-
-  currentProfile = data;
-  return 'ok';
 }
 
-/* ================== إنشاء صف بروفايل جديد (يعامل الشخص كأنه بيسجل لأول مرة) ================== */
+/* ================== إنشاء صف بروفايل جديد تلقائياً ================== */
 async function createFreshProfileRow(){
   const userData = {
     id: currentUser.id,
-    email: currentUser.email,
+    email: currentUser.email || '',
     full_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '',
     phone: currentUser.user_metadata?.phone || '',
     academic_year: currentUser.user_metadata?.academic_year || '1',
     avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '',
     first_login_shown: false,
     last_notification_check: new Date().toISOString(),
-    updated_at: new Date()
+    updated_at: new Date().toISOString()
   };
 
   const { data, error } = await _supabase.from('yasser_ayman')
@@ -636,36 +632,15 @@ async function createFreshProfileRow(){
 
   if (error) {
     console.error('Error creating fresh profile row:', error);
-    // حتى لو فشل الحفظ في القاعدة، نكمل بالبيانات دي مؤقتاً عشان الشخص يقدر يستخدم الموقع
-    currentProfile = userData;
+    currentProfile = userData; // استخدام البيانات مؤقتاً في حالة حدوث مشكلة شبكة
     return;
   }
 
   currentProfile = data || userData;
 }
 
-
-/* ================== دالة التخريج الإجباري والتنظيف الشامل ================== */
-async function forceFullLogout(){
-  try {
-    // تسجيل الخروج من سوبابيز
-    await _supabase.auth.signOut();
-  } catch(e) {
-    console.log('Signout error', e);
-  }
-
-  // تنظيف كافة البيانات المخزنة في المتصفح بالكامل
-  localStorage.clear();
-  sessionStorage.clear();
-
-  // إعادة التوجيه لصفحة تسجيل الدخول
-  window.location.href = 'login.html';
-}
-
-  
-
 function renderProfileUI(){
-  const name = currentProfile?.full_name || currentUser.email;
+  const name = currentProfile?.full_name || currentUser?.email || 'طالب';
   const avatar = currentProfile?.avatar_url || getDefaultAvatar();
   
   const topName = document.getElementById('topbar-name');
@@ -680,7 +655,7 @@ function renderProfileUI(){
   if(sideName) sideName.innerText = name;
   
   const yearMap = {'1':'السنة الأولى','2':'السنة الثانية','3':'السنة الثالثة','4':'السنة الرابعة'};
-  if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || '';
+  if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'السنة الأولى';
 }
 
 /* ================== رسالة الترحيب (أول دخول فقط) ================== */
@@ -917,7 +892,7 @@ function sharePost(postId){
   openShareSheet(url, 'شاهد هذا المنشور في بوابة الطلاب');
 }
 
-/* ================== التعليقات (تدعم الردود) ================== */
+/* ================== التعليقات ================== */
 async function openComments(postId){
   currentPostIdForComments = postId;
   document.getElementById('comments-overlay')?.classList.add('open');
@@ -1336,7 +1311,15 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
-                                                                        </script>
+</script>
+
+
+
+
+
+  
+
+                                                                 </script>
   
 </body>
 </html>
