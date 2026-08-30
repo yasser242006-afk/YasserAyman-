@@ -210,6 +210,34 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   border-right:4px solid var(--primary);font-size:13px;animation:fadeSlide .2s ease;}
 .toast.error{border-right-color:var(--danger);}
 .toast.success{border-right-color:var(--success);}
+  /* Schedule page */
+.schedule-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);margin-bottom:14px;}
+.schedule-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.schedule-box img{width:100%;display:block;}
+.schedule-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.schedule-actions button{padding:11px 6px;border-radius:var(--radius-sm);border:2px solid var(--primary);background:none;
+  color:var(--primary);font-family:var(--font-family);font-weight:700;font-size:12px;cursor:pointer;display:flex;
+  flex-direction:column;align-items:center;gap:4px;}
+.schedule-actions button:hover{background:var(--primary);color:#fff;}
+
+/* Lecture cards */
+.lecture-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);}
+.lecture-title{font-size:14px;font-weight:800;margin-bottom:6px;}
+.lecture-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.lecture-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(79,70,229,.08);color:var(--primary);}
+.lecture-files{display:flex;flex-direction:column;gap:8px;}
+.lecture-file-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--bg);
+  text-decoration:none;color:var(--text);font-size:13px;font-weight:600;}
+.lecture-file-link i{color:var(--primary);font-size:16px;width:18px;text-align:center;}
+
+/* Share sheet modal */
+.share-sheet{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px;}
+.share-opt{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-family:var(--font-family);}
+.share-opt .share-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;}
+.share-opt span{font-size:11px;color:var(--text-secondary);font-weight:600;}
+.share-link-row{display:flex;gap:8px;padding:0 18px 18px;}
+.share-link-row input{flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--bg);color:var(--text-secondary);}
+.share-link-row button{padding:0 16px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-family:var(--font-family);font-weight:700;font-size:12px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -291,9 +319,19 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
           <option value="2">الترم الثاني</option>
         </select>
         <div class="menu-item" style="padding:8px 10px;font-size:12px;" onclick="switchView('questions', document.querySelector('.menu-item'))">
-          <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
-        </div>
-      </div>
+  <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
+</div>
+</div>
+
+<div class="menu-item" onclick="switchView('schedule', this)">
+  <i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span>
+</div>
+
+<div class="menu-item" onclick="switchView('lectures', this)">
+  <i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span>
+</div>
+
+<!-- مساحة لعناصر قائمة إضافية لاحقًا -->
 
       <!-- مساحة لعناصر قائمة إضافية لاحقًا -->
     </nav>
