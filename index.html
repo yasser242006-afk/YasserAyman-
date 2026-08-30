@@ -665,9 +665,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 </div>
 
 
-
-
-<script>
+  <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
@@ -826,6 +824,8 @@ function renderProfileUI(){
 
   const yearMap = {'1':'السنة الأولى','2':'السنة الثانية','3':'السنة الثالثة','4':'السنة الرابعة'};
   if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'السنة الأولى';
+
+  populateQuestionsSubjects();
 }
 
 async function maybeShowWelcome(){
@@ -1173,45 +1173,54 @@ async function loadGrades(){
   if(!container) return;
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
 
-  const { data: grades, error } = await _supabase.from('grades').select('*')
-    .eq('student_id', currentUser.id)
-    .eq('term', currentTerm)
-    .eq('exam_type', currentExamType)
-    .order('created_at', { ascending:false });
+  const timeoutPromise = new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout')), 6000));
 
-  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات</p></div>'; return; }
-  if(!grades || grades.length === 0){
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد درجات مسجلة بعد</p></div>';
-    drawChart([]);
-    return;
+  try {
+    const { data: grades, error } = await Promise.race([
+      _supabase.from('grades').select('*')
+        .eq('student_id', currentUser.id)
+        .eq('term', currentTerm)
+        .eq('exam_type', currentExamType)
+        .order('created_at', { ascending:false }),
+      timeoutPromise
+    ]);
+
+    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات — تأكد من وجود جدول grades</p></div>'; return; }
+    if(!grades || grades.length === 0){
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد درجات مسجلة بعد</p></div>';
+      drawChart([]);
+      return;
+    }
+
+    drawChart(grades);
+    container.innerHTML = grades.map(g=>{
+      const percent = Math.round((g.score / g.max_score) * 1000)/10;
+      const info = gradeInfo(percent);
+      const certData = encodeURIComponent(JSON.stringify({subject: g.subject_name, percent, label: info.label, rank: g.rank}));
+      return `
+      <div class="grade-card">
+        <div class="grade-card-top">
+          <div class="grade-subject">${escapeHtml(g.subject_name||'')}</div>
+          <div class="grade-badge ${info.cls}">${info.label}</div>
+        </div>
+        <div class="grade-score-row">
+          <div class="grade-score-big">${g.score} / ${g.max_score}</div>
+          <div style="font-size:13px;color:var(--text-secondary)">النسبة: <b style="color:var(--text)">${percent}%</b></div>
+        </div>
+        <div class="grade-grid">
+          <div>المركز: <b>${g.rank ? '#'+g.rank : '-'}</b></div>
+          <div>تاريخ الامتحان: <b>${g.exam_date || '-'}</b></div>
+          <div>ساعة الامتحان: <b>${g.exam_time || '-'}</b></div>
+          <div>تاريخ النتيجة: <b>${g.result_date || '-'}</b></div>
+        </div>
+        <button class="print-btn" onclick="printCertificateFromData('${certData}')">
+          <i class="fas fa-print"></i> طباعة شهادة
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات — تأكد من وجود جدول grades في Supabase</p></div>';
   }
-
-  drawChart(grades);
-  container.innerHTML = grades.map(g=>{
-    const percent = Math.round((g.score / g.max_score) * 1000)/10;
-    const info = gradeInfo(percent);
-    const certData = encodeURIComponent(JSON.stringify({subject: g.subject_name, percent, label: info.label, rank: g.rank}));
-    return `
-    <div class="grade-card">
-      <div class="grade-card-top">
-        <div class="grade-subject">${escapeHtml(g.subject_name||'')}</div>
-        <div class="grade-badge ${info.cls}">${info.label}</div>
-      </div>
-      <div class="grade-score-row">
-        <div class="grade-score-big">${g.score} / ${g.max_score}</div>
-        <div style="font-size:13px;color:var(--text-secondary)">النسبة: <b style="color:var(--text)">${percent}%</b></div>
-      </div>
-      <div class="grade-grid">
-        <div>المركز: <b>${g.rank ? '#'+g.rank : '-'}</b></div>
-        <div>تاريخ الامتحان: <b>${g.exam_date || '-'}</b></div>
-        <div>ساعة الامتحان: <b>${g.exam_time || '-'}</b></div>
-        <div>تاريخ النتيجة: <b>${g.result_date || '-'}</b></div>
-      </div>
-      <button class="print-btn" onclick="printCertificateFromData('${certData}')">
-        <i class="fas fa-print"></i> طباعة شهادة
-      </button>
-    </div>`;
-  }).join('');
 }
 
 function printCertificateFromData(encodedData){
@@ -1277,27 +1286,36 @@ async function loadSchedule(){
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
-  const { data, error } = await _supabase.from('schedule').select('*')
-    .eq('term', currentScheduleTerm).eq('academic_year', year)
-    .order('created_at', { ascending:false }).limit(1).maybeSingle();
+  const timeoutPromise = new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout')), 6000));
 
-  if(error || !data){
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لم يتم رفع الجدول لهذا الترم بعد</p></div>';
-    return;
+  try {
+    const { data, error } = await Promise.race([
+      _supabase.from('schedule').select('*')
+        .eq('term', currentScheduleTerm).eq('academic_year', year)
+        .order('created_at', { ascending:false }).limit(1).maybeSingle(),
+      timeoutPromise
+    ]);
+
+    if(error || !data){
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لم يتم رفع الجدول لهذا الترم بعد</p></div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="schedule-meta">
+        <i class="far fa-clock"></i> تم رفع الجدول بتاريخ: ${formatDate(data.created_at)}
+      </div>
+      <div class="schedule-box">
+        <img id="schedule-img" src="${escapeHtml(data.image_url)}" alt="الجدول الدراسي">
+      </div>
+      <div class="schedule-actions">
+        <button onclick="printSchedule()"><i class="fas fa-print"></i> طباعة</button>
+        <button onclick="downloadSchedule('${escapeHtml(data.image_url)}')"><i class="fas fa-download"></i> تحميل</button>
+        <button onclick="openShareSheet('${escapeHtml(data.image_url)}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
+      </div>`;
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات — تأكد من وجود جدول schedule في Supabase</p></div>';
   }
-
-  container.innerHTML = `
-    <div class="schedule-meta">
-      <i class="far fa-clock"></i> تم رفع الجدول بتاريخ: ${formatDate(data.created_at)}
-    </div>
-    <div class="schedule-box">
-      <img id="schedule-img" src="${escapeHtml(data.image_url)}" alt="الجدول الدراسي">
-    </div>
-    <div class="schedule-actions">
-      <button onclick="printSchedule()"><i class="fas fa-print"></i> طباعة</button>
-      <button onclick="downloadSchedule('${escapeHtml(data.image_url)}')"><i class="fas fa-download"></i> تحميل</button>
-      <button onclick="openShareSheet('${escapeHtml(data.image_url)}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
-    </div>`;
 }
 
 function printSchedule(){
@@ -1381,62 +1399,89 @@ async function loadLectures(){
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
-  let query = _supabase.from('lectures').select('*');
-  if(currentLectureCategory === 'programming'){
-    query = query.eq('category', 'programming');
-  } else {
-    query = query.eq('academic_year', year)
-                 .eq('term', currentLecturesTerm)
-                 .eq('subject_name', currentLectureSubject)
-                 .eq('category', currentLectureCategory);
+  const timeoutPromise = new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout')), 6000));
+
+  try {
+    let query = _supabase.from('lectures').select('*');
+    if(currentLectureCategory === 'programming'){
+      query = query.eq('category', 'programming');
+    } else {
+      query = query.eq('academic_year', year)
+                   .eq('term', currentLecturesTerm)
+                   .eq('subject_name', currentLectureSubject)
+                   .eq('category', currentLectureCategory);
+    }
+
+    const { data, error } = await Promise.race([
+      query.order('created_at', { ascending: false }),
+      timeoutPromise
+    ]);
+
+    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات — تأكد من وجود جدول lectures</p></div>'; return; }
+    if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; return; }
+
+    container.innerHTML = data.map(l => {
+      const titleEscaped = escapeHtml(l.lecture_title || 'محاضرة');
+      const pdfUrl = l.pdf_url ? escapeHtml(l.pdf_url) : '';
+      const videoUrl = l.video_url ? escapeHtml(l.video_url) : '';
+
+      return `
+      <div class="lecture-card">
+        <div class="lecture-title">${titleEscaped}</div>
+        <div class="lecture-tags">
+          ${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}
+          ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+          ${pdfUrl ? `
+            <div style="display:flex; gap:8px;">
+              <button onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
+                <i class="fas fa-file-pdf"></i> قراءة الـ PDF
+              </button>
+              <a href="${pdfUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+                <i class="fas fa-download"></i> تحميل
+              </a>
+            </div>
+          ` : ''}
+          ${videoUrl ? `
+            <div style="display:flex; gap:8px;">
+              <button onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
+                <i class="fas fa-play-circle"></i> مشاهدة الفيديو
+              </button>
+              <a href="${videoUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+                <i class="fas fa-download"></i> تحميل
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات — تأكد من وجود جدول lectures في Supabase</p></div>';
   }
-
-  const { data, error } = await query.order('created_at', { ascending: false });
-
-  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات</p></div>'; return; }
-  if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; return; }
-
-  container.innerHTML = data.map(l => {
-    const titleEscaped = escapeHtml(l.lecture_title || 'محاضرة');
-    const pdfUrl = l.pdf_url ? escapeHtml(l.pdf_url) : '';
-    const videoUrl = l.video_url ? escapeHtml(l.video_url) : '';
-
-    return `
-    <div class="lecture-card">
-      <div class="lecture-title">${titleEscaped}</div>
-      <div class="lecture-tags">
-        ${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}
-        ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
-      </div>
-      <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
-        ${pdfUrl ? `
-          <div style="display:flex; gap:8px;">
-            <button onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
-              <i class="fas fa-file-pdf"></i> قراءة الـ PDF
-            </button>
-            <a href="${pdfUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
-              <i class="fas fa-download"></i> تحميل
-            </a>
-          </div>
-        ` : ''}
-        ${videoUrl ? `
-          <div style="display:flex; gap:8px;">
-            <button onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
-              <i class="fas fa-play-circle"></i> مشاهدة الفيديو
-            </button>
-            <a href="${videoUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
-              <i class="fas fa-download"></i> تحميل
-            </a>
-          </div>
-        ` : ''}
-      </div>
-    </div>`;
-  }).join('');
 }
 
 function getCategoryName(cat){
   const map = { lecture:'محاضرة', section:'سكشن', course:'كورس', programming:'كورس برمجة' };
   return map[cat] || cat;
+}
+
+/* ================== تعبئة قائمة مواد صفحة أسئلة الامتحانات ================== */
+function populateQuestionsSubjects(){
+  const year = currentProfile?.academic_year || '1';
+  const allSubjects = new Set([
+    ...(LECTURE_SUBJECTS[year]?.['1'] || []),
+    ...(LECTURE_SUBJECTS[year]?.['2'] || [])
+  ]);
+
+  const fillSelect = (selectEl) => {
+    if(!selectEl) return;
+    selectEl.innerHTML = '<option value="">اختر المادة</option>' +
+      Array.from(allSubjects).map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  };
+
+  fillSelect(document.getElementById('q-subject-select'));
+  fillSelect(document.getElementById('questions-subject'));
 }
 
 /* ================== مودال PDF ================== */
@@ -1594,6 +1639,15 @@ document.addEventListener('click', (e)=>{
   }
 });
   </script>
+
+
+
+
+
+
+
+
+
 
 
   
