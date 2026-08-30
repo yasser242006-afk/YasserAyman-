@@ -331,6 +331,12 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 #video-time { font-size: 12px; color: #cbd5e1; }
 
 
+/* تنسيق الأزرار عند الضغط والتفعيل */
+.term-btn.active, .type-btn.active {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
 
   
 </style>
@@ -1514,6 +1520,84 @@ if(view === 'questions' || view === 'lectures'){
 
 
 
+async function loadLectures() {
+  const container = document.getElementById('lectures-container');
+  if (!container) return;
+  
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل المحاضرات...</p></div>';
+  
+  const year = currentProfile?.academic_year || '1';
+
+  // جلب المحاضرات الخاصة بالمادة والترم المحددين
+  const { data, error } = await _supabase
+    .from('lectures')
+    .select('*')
+    .eq('academic_year', year)
+    .eq('term', currentLecturesTerm)
+    .eq('subject_name', currentLectureSubject)
+    .order('created_at', { ascending: false });
+
+  if (error) { 
+    console.error('Fetch error:', error);
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل المحاضرات</p></div>'; 
+    return; 
+  }
+
+  if (!data || data.length === 0) { 
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد محاضرات أو سكاشن مضافة لهذه المادة بعد</p></div>'; 
+    return; 
+  }
+
+  container.innerHTML = data.map(l => {
+    // التحقق من وجود الروابط وتنظيفها
+    const hasVideo = l.video_url && l.video_url.trim() !== '';
+    const hasPdf = l.pdf_url && l.pdf_url.trim() !== '';
+
+    return `
+    <div class="lecture-card" style="background:var(--bg-card, #fff); border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+      <h3 class="lecture-title" style="margin-bottom:8px; font-size:1.1rem;">${escapeHtml(l.lecture_title || 'محاضرة بدون عنوان')}</h3>
+      
+      <div class="lecture-tags" style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        ${l.section ? `<span class="lecture-tag" style="background:#f0f2f5; padding:4px 8px; border-radius:6px; font-size:0.85rem;"><i class="fas fa-layer-group"></i> سكشن: ${escapeHtml(l.section)}</span>` : ''}
+        ${l.course_name ? `<span class="lecture-tag" style="background:#f0f2f5; padding:4px 8px; border-radius:6px; font-size:0.85rem;"><i class="fas fa-book"></i> كورس: ${escapeHtml(l.course_name)}</span>` : ''}
+      </div>
+
+      <!-- مشغل الفيديو -->
+      ${hasVideo ? `
+        <div style="margin-bottom:12px;">
+          <video controls controlsList="nodownload" style="width:100%; border-radius:8px; max-height:280px; background:#000;">
+            <source src="${escapeHtml(l.video_url)}" type="video/mp4">
+            متصفحك لا يدعم تشغيل الفيديو.
+          </video>
+        </div>
+      ` : ''}
+
+      <!-- أزرار الملفات والتنزيل -->
+      <div class="lecture-files" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+        ${hasPdf ? `
+          <div style="display:flex; gap:8px; width:100%;">
+            <a class="lecture-file-link" style="flex:1; text-align:center; background:#4f46e5; color:#fff; padding:8px; border-radius:6px; text-decoration:none;" href="${escapeHtml(l.pdf_url)}" target="_blank">
+              <i class="fas fa-file-pdf"></i> فتح ملف PDF
+            </a>
+            <button class="print-btn" style="padding:8px 12px; background:#e0e7ff; color:#4f46e5; border:none; border-radius:6px; cursor:pointer;" onclick="downloadFile('${escapeHtml(l.pdf_url)}', 'محاضرة.pdf')">
+              <i class="fas fa-download"></i> تنزيل
+            </button>
+          </div>
+        ` : ''}
+
+        ${hasVideo ? `
+          <button class="print-btn" style="width:100%; padding:8px; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer;" onclick="downloadFile('${escapeHtml(l.video_url)}', 'فيديو-المحاضرة.mp4')">
+            <i class="fas fa-download"></i> تنزيل الفيديو على الجهاز
+          </button>
+        ` : ''}
+
+        ${!hasPdf && !hasVideo ? `
+          <p style="color:#888; font-size:0.85rem; margin:0;">لا توجد مرفقات متاحة لهذه المحاضرة حالياً.</p>
+        ` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
 
 
 
