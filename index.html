@@ -619,8 +619,6 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 
 
-
-
 <!-- ================== مودال عرض الـ PDF ================== -->
 <div id="pdf-modal" class="custom-modal">
   <div class="modal-content pdf-content">
@@ -666,48 +664,6 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 </div>
 
-
-<script>
-
-  /* ================== إعداد Supabase ================== */
-const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let currentUser = null;
-let currentProfile = null;
-let currentTerm = '1';
-let currentExamType = 'quiz';
-let-header">
-      <h3 id="video-modal-title"><i class="fas fa-video"></i> مشاهدة المحاضرة</h3>
-      <button class="close-btn" onclick="closeVideoModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="video-player-wrapper">
-        <video id="custom-video-player" src=""></video>
-
-        <!-- شريط تحكم الفيديو -->
-        <div class="video-controls">
-          <input type="range" id="video-progress" value="0" min="0" step="0.1">
-          <div class="controls-row">
-            <div class="left-controls">
-              <button onclick="togglePlayPause()" id="play-btn"><i class="fas fa-play"></i></button>
-              <button onclick="rewindVideo(5)" title="تأخير 5 ثواني"><i class="fas fa-undo"></i> 5s</button>
-              <button onclick="forwardVideo(10)" title="تقديم 10 ثواني"><i class="fas fa-redo"></i> 10s</button>
-              <span id="video-time">00:00 / 00:00</span>
-            </div>
-            <div class="right-controls">
-              <a id="video-download-btn" href="" download target="_blank" class="control-btn" title="تحميل الفيديو"><i class="fas fa-download"></i></a>
-              <button onclick="toggleFullScreen()" title="تكبير الشاشة"><i class="fas fa-expand"></i></button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
@@ -719,13 +675,25 @@ let currentProfile = null;
 let currentTerm = '1';
 let currentExamType = 'quiz';
 let currentPostIdForComments = null;
-let imageTargetType = null; // 'avatar' or 'cover'
+let imageTargetType = null;
 
-/* أفاتار افتراضي ديناميكي: بيرجع أول حرف من اسم الطالب الحقيقي */
-function getDefaultAvatar(){
-  const name = currentProfile?.full_name || currentUser?.email || 'Student';
-  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
-}
+let currentLecturesTerm = '1';
+let currentLectureSubject = '';
+let currentLectureCategory = 'lecture'; // lecture | section | course | programming
+
+/* أسماء المواد الدراسية */
+const LECTURE_SUBJECTS = {
+  '1': {
+    '1': ['مقدمة في الحاسبات', 'مقدمة في نظم التشغيل', 'مراسلات و مصطلحات إنجليزية', 'مبادئ الإقتصاد', 'مبادئ تنظيم وإدارة'],
+    '2': ['اساسيات في البرمجه الهيكليه', 'حزم التطبيقات المكتبية', 'الرياضيات و التامين', 'مبادئ محاسبة', 'مبادئ سلوك التنظيمي', 'إدارة عامة']
+  },
+  '2': {
+    '1': ['قواعد البيانات (1)', 'البرمجة الهيكلية المتقدمة', 'محاسبة شركات', 'دراسات إقتصادية بلغة إنجليزية', 'إدارة الانتاج و العمليات'],
+    '2': ['تسويق', 'قانون تجاري', 'نظم معلومات إدارية', 'إحصاء', 'رياضيات تمويل', 'تطبيقات الانترنت و الوسائط المتعددة']
+  },
+  '3': { '1': [], '2': [] },
+  '4': { '1': [], '2': [] }
+};
 
 /* ================== Toast ================== */
 function showToast(message, type='info'){
@@ -738,29 +706,28 @@ function showToast(message, type='info'){
   setTimeout(()=>toast.remove(), 3500);
 }
 
+function getDefaultAvatar(){
+  const name = currentProfile?.full_name || currentUser?.email || 'Student';
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
+}
+
 /* ================== تهيئة الصفحة والتحقق من الحساب ================== */
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
   try {
-    // إعطاء وقت بسيط لمعالجة رمز الدخول القادم من Supabase Auth
     await new Promise(resolve => setTimeout(resolve, 200));
 
     const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
 
-    // إذا لم يكن هناك جلسة تسجل خروج حقيقي للتوجيه إلى لصفحة الدخول
     if (sessionError || !session) {
       window.location.href = 'login.html';
       return;
     }
 
     currentUser = session.user;
-
-    // جلب بيانات الحساب
     const result = await loadProfile();
 
-    // لو الحساب غير موجود في قاعدة البيانات (سواء مستخدم جديد أو تم مسح بياناته)
-    // يتم إنشاء صف جديد له فوراً ويعامل كأنه مستخدم جديد دون أي طرد
     if (result === 'not_found' || !currentProfile) {
       await createFreshProfileRow();
     }
@@ -773,7 +740,6 @@ async function init(){
   } catch(err) {
     console.error('Initialization error:', err);
   } finally {
-    // إخفاء شاشة التحميل وإظهار الواجهة دائماً
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
     if(loadingScreen) loadingScreen.style.display = 'none';
@@ -788,14 +754,8 @@ async function loadProfile(){
       .eq('id', currentUser.id)
       .maybeSingle();
 
-    if (error) {
-      console.error('Profile load error:', error);
-      return 'error';
-    }
-
-    if (!data) {
-      return 'not_found';
-    }
+    if (error) return 'error';
+    if (!data) return 'not_found';
 
     currentProfile = data;
     return 'ok';
@@ -804,7 +764,6 @@ async function loadProfile(){
   }
 }
 
-/* ================== إنشاء صف بروفايل جديد تلقائياً ================== */
 async function createFreshProfileRow(){
   const userData = {
     id: currentUser.id,
@@ -824,8 +783,7 @@ async function createFreshProfileRow(){
     .maybeSingle();
 
   if (error) {
-    console.error('Error creating fresh profile row:', error);
-    currentProfile = userData; // استخدام البيانات مؤقتاً في حالة حدوث مشكلة شبكة
+    currentProfile = userData;
     return;
   }
 
@@ -851,7 +809,6 @@ function renderProfileUI(){
   if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'السنة الأولى';
 }
 
-/* ================== رسالة الترحيب (أول دخول فقط) ================== */
 async function maybeShowWelcome(){
   if(currentProfile && !currentProfile.first_login_shown){
     const welcomeTitle = document.getElementById('welcome-title');
@@ -866,7 +823,6 @@ async function maybeShowWelcome(){
   }
 }
 
-/* ================== Sidebar / Notifications toggles ================== */
 function toggleSidebar(){
   document.getElementById('sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('open');
@@ -914,7 +870,6 @@ async function refreshNotifications(){
     </div>`).join('');
 }
 
-/* ================== التنقل بين الصفحات ================== */
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const targetView = document.getElementById('view-'+view);
@@ -944,61 +899,7 @@ function switchView(view, el){
   if(view === 'lectures') renderLectureSubjectTabs();
 }
 
-/* ================== الصورة الشخصية / الغلاف ================== */
-function openImageMenu(e, type){
-  e.stopPropagation();
-  imageTargetType = type;
-  const menu = document.getElementById('image-menu');
-  if(!menu) return;
-  menu.style.top = (e.clientY + 10) + 'px';
-  menu.style.left = Math.max(10, e.clientX - 170) + 'px';
-  menu.classList.add('open');
-  document.addEventListener('click', closeImageMenuOnce);
-}
-
-function closeImageMenuOnce(){
-  const menu = document.getElementById('image-menu');
-  if(menu) menu.classList.remove('open');
-  document.removeEventListener('click', closeImageMenuOnce);
-}
-
-function viewImage(){
-  const src = currentProfile?.avatar_url || getDefaultAvatar();
-  window.open(src, '_blank');
-}
-
-function triggerImageChange(){
-  document.getElementById('image-file-input')?.click();
-}
-
-document.getElementById('image-file-input')?.addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const ext = file.name.split('.').pop();
-    const path = `${currentUser.id}/avatar_${Date.now()}.${ext}`;
-    const { error: upErr } = await _supabase.storage.from('avatars').upload(path, file, { upsert:true });
-    if(upErr) throw upErr;
-    const { data } = _supabase.storage.from('avatars').getPublicUrl(path);
-    await _supabase.from('yasser_ayman').update({ avatar_url: data.publicUrl }).eq('id', currentUser.id);
-    if(!currentProfile) currentProfile = {};
-    currentProfile.avatar_url = data.publicUrl;
-    renderProfileUI();
-    showToast('تم تحديث الصورة بنجاح', 'success');
-  }catch(err){
-    showToast('حدث خطأ أثناء رفع الصورة: '+err.message, 'error');
-  }
-  e.target.value = '';
-});
-
-async function deleteImage(){
-  await _supabase.from('yasser_ayman').update({ avatar_url: null }).eq('id', currentUser.id);
-  if(currentProfile) currentProfile.avatar_url = null;
-  renderProfileUI();
-  showToast('تم حذف الصورة', 'success');
-}
-
-/* ================== المنشورات (الصفحة الرئيسية) ================== */
+/* ================== إدارة المنشورات والتعليقات والجدول والدرجات ================== */
 async function loadPosts(){
   const year = currentProfile?.academic_year || '1';
   const container = document.getElementById('posts-container');
@@ -1085,7 +986,6 @@ function sharePost(postId){
   openShareSheet(url, 'شاهد هذا المنشور في بوابة الطلاب');
 }
 
-/* ================== التعليقات ================== */
 async function openComments(postId){
   currentPostIdForComments = postId;
   document.getElementById('comments-overlay')?.classList.add('open');
@@ -1181,208 +1081,38 @@ async function toggleCommentLike(commentId, btn){
   await renderComments();
 }
 
-/* ================== الدرجات ================== */
-function setTerm(term, el){
-  currentTerm = term;
-  document.querySelectorAll('.term-toggle button').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  loadGrades();
-}
-
-function setExamType(type, el){
-  currentExamType = type;
-  document.querySelectorAll('.exam-type-tabs button').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  loadGrades();
-}
-
-function gradeInfo(percent){
-  if(percent >= 85) return { label:'امتياز', cls:'excellent' };
-  if(percent >= 75) return { label:'جيد جدًا', cls:'vgood' };
-  if(percent >= 65) return { label:'جيد', cls:'good' };
-  if(percent >= 50) return { label:'مقبول', cls:'pass' };
-  return { label:'ضعيف', cls:'weak' };
-}
-
-async function loadGrades(){
-  const container = document.getElementById('grades-container');
-  if(!container) return;
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
-  
-  const { data: grades, error } = await _supabase.from('grades').select('*')
-    .eq('student_id', currentUser.id)
-    .eq('term', currentTerm)
-    .eq('exam_type', currentExamType)
-    .order('created_at', { ascending:false });
-
-  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات</p></div>'; return; }
-  if(!grades || grades.length === 0){
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد درجات مسجلة بعد</p></div>';
-    drawChart([]);
-    return;
-  }
-
-  drawChart(grades);
-  container.innerHTML = grades.map(g=>{
-    const percent = Math.round((g.score / g.max_score) * 1000)/10;
-    const info = gradeInfo(percent);
-    const certData = encodeURIComponent(JSON.stringify({subject: g.subject_name, percent, label: info.label, rank: g.rank}));
-    return `
-    <div class="grade-card">
-      <div class="grade-card-top">
-        <div class="grade-subject">${escapeHtml(g.subject_name||'')}</div>
-        <div class="grade-badge ${info.cls}">${info.label}</div>
-      </div>
-      <div class="grade-score-row">
-        <div class="grade-score-big">${g.score} / ${g.max_score}</div>
-        <div style="font-size:13px;color:var(--text-secondary)">النسبة: <b style="color:var(--text)">${percent}%</b></div>
-      </div>
-      <div class="grade-grid">
-        <div>المركز: <b>${g.rank ? '#'+g.rank : '-'}</b></div>
-        <div>تاريخ الامتحان: <b>${g.exam_date || '-'}</b></div>
-        <div>ساعة الامتحان: <b>${g.exam_time || '-'}</b></div>
-        <div>تاريخ النتيجة: <b>${g.result_date || '-'}</b></div>
-      </div>
-      <button class="print-btn" onclick="printCertificateFromData('${certData}')">
-        <i class="fas fa-print"></i> طباعة شهادة
-      </button>
-    </div>`;
-  }).join('');
-}
-
-function printCertificateFromData(encodedData){
-  try {
-    const data = JSON.parse(decodeURIComponent(encodedData));
-    printCertificate(data);
-  } catch(e) {
-    console.error('Certificate data error', e);
-  }
-}
-
-function drawChart(grades){
-  const svg = document.getElementById('grades-chart');
-  if(!svg) return;
-  if(!grades || grades.length === 0){ 
-    svg.innerHTML = '<text x="160" y="90" text-anchor="middle" fill="#94a3b8" font-size="12">لا توجد بيانات لعرضها</text>'; 
-    return; 
-  }
-  const w = 320, h = 180, padding = 30, barGap = 14;
-  const barW = Math.min(46, (w - padding*2) / grades.length - barGap);
-  let bars = '';
-  grades.forEach((g, i)=>{
-    const percent = (g.score / g.max_score) * 100;
-    const barH = (percent/100) * (h - 50);
-    const x = padding + i*(barW+barGap);
-    const y = h - 30 - barH;
-    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="6" fill="url(#gradGrad)"/>`;
-    bars += `<text x="${x+barW/2}" y="${y-6}" text-anchor="middle" font-size="10" fill="#4f46e5" font-weight="700">${Math.round(percent)}%</text>`;
-    bars += `<text x="${x+barW/2}" y="${h-14}" text-anchor="middle" font-size="9" fill="#64748b">${escapeHtml((g.subject_name||'').slice(0,6))}</text>`;
-  });
-  svg.innerHTML = `
-    <defs><linearGradient id="gradGrad" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#0ea5e9"/>
-    </linearGradient></defs>
-    <line x1="20" y1="${h-30}" x2="${w-10}" y2="${h-30}" stroke="#e2e8f0" stroke-width="1"/>
-    ${bars}`;
-}
-
-function printCertificate({subject, percent, label, rank}){
-  const cName = document.getElementById('cert-name');
-  const cPercent = document.getElementById('cert-percent');
-  const cGrade = document.getElementById('cert-grade');
-  const cRank = document.getElementById('cert-rank');
-  const cSubj = document.getElementById('cert-subject-line');
-
-  if(cName) cName.innerText = currentProfile?.full_name || currentUser.email;
-  if(cPercent) cPercent.innerText = percent + '%';
-  if(cGrade) cGrade.innerText = label;
-  if(cRank) cRank.innerText = rank ? ('#'+rank) : '-';
-  if(cSubj) cSubj.innerText = 'مادة: ' + subject;
-  
-  window.print();
-}
-
-/* ================== الجدول الدراسي ================== */
-let currentScheduleTerm = '1';
-
-function setScheduleTerm(term, el){
-  currentScheduleTerm = term;
-  document.querySelectorAll('#view-schedule .term-toggle button').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  loadSchedule();
-}
-
-async function loadSchedule(){
-  const container = document.getElementById('schedule-container');
-  if(!container) return;
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
-  const year = currentProfile?.academic_year || '1';
-
-  const { data, error } = await _supabase.from('schedule').select('*')
-    .eq('term', currentScheduleTerm).eq('academic_year', year)
-    .order('created_at', { ascending:false }).limit(1).maybeSingle();
-
-  if(error || !data){
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لم يتم رفع الجدول لهذا الترم بعد</p></div>';
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="schedule-meta">
-      <i class="far fa-clock"></i> تم رفع الجدول بتاريخ: ${formatDate(data.created_at)}
-    </div>
-    <div class="schedule-box">
-      <img id="schedule-img" src="${escapeHtml(data.image_url)}" alt="الجدول الدراسي">
-    </div>
-    <div class="schedule-actions">
-      <button onclick="printSchedule()"><i class="fas fa-print"></i> طباعة</button>
-      <button onclick="downloadSchedule('${escapeHtml(data.image_url)}')"><i class="fas fa-download"></i> تحميل</button>
-      <button onclick="openShareSheet('${escapeHtml(data.image_url)}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
-    </div>`;
-}
-
-function printSchedule(){
-  const img = document.getElementById('schedule-img');
-  if(!img) return;
-  const w = window.open('', '_blank');
-  if(!w) return;
-  w.document.write(`<html dir="rtl"><head><title>طباعة الجدول</title></head><body style="margin:0;text-align:center;">
-    <img src="${img.src}" style="max-width:100%;"><script>window.onload=()=>{window.print();}<\/script></body></html>`);
-  w.document.close();
-}
-
-async function downloadSchedule(url){
-  try{
-    const res = await fetch(url);
-    const blob = await res.blob();
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'الجدول-الدراسي.jpg';
-    link.click();
-  }catch(e){
-    window.open(url, '_blank');
-  }
-}
-
-/* ================== المحاضرات الكلية ================== */
-let currentLecturesTerm = '1';
-let currentLectureSubject = '';
-
-const LECTURE_SUBJECTS = {
-  '1': { '1':[], '2':[] },
-  '2': { '1':[], '2':[] },
-  '3': { '1':[], '2':[] },
-  '4': { '1':[], '2':[] },
-};
-
+/* ================== قسم المحاضرات والكورسات ================== */
 function setLecturesTerm(term, el){
   currentLecturesTerm = term;
   currentLectureSubject = '';
-  document.querySelectorAll('#view-lectures .term-toggle button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#view-lectures .term-toggle button').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
-  renderLectureSubjectTabs();
+  
+  if(currentLectureCategory !== 'programming'){
+    renderLectureSubjectTabs();
+  }
+  resetLecturesContainer();
+}
+
+function setLectureCategory(cat, el){
+  currentLectureCategory = cat;
+  document.querySelectorAll('#lecture-category-tabs button').forEach(b => b.classList.remove('active'));
+  if(el) el.classList.add('active');
+
+  const subjTabs = document.getElementById('lectures-subject-tabs');
+  if(cat === 'programming'){
+    if(subjTabs) subjTabs.style.display = 'none';
+    loadLectures();
+  } else {
+    if(subjTabs) subjTabs.style.display = 'flex';
+    renderLectureSubjectTabs();
+    resetLecturesContainer();
+  }
+}
+
+function resetLecturesContainer(){
   const container = document.getElementById('lectures-container');
-  if(container) container.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحاضرات</p></div>';
+  if(container) container.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحتوى</p></div>';
 }
 
 function renderLectureSubjectTabs(){
@@ -1390,8 +1120,9 @@ function renderLectureSubjectTabs(){
   const subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
   const tabsEl = document.getElementById('lectures-subject-tabs');
   if(!tabsEl) return;
+  
   if(subjects.length === 0){
-    tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);">سيتم إضافة أسماء المواد قريبًا</span>';
+    tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);padding:6px;">سيتم إضافة أسماء المواد قريبًا</span>';
     return;
   }
   tabsEl.innerHTML = subjects.map(s => `<button onclick="setLectureSubject('${escapeHtml(s)}', this)">${escapeHtml(s)}</button>`).join('');
@@ -1399,7 +1130,7 @@ function renderLectureSubjectTabs(){
 
 function setLectureSubject(subject, el){
   currentLectureSubject = subject;
-  document.querySelectorAll('#lectures-subject-tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#lectures-subject-tabs button').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
   loadLectures();
 }
@@ -1410,78 +1141,185 @@ async function loadLectures(){
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
-  const { data, error } = await _supabase.from('lectures').select('*')
-    .eq('academic_year', year).eq('term', currentLecturesTerm).eq('subject_name', currentLectureSubject)
-    .order('created_at', { ascending:false });
+  let query = _supabase.from('lectures').select('*');
 
-  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل المحاضرات</p></div>'; return; }
-  if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد محاضرات مرفوعة لهذه المادة بعد</p></div>'; return; }
+  if(currentLectureCategory === 'programming'){
+    query = query.eq('category', 'programming');
+  } else {
+    query = query.eq('academic_year', year)
+                 .eq('term', currentLecturesTerm)
+                 .eq('subject_name', currentLectureSubject)
+                 .eq('category', currentLectureCategory);
+  }
 
-  container.innerHTML = data.map(l => `
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if(error){ 
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات</p></div>'; 
+    return; 
+  }
+  if(!data || data.length === 0){ 
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; 
+    return; 
+  }
+
+  container.innerHTML = data.map(l => {
+    const titleEscaped = escapeHtml(l.lecture_title || 'محاضرة');
+    const pdfUrl = l.pdf_url ? escapeHtml(l.pdf_url) : '';
+    const videoUrl = l.video_url ? escapeHtml(l.video_url) : '';
+
+    return `
     <div class="lecture-card">
-      <div class="lecture-title">${escapeHtml(l.lecture_title || '')}</div>
+      <div class="lecture-title">${titleEscaped}</div>
       <div class="lecture-tags">
-        ${l.section ? `<span class="lecture-tag"><i class="fas fa-layer-group"></i> سكشن: ${escapeHtml(l.section)}</span>` : ''}
-        ${l.course_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> كورس: ${escapeHtml(l.course_name)}</span>` : ''}
+        ${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}
+        ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
       </div>
-      <div class="lecture-files">
-        ${l.pdf_url ? `<a class="lecture-file-link" href="${escapeHtml(l.pdf_url)}" target="_blank"><i class="fas fa-file-pdf"></i> ملف المحاضرة (PDF)</a>` : ''}
-        ${l.video_url ? `<a class="lecture-file-link" href="${escapeHtml(l.video_url)}" target="_blank"><i class="fas fa-video"></i> فيديو الشرح</a>` : ''}
+      
+      <div class="lecture-actions-grid" style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+        ${pdfUrl ? `
+          <div class="file-action-group" style="display:flex; gap:8px;">
+            <button class="act-btn" onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer;">
+              <i class="fas fa-file-pdf"></i> قراءة الـ PDF
+            </button>
+            <a href="${pdfUrl}" download target="_blank" class="act-btn" style="background:#f3f4f6; color:#333; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+              <i class="fas fa-download"></i> تحميل
+            </a>
+          </div>
+        ` : ''}
+
+        ${videoUrl ? `
+          <div class="file-action-group" style="display:flex; gap:8px;">
+            <button class="act-btn" onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer;">
+              <i class="fas fa-play-circle"></i> مشاهدة الفيديو
+            </button>
+            <a href="${videoUrl}" download target="_blank" class="act-btn" style="background:#f3f4f6; color:#333; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+              <i class="fas fa-download"></i> تحميل
+            </a>
+          </div>
+        ` : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-/* ================== شيت المشاركة ================== */
-let shareTargetUrl = '';
+function getCategoryName(cat){
+  const map = { 'lecture': 'محاضرة', 'section': 'سكشن', 'course': 'كورس', 'programming': 'برمجة' };
+  return map[cat] || cat;
+}
 
-function openShareSheet(url, text){
-  shareTargetUrl = url;
-  const linkInput = document.getElementById('share-link-input');
-  const overlay = document.getElementById('share-overlay');
-  if(linkInput) linkInput.value = url;
-  if(overlay) {
-    overlay.dataset.text = text || 'بوابة الطلاب';
-    overlay.classList.add('open');
+/* ================== دوال التحكم في الـ PDF والمودال ================== */
+function openPdfModal(url, title){
+  const modal = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-frame');
+  const titleEl = document.getElementById('pdf-modal-title');
+  if(!modal || !frame) return;
+  
+  frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+  if(titleEl) titleEl.innerText = title;
+  modal.classList.add('open');
+}
+
+function closePdfModal(){
+  const modal = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-frame');
+  if(frame) frame.src = '';
+  if(modal) modal.classList.remove('open');
+}
+
+/* ================== دوال مشغل الفيديو ================== */
+const videoPlayer = document.getElementById('custom-video-player');
+const progressInput = document.getElementById('video-progress');
+
+function openVideoModal(url, title){
+  const modal = document.getElementById('video-modal');
+  const titleEl = document.getElementById('video-modal-title');
+  const downloadBtn = document.getElementById('video-download-btn');
+  
+  if(!modal || !videoPlayer) return;
+  
+  videoPlayer.src = url;
+  if(titleEl) titleEl.innerText = title;
+  if(downloadBtn) downloadBtn.href = url;
+  
+  modal.classList.add('open');
+  videoPlayer.play();
+  updatePlayBtnIcon(true);
+}
+
+function closeVideoModal(){
+  const modal = document.getElementById('video-modal');
+  if(videoPlayer) {
+    videoPlayer.pause();
+    videoPlayer.src = '';
+  }
+  if(modal) modal.classList.remove('open');
+}
+
+function togglePlayPause(){
+  if(!videoPlayer) return;
+  if(videoPlayer.paused){
+    videoPlayer.play();
+    updatePlayBtnIcon(true);
+  } else {
+    videoPlayer.pause();
+    updatePlayBtnIcon(false);
   }
 }
 
-function closeShareSheet(){
-  document.getElementById('share-overlay')?.classList.remove('open');
+function updatePlayBtnIcon(isPlaying){
+  const btn = document.getElementById('play-btn');
+  if(btn) btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
 }
 
-function copyShareLink(){
-  navigator.clipboard.writeText(shareTargetUrl);
-  showToast('تم نسخ الرابط', 'success');
+function rewindVideo(seconds){
+  if(videoPlayer) videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - seconds);
 }
 
-function shareVia(platform){
-  const url = encodeURIComponent(shareTargetUrl);
-  const text = encodeURIComponent(document.getElementById('share-overlay')?.dataset.text || 'بوابة الطلاب');
-  let link = '';
-  switch(platform){
-    case 'whatsapp': link = `https://wa.me/?text=${text}%20${url}`; break;
-    case 'facebook': link = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
-    case 'messenger': link = `fb-messenger://share/?link=${url}`; break;
-    case 'whatsapp_status':
-    case 'facebook_story':
-    case 'instagram_story':
-      navigator.clipboard.writeText(shareTargetUrl);
-      showToast('تم نسخ الرابط، افتح التطبيق وحط الصورة/الرابط في الستوري', 'success');
-      return;
-    case 'instagram':
-      navigator.clipboard.writeText(shareTargetUrl);
-      showToast('تم نسخ الرابط، افتحه داخل انستجرام لمشاركته', 'success');
-      return;
-    case 'more':
-      if(navigator.share){ navigator.share({ title:'بوابة الطلاب', url: shareTargetUrl }).catch(()=>{}); return; }
-      navigator.clipboard.writeText(shareTargetUrl);
-      showToast('تم نسخ الرابط', 'success');
-      return;
+function forwardVideo(seconds){
+  if(videoPlayer) videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + seconds);
+}
+
+function toggleFullScreen(){
+  if(!videoPlayer) return;
+  if(videoPlayer.requestFullscreen){
+    videoPlayer.requestFullscreen();
+  } else if(videoPlayer.webkitRequestFullscreen){
+    videoPlayer.webkitRequestFullscreen();
   }
-  window.open(link, '_blank');
 }
 
-/* ================== أدوات مساعدة ================== */
+if(videoPlayer){
+  videoPlayer.addEventListener('timeupdate', ()=>{
+    if(!isNaN(videoPlayer.duration)){
+      const val = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+      if(progressInput) progressInput.value = val;
+      
+      const timeEl = document.getElementById('video-time');
+      if(timeEl){
+        timeEl.innerText = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
+      }
+    }
+  });
+
+  videoPlayer.addEventListener('ended', ()=> updatePlayBtnIcon(false));
+}
+
+if(progressInput){
+  progressInput.addEventListener('input', ()=>{
+    if(videoPlayer && !isNaN(videoPlayer.duration)){
+      videoPlayer.currentTime = (progressInput.value / 100) * videoPlayer.duration;
+    }
+  });
+}
+
+function formatTime(sec){
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+}
+
+/* ================== أدوات مساعدة العامة ================== */
 function escapeHtml(str){
   if(!str) return '';
   const d = document.createElement('div');
@@ -1496,7 +1334,6 @@ function formatDate(iso){
   }catch(e){ return ''; }
 }
 
-/* إغلاق التنبيهات عند الضغط خارجها */
 document.addEventListener('click', (e)=>{
   const dd = document.getElementById('notif-dropdown');
   const bell = document.getElementById('bell-btn');
@@ -1504,8 +1341,10 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
+</script>
 
 
+    
 
 
 
