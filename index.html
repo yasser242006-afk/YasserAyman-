@@ -536,24 +536,41 @@ function showToast(message, type='info'){
   setTimeout(()=>toast.remove(), 3500);
 }
 
-/* ================== تهيئة الصفحة ================== */
+
+
+/* ================== تهيئة الصفحة والتحقق من الحساب ================== */
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
   try {
-    const { data: { session } } = await _supabase.auth.getSession();
-    if(!session){
-      window.location.href = 'login.html';
+    // 1. التحقق من وجود Session محلياً
+    const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      await forceFullLogout();
       return;
     }
+
     currentUser = session.user;
-    await loadProfile();
+
+    // 2. التحقق المباشر من وجود الحساب فعلياً في قاعدة البيانات
+    const profileExists = await loadProfile();
+    
+    // إذا تم مسح الحساب من قاعدة البيانات
+    if (!profileExists) {
+      showToast('حسابك لم يعد موجوداً، تم تسجيل الخروج تلقائياً', 'error');
+      await forceFullLogout();
+      return;
+    }
+
     renderProfileUI();
     maybeShowWelcome();
     await refreshNotifications();
     await loadPosts();
+
   } catch(err) {
     console.error('Initialization error:', err);
+    await forceFullLogout();
   } finally {
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
@@ -563,10 +580,38 @@ async function init(){
 }
 
 async function loadProfile(){
-  const { data, error } = await _supabase.from('yasser_ayman').select('*').eq('id', currentUser.id).single();
-  if(error){ console.error(error); return; }
+  const { data, error } = await _supabase.from('yasser_ayman')
+    .select('*')
+    .eq('id', currentUser.id)
+    .maybeSingle(); // استخدام maybeSingle لمنع توقف الكود عند عدم وجود بيانات
+
+  if (error || !data) {
+    console.error('Profile not found or deleted:', error);
+    return false; // الحساب غير موجود في الجدول
+  }
+
   currentProfile = data;
+  return true; // الحساب موجود
 }
+
+/* ================== دالة التخريج الإجباري والتنظيف الشامل ================== */
+async function forceFullLogout(){
+  try {
+    // تسجيل الخروج من سوبابيز
+    await _supabase.auth.signOut();
+  } catch(e) {
+    console.log('Signout error', e);
+  }
+
+  // تنظيف كافة البيانات المخزنة في المتصفح بالكامل
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // إعادة التوجيه لصفحة تسجيل الدخول
+  window.location.href = 'login.html';
+}
+
+  
 
 function renderProfileUI(){
   const name = currentProfile?.full_name || currentUser.email;
