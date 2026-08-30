@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>بوابة الطلاب </title>
-<!-- Open Graph Meta Tags (لجميع منصات التواصل) -->
+<!-- Open Graph Meta Tags -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="بوابة الطلاب ">
 <meta property="og:description" content="البوابة الإلكترونية الخاصة بالطلاب">
@@ -13,8 +13,6 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-
-
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -222,7 +220,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   border-right:4px solid var(--primary);font-size:13px;animation:fadeSlide .2s ease;}
 .toast.error{border-right-color:var(--danger);}
 .toast.success{border-right-color:var(--success);}
-  /* Schedule page */
+
+/* Schedule page */
 .schedule-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);margin-bottom:14px;}
 .schedule-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
 .schedule-box img{width:100%;display:block;}
@@ -239,7 +238,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .lecture-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(79,70,229,.08);color:var(--primary);}
 .lecture-files{display:flex;flex-direction:column;gap:8px;}
 .lecture-file-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--bg);
-  text-decoration:none;color:var(--text);font-size:13px;font-weight:600;}
+  text-decoration:none;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
 .lecture-file-link i{color:var(--primary);font-size:16px;width:18px;text-align:center;}
 
 /* Share sheet modal */
@@ -250,7 +249,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .share-link-row{display:flex;gap:8px;padding:0 18px 18px;}
 .share-link-row input{flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--bg);color:var(--text-secondary);}
 .share-link-row button{padding:0 16px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-family:var(--font-family);font-weight:700;font-size:12px;cursor:pointer;}
-/* ================== المودالات (Popups) ================== */
+
+/* Custom Popups */
 .custom-modal {
   display: none;
   position: fixed;
@@ -285,12 +285,12 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .modal-header h3 { font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px; }
 .close-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
 
-/* عرض الـ PDF */
+/* PDF view */
 .pdf-content { height: 85vh; }
 .pdf-content .modal-body { flex: 1; padding: 0; }
 #pdf-frame { width: 100%; height: 100%; border: none; }
 
-/* المشغل المخصص للفيديو */
+/* Video Player */
 .video-content { max-width: 800px; background: #000; }
 .video-player-wrapper { position: relative; background: #000; display: flex; flex-direction: column; }
 #custom-video-player { width: 100%; max-height: 60vh; background: #000; cursor: pointer; }
@@ -329,10 +329,6 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 }
 .video-controls button:hover, .video-controls a:hover { color: #38bdf8; }
 #video-time { font-size: 12px; color: #cbd5e1; }
-
-
-
-  
 </style>
 </head>
 <body>
@@ -341,7 +337,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 <div id="app" style="display:none">
 
-  <!-- ===== Welcome overlay ===== -->
+  <!-- Welcome overlay -->
   <div id="welcome-overlay">
     <div class="welcome-box">
       <i class="fas fa-hand-sparkles"></i>
@@ -350,7 +346,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
     </div>
   </div>
 
-  <!-- ===== Topbar ===== -->
+  <!-- Topbar -->
   <header class="topbar">
     <div class="topbar-right" onclick="toggleSidebar()">
       <img id="topbar-avatar" class="cover-thumb" src="" alt="">
@@ -366,13 +362,13 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
     </div>
   </header>
 
-  <!-- ===== Notifications dropdown ===== -->
+  <!-- Notifications dropdown -->
   <div id="notif-dropdown">
     <div class="notif-header">الإشعارات</div>
     <div id="notif-list"></div>
   </div>
 
-  <!-- ===== Sidebar ===== -->
+  <!-- Sidebar -->
   <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <aside id="sidebar">
     <div class="sidebar-head">
@@ -406,33 +402,28 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       <div class="menu-sub" id="questions-submenu">
         <select class="mini-select" id="q-subject-select">
           <option value="">اختر المادة</option>
-          <!-- سيتم إضافة أسماء المواد لاحقًا -->
         </select>
         <select class="mini-select" id="q-term-select">
           <option value="all">الكل</option>
           <option value="1">الترم الأول</option>
           <option value="2">الترم الثاني</option>
         </select>
-        <div class="menu-item" style="padding:8px 10px;font-size:12px;" onclick="switchView('questions', document.querySelector('.menu-item'))">
-  <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
-</div>
-</div>
+        <div class="menu-item" style="padding:8px 10px;font-size:12px;" onclick="switchView('questions', this)">
+          <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
+        </div>
+      </div>
 
-<div class="menu-item" onclick="switchView('schedule', this)">
-  <i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span>
-</div>
+      <div class="menu-item" onclick="switchView('schedule', this)">
+        <i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span>
+      </div>
 
-<div class="menu-item" onclick="switchView('lectures', this)">
-  <i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span>
-</div>
-
-<!-- مساحة لعناصر قائمة إضافية لاحقًا -->
-
-      <!-- مساحة لعناصر قائمة إضافية لاحقًا -->
+      <div class="menu-item" onclick="switchView('lectures', this)">
+        <i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span>
+      </div>
     </nav>
   </aside>
 
-  <!-- ===== Image action menu (avatar/cover) ===== -->
+  <!-- Image action menu -->
   <div id="image-menu">
     <button onclick="viewImage()"><i class="fas fa-eye"></i> عرض الصورة</button>
     <button onclick="triggerImageChange()"><i class="fas fa-camera"></i> تغيير الصورة</button>
@@ -440,7 +431,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
   <input type="file" id="image-file-input" accept="image/*" style="display:none">
 
-  <!-- ===== Main content ===== -->
+  <!-- Main content -->
   <main id="main-content">
 
     <!-- HOME -->
@@ -497,52 +488,46 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       </div>
     </section>
 
-
     <!-- SCHEDULE -->
-<section class="view" id="view-schedule">
-  <div class="page-title"><i class="fas fa-calendar-days"></i> الجدول الدراسي</div>
+    <section class="view" id="view-schedule">
+      <div class="page-title"><i class="fas fa-calendar-days"></i> الجدول الدراسي</div>
 
-  <div class="term-toggle">
-    <button class="active" data-term="1" onclick="setScheduleTerm('1',this)">الترم الأول</button>
-    <button data-term="2" onclick="setScheduleTerm('2',this)">الترم الثاني</button>
-  </div>
+      <div class="term-toggle">
+        <button class="active" data-term="1" onclick="setScheduleTerm('1',this)">الترم الأول</button>
+        <button data-term="2" onclick="setScheduleTerm('2',this)">الترم الثاني</button>
+      </div>
 
-  <div id="schedule-container">
-    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الجدول...</p></div>
-  </div>
-</section>
+      <div id="schedule-container">
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الجدول...</p></div>
+      </div>
+    </section>
 
-<section class="view" id="view-lectures">
-  <div class="page-title"><i class="fas fa-chalkboard-user"></i> المحاضرات الكلية</div>
+    <!-- LECTURES -->
+    <section class="view" id="view-lectures">
+      <div class="page-title"><i class="fas fa-chalkboard-user"></i> المحاضرات الكلية</div>
 
-  <!-- تبويب الترم -->
-  <div class="term-toggle">
-    <button class="active" data-term="1" onclick="setLecturesTerm('1',this)">الترم الأول</button>
-    <button data-term="2" onclick="setLecturesTerm('2',this)">الترم الثاني</button>
-  </div>
+      <div class="term-toggle">
+        <button class="active" data-term="1" onclick="setLecturesTerm('1',this)">الترم الأول</button>
+        <button data-term="2" onclick="setLecturesTerm('2',this)">الترم الثاني</button>
+      </div>
 
-  <!-- تبويبات نوع المحتوى -->
-  <div class="exam-type-tabs" id="lecture-category-tabs">
-    <button class="active" onclick="setLectureCategory('lecture', this)"><i class="fas fa-book-open"></i> محاضرات</button>
-    <button onclick="setLectureCategory('section', this)"><i class="fas fa-layer-group"></i> سكاشن</button>
-    <button onclick="setLectureCategory('course', this)"><i class="fas fa-graduation-cap"></i> كورسات</button>
-    <button onclick="setLectureCategory('programming', this)"><i class="fas fa-code"></i> كورسات برمجة (HTML/CSS/JS)</button>
-  </div>
+      <div class="exam-type-tabs" id="lecture-category-tabs">
+        <button class="active" onclick="setLectureCategory('lecture', this)"><i class="fas fa-book-open"></i> محاضرات</button>
+        <button onclick="setLectureCategory('section', this)"><i class="fas fa-layer-group"></i> سكاشن</button>
+        <button onclick="setLectureCategory('course', this)"><i class="fas fa-graduation-cap"></i> كورسات</button>
+        <button onclick="setLectureCategory('programming', this)"><i class="fas fa-code"></i> كورسات برمجة (HTML/CSS/JS)</button>
+      </div>
 
-  <!-- أزرار المواد الديناميكية -->
-  <div class="exam-type-tabs" id="lectures-subject-tabs" style="margin-top:10px;"></div>
+      <div class="exam-type-tabs" id="lectures-subject-tabs" style="margin-top:10px;"></div>
 
-  <!-- حاوية عرض المحاضرات والملفات -->
-  <div id="lectures-container">
-    <div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة أو نوع الكورس لعرض المحتوى</p></div>
-  </div>
-</section>
+      <div id="lectures-container">
+        <div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة أو نوع الكورس لعرض المحتوى</p></div>
+      </div>
+    </section>
 
-
-    
   </main>
 
-  <!-- ===== Comments modal ===== -->
+  <!-- Comments modal -->
   <div class="modal-overlay" id="comments-overlay">
     <div class="modal-sheet">
       <div class="modal-head">
@@ -557,7 +542,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
     </div>
   </div>
 
-  <!-- ===== Certificate (hidden, for print) ===== -->
+  <!-- Certificate (print) -->
   <div id="certificate-print">
     <div class="cert">
       <i class="fas fa-graduation-cap cert-cap"></i>
@@ -575,7 +560,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 
 </div>
-  <!-- ===== Share sheet modal ===== -->
+
+<!-- Share sheet modal -->
 <div class="modal-overlay" id="share-overlay">
   <div class="modal-sheet">
     <div class="modal-head">
@@ -617,11 +603,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 <div class="toast-container" id="toast-container"></div>
 
-
-
-
-
-<!-- ================== مودال عرض الـ PDF ================== -->
+<!-- مودال عرض الـ PDF -->
 <div id="pdf-modal" class="custom-modal">
   <div class="modal-content pdf-content">
     <div class="modal-header">
@@ -634,7 +616,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 </div>
 
-<!-- ================== مودال مشغل الفيديو الاحترافي ================== -->
+<!-- مودال مشغل الفيديو الاحترافي -->
 <div id="video-modal" class="custom-modal">
   <div class="modal-content video-content">
     <div class="modal-header">
@@ -666,48 +648,6 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 </div>
 
-
-<script>
-
-  /* ================== إعداد Supabase ================== */
-const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let currentUser = null;
-let currentProfile = null;
-let currentTerm = '1';
-let currentExamType = 'quiz';
-let-header">
-      <h3 id="video-modal-title"><i class="fas fa-video"></i> مشاهدة المحاضرة</h3>
-      <button class="close-btn" onclick="closeVideoModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="video-player-wrapper">
-        <video id="custom-video-player" src=""></video>
-
-        <!-- شريط تحكم الفيديو -->
-        <div class="video-controls">
-          <input type="range" id="video-progress" value="0" min="0" step="0.1">
-          <div class="controls-row">
-            <div class="left-controls">
-              <button onclick="togglePlayPause()" id="play-btn"><i class="fas fa-play"></i></button>
-              <button onclick="rewindVideo(5)" title="تأخير 5 ثواني"><i class="fas fa-undo"></i> 5s</button>
-              <button onclick="forwardVideo(10)" title="تقديم 10 ثواني"><i class="fas fa-redo"></i> 10s</button>
-              <span id="video-time">00:00 / 00:00</span>
-            </div>
-            <div class="right-controls">
-              <a id="video-download-btn" href="" download target="_blank" class="control-btn" title="تحميل الفيديو"><i class="fas fa-download"></i></a>
-              <button onclick="toggleFullScreen()" title="تكبير الشاشة"><i class="fas fa-expand"></i></button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
@@ -719,15 +659,30 @@ let currentProfile = null;
 let currentTerm = '1';
 let currentExamType = 'quiz';
 let currentPostIdForComments = null;
-let imageTargetType = null; // 'avatar' or 'cover'
+let imageTargetType = null; 
 
-/* أفاتار افتراضي ديناميكي: بيرجع أول حرف من اسم الطالب الحقيقي */
+let currentLecturesTerm = '1';
+let currentLectureSubject = '';
+let currentLectureCategory = 'lecture';
+
+const LECTURE_SUBJECTS = {
+  '1': {
+    '1': ['مقدمة في الحاسبات', 'مقدمة في نظم التشغيل', 'مراسلات و مصطلحات إنجليزية', 'مبادئ الإقتصاد', 'مبادئ تنظيم وإدارة'],
+    '2': ['اساسيات في البرمجه الهيكليه', 'حزم التطبيقات المكتبية', 'الرياضيات و التامين', 'مبادئ محاسبة', 'مبادئ سلوك التنظيمي', 'إدارة عامة']
+  },
+  '2': {
+    '1': ['قواعد البيانات (1)', 'البرمجة الهيكلية المتقدمة', 'محاسبة شركات', 'دراسات إقتصادية بلغة إنجليزية', 'إدارة الانتاج و العمليات'],
+    '2': ['تسويق', 'قانون تجاري', 'نظم معلومات إدارية', 'إحصاء', 'رياضيات تمويل', 'تطبيقات الانترنت و الوسائط المتعددة']
+  },
+  '3': { '1': [], '2': [] },
+  '4': { '1': [], '2': [] }
+};
+
 function getDefaultAvatar(){
   const name = currentProfile?.full_name || currentUser?.email || 'Student';
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
 }
 
-/* ================== Toast ================== */
 function showToast(message, type='info'){
   const container = document.getElementById('toast-container');
   if(!container) return;
@@ -738,29 +693,21 @@ function showToast(message, type='info'){
   setTimeout(()=>toast.remove(), 3500);
 }
 
-/* ================== تهيئة الصفحة والتحقق من الحساب ================== */
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
   try {
-    // إعطاء وقت بسيط لمعالجة رمز الدخول القادم من Supabase Auth
     await new Promise(resolve => setTimeout(resolve, 200));
-
     const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
 
-    // إذا لم يكن هناك جلسة تسجل خروج حقيقي للتوجيه إلى لصفحة الدخول
     if (sessionError || !session) {
       window.location.href = 'login.html';
       return;
     }
 
     currentUser = session.user;
-
-    // جلب بيانات الحساب
     const result = await loadProfile();
 
-    // لو الحساب غير موجود في قاعدة البيانات (سواء مستخدم جديد أو تم مسح بياناته)
-    // يتم إنشاء صف جديد له فوراً ويعامل كأنه مستخدم جديد دون أي طرد
     if (result === 'not_found' || !currentProfile) {
       await createFreshProfileRow();
     }
@@ -773,7 +720,6 @@ async function init(){
   } catch(err) {
     console.error('Initialization error:', err);
   } finally {
-    // إخفاء شاشة التحميل وإظهار الواجهة دائماً
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
     if(loadingScreen) loadingScreen.style.display = 'none';
@@ -788,14 +734,8 @@ async function loadProfile(){
       .eq('id', currentUser.id)
       .maybeSingle();
 
-    if (error) {
-      console.error('Profile load error:', error);
-      return 'error';
-    }
-
-    if (!data) {
-      return 'not_found';
-    }
+    if (error) return 'error';
+    if (!data) return 'not_found';
 
     currentProfile = data;
     return 'ok';
@@ -804,7 +744,6 @@ async function loadProfile(){
   }
 }
 
-/* ================== إنشاء صف بروفايل جديد تلقائياً ================== */
 async function createFreshProfileRow(){
   const userData = {
     id: currentUser.id,
@@ -824,8 +763,7 @@ async function createFreshProfileRow(){
     .maybeSingle();
 
   if (error) {
-    console.error('Error creating fresh profile row:', error);
-    currentProfile = userData; // استخدام البيانات مؤقتاً في حالة حدوث مشكلة شبكة
+    currentProfile = userData;
     return;
   }
 
@@ -851,7 +789,6 @@ function renderProfileUI(){
   if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'السنة الأولى';
 }
 
-/* ================== رسالة الترحيب (أول دخول فقط) ================== */
 async function maybeShowWelcome(){
   if(currentProfile && !currentProfile.first_login_shown){
     const welcomeTitle = document.getElementById('welcome-title');
@@ -866,7 +803,6 @@ async function maybeShowWelcome(){
   }
 }
 
-/* ================== Sidebar / Notifications toggles ================== */
 function toggleSidebar(){
   document.getElementById('sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('open');
@@ -914,7 +850,6 @@ async function refreshNotifications(){
     </div>`).join('');
 }
 
-/* ================== التنقل بين الصفحات ================== */
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const targetView = document.getElementById('view-'+view);
@@ -944,7 +879,6 @@ function switchView(view, el){
   if(view === 'lectures') renderLectureSubjectTabs();
 }
 
-/* ================== الصورة الشخصية / الغلاف ================== */
 function openImageMenu(e, type){
   e.stopPropagation();
   imageTargetType = type;
@@ -998,7 +932,6 @@ async function deleteImage(){
   showToast('تم حذف الصورة', 'success');
 }
 
-/* ================== المنشورات (الصفحة الرئيسية) ================== */
 async function loadPosts(){
   const year = currentProfile?.academic_year || '1';
   const container = document.getElementById('posts-container');
@@ -1085,7 +1018,6 @@ function sharePost(postId){
   openShareSheet(url, 'شاهد هذا المنشور في بوابة الطلاب');
 }
 
-/* ================== التعليقات ================== */
 async function openComments(postId){
   currentPostIdForComments = postId;
   document.getElementById('comments-overlay')?.classList.add('open');
@@ -1181,7 +1113,6 @@ async function toggleCommentLike(commentId, btn){
   await renderComments();
 }
 
-/* ================== الدرجات ================== */
 function setTerm(term, el){
   currentTerm = term;
   document.querySelectorAll('.term-toggle button').forEach(b=>b.classList.remove('active'));
@@ -1302,7 +1233,6 @@ function printCertificate({subject, percent, label, rank}){
   window.print();
 }
 
-/* ================== الجدول الدراسي ================== */
 let currentScheduleTerm = '1';
 
 function setScheduleTerm(term, el){
@@ -1364,177 +1294,6 @@ async function downloadSchedule(url){
   }
 }
 
-/* ================== المحاضرات الكلية ================== */
-let currentLecturesTerm = '1';
-let currentLectureSubject = '';
-
-const LECTURE_SUBJECTS = {
-  '1': { '1':[], '2':[] },
-  '2': { '1':[], '2':[] },
-  '3': { '1':[], '2':[] },
-  '4': { '1':[], '2':[] },
-};
-
-function setLecturesTerm(term, el){
-  currentLecturesTerm = term;
-  currentLectureSubject = '';
-  document.querySelectorAll('#view-lectures .term-toggle button').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  renderLectureSubjectTabs();
-  const container = document.getElementById('lectures-container');
-  if(container) container.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحاضرات</p></div>';
-}
-
-function renderLectureSubjectTabs(){
-  const year = currentProfile?.academic_year || '1';
-  const subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
-  const tabsEl = document.getElementById('lectures-subject-tabs');
-  if(!tabsEl) return;
-  if(subjects.length === 0){
-    tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);">سيتم إضافة أسماء المواد قريبًا</span>';
-    return;
-  }
-  tabsEl.innerHTML = subjects.map(s => `<button onclick="setLectureSubject('${escapeHtml(s)}', this)">${escapeHtml(s)}</button>`).join('');
-}
-
-function setLectureSubject(subject, el){
-  currentLectureSubject = subject;
-  document.querySelectorAll('#lectures-subject-tabs button').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  loadLectures();
-}
-
-async function loadLectures(){
-  const container = document.getElementById('lectures-container');
-  if(!container) return;
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
-  const year = currentProfile?.academic_year || '1';
-
-  const { data, error } = await _supabase.from('lectures').select('*')
-    .eq('academic_year', year).eq('term', currentLecturesTerm).eq('subject_name', currentLectureSubject)
-    .order('created_at', { ascending:false });
-
-  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل المحاضرات</p></div>'; return; }
-  if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد محاضرات مرفوعة لهذه المادة بعد</p></div>'; return; }
-
-  container.innerHTML = data.map(l => `
-    <div class="lecture-card">
-      <div class="lecture-title">${escapeHtml(l.lecture_title || '')}</div>
-      <div class="lecture-tags">
-        ${l.section ? `<span class="lecture-tag"><i class="fas fa-layer-group"></i> سكشن: ${escapeHtml(l.section)}</span>` : ''}
-        ${l.course_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> كورس: ${escapeHtml(l.course_name)}</span>` : ''}
-      </div>
-      <div class="lecture-files">
-        ${l.pdf_url ? `<a class="lecture-file-link" href="${escapeHtml(l.pdf_url)}" target="_blank"><i class="fas fa-file-pdf"></i> ملف المحاضرة (PDF)</a>` : ''}
-        ${l.video_url ? `<a class="lecture-file-link" href="${escapeHtml(l.video_url)}" target="_blank"><i class="fas fa-video"></i> فيديو الشرح</a>` : ''}
-      </div>
-    </div>`).join('');
-}
-
-/* ================== شيت المشاركة ================== */
-let shareTargetUrl = '';
-
-function openShareSheet(url, text){
-  shareTargetUrl = url;
-  const linkInput = document.getElementById('share-link-input');
-  const overlay = document.getElementById('share-overlay');
-  if(linkInput) linkInput.value = url;
-  if(overlay) {
-    overlay.dataset.text = text || 'بوابة الطلاب';
-    overlay.classList.add('open');
-  }
-}
-
-function closeShareSheet(){
-  document.getElementById('share-overlay')?.classList.remove('open');
-}
-
-function copyShareLink(){
-  navigator.clipboard.writeText(shareTargetUrl);
-  showToast('تم نسخ الرابط', 'success');
-}
-
-function shareVia(platform){
-  const url = encodeURIComponent(shareTargetUrl);
-  const text = encodeURIComponent(document.getElementById('share-overlay')?.dataset.text || 'بوابة الطلاب');
-  let link = '';
-  switch(platform){
-    case 'whatsapp': link = `https://wa.me/?text=${text}%20${url}`; break;
-    case 'facebook': link = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
-    case 'messenger': link = `fb-messenger://share/?link=${url}`; break;
-    case 'whatsapp_status':
-    case 'facebook_story':
-    case 'instagram_story':
-      navigator.clipboard.writeText(shareTargetUrl);
-      showToast('تم نسخ الرابط، افتح التطبيق وحط الصورة/الرابط في الستوري', 'success');
-      return;
-    case 'instagram':
-      navigator.clipboard.writeText(shareTargetUrl);
-      showToast('تم نسخ الرابط، افتحه داخل انستجرام لمشاركته', 'success');
-      return;
-    case 'more':
-      if(navigator.share){ navigator.share({ title:'بوابة الطلاب', url: shareTargetUrl }).catch(()=>{}); return; }
-      navigator.clipboard.writeText(shareTargetUrl);
-      showToast('تم نسخ الرابط', 'success');
-      return;
-  }
-  window.open(link, '_blank');
-}
-
-/* ================== أدوات مساعدة ================== */
-function escapeHtml(str){
-  if(!str) return '';
-  const d = document.createElement('div');
-  d.innerText = str;
-  return d.innerHTML;
-}
-
-function formatDate(iso){
-  try{
-    const d = new Date(iso);
-    return d.toLocaleString('ar-EG', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-  }catch(e){ return ''; }
-}
-
-/* إغلاق التنبيهات عند الضغط خارجها */
-document.addEventListener('click', (e)=>{
-  const dd = document.getElementById('notif-dropdown');
-  const bell = document.getElementById('bell-btn');
-  if(dd && bell && dd.classList.contains('open') && !dd.contains(e.target) && !bell.contains(e.target)){
-    dd.classList.remove('open');
-  }
-});
-
-
-
-
-
-  /* ================== أسماء المواد لجميع السنوات والترمات ================== */
-const LECTURE_SUBJECTS = {
-  '1': {
-    '1': ['مقدمة في الحاسبات', 'مقدمة في نظم التشغيل', 'مراسلات و مصطلحات إنجليزية', 'مبادئ الإقتصاد', 'مبادئ تنظيم وإدارة'],
-    '2': ['اساسيات في البرمجه الهيكليه', 'حزم التطبيقات المكتبية', 'الرياضيات و التامين', 'مبادئ محاسبة', 'مبادئ سلوك التنظيمي', 'إدارة عامة']
-  },
-  '2': {
-    '1': ['قواعد البيانات (1)', 'البرمجة الهيكلية المتقدمة', 'محاسبة شركات', 'دراسات إقتصادية بلغة إنجليزية', 'إدارة الانتاج و العمليات'],
-    '2': ['تسويق', 'قانون تجاري', 'نظم معلومات إدارية', 'إحصاء', 'رياضيات تمويل', 'تطبيقات الانترنت و الوسائط المتعددة']
-  },
-  '3': {
-    '1': [], // أضف مواد الفرقة الثالثة - الترم الأول هنا
-    '2': []  // أضف مواد الفرقة الثالثة - الترم الثاني هنا
-  },
-  '4': {
-    '1': [], // أضف مواد الفرقة الرابعة - الترم الأول هنا
-    '2': []  // أضف مواد الفرقة الرابعة - الترم الثاني هنا
-  }
-};
-
-
-  /* ================== المحاضرات الكلية والسكاشن والكورسات ================== */
-let currentLecturesTerm = '1';
-let currentLectureSubject = '';
-let currentLectureCategory = 'lecture'; // lecture | section | course | programming
-
 function setLecturesTerm(term, el){
   currentLecturesTerm = term;
   currentLectureSubject = '';
@@ -1555,7 +1314,7 @@ function setLectureCategory(cat, el){
   const subjTabs = document.getElementById('lectures-subject-tabs');
   if(cat === 'programming'){
     if(subjTabs) subjTabs.style.display = 'none';
-    loadLectures(); // تحميل كورسات البرمجة مباشرة بدون التقيد بمادة أكاديمية
+    loadLectures(); 
   } else {
     if(subjTabs) subjTabs.style.display = 'flex';
     renderLectureSubjectTabs();
@@ -1624,8 +1383,8 @@ async function loadLectures(){
         ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
       </div>
       <div class="lecture-files">
-        ${l.pdf_url ? `<a class="lecture-file-link" href="${escapeHtml(l.pdf_url)}" target="_blank"><i class="fas fa-file-pdf" style="color:#ef4444"></i> تحميل ملف الشرح (PDF)</a>` : ''}
-        ${l.video_url ? `<a class="lecture-file-link" href="${escapeHtml(l.video_url)}" target="_blank"><i class="fab fa-youtube" style="color:#ff0000"></i> مشاهدة فيديو الشرح</a>` : ''}
+        ${l.pdf_url ? `<a class="lecture-file-link" onclick="openPdfModal('${escapeHtml(l.pdf_url)}', '${escapeHtml(l.lecture_title)}')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> فتح ملف الشرح (PDF)</a>` : ''}
+        ${l.video_url ? `<a class="lecture-file-link" onclick="openVideoModal('${escapeHtml(l.video_url)}', '${escapeHtml(l.lecture_title)}')"><i class="fab fa-youtube" style="color:#ff0000"></i> مشاهدة فيديو الشرح</a>` : ''}
       </div>
     </div>`).join('');
 }
@@ -1635,10 +1394,142 @@ function getCategoryName(cat){
   return map[cat] || cat;
 }
 
+/* ================== المودالات المخصصة للفيديو والـ PDF ================== */
+function openPdfModal(url, title){
+  document.getElementById('pdf-modal-title').innerText = title || 'عرض ملف الشرح';
+  document.getElementById('pdf-frame').src = url;
+  document.getElementById('pdf-modal').classList.add('open');
+}
 
-                                                     
-</script> 
+function closePdfModal(){
+  document.getElementById('pdf-modal').classList.remove('open');
+  document.getElementById('pdf-frame').src = '';
+}
 
+function openVideoModal(url, title){
+  const video = document.getElementById('custom-video-player');
+  document.getElementById('video-modal-title').innerText = title || 'مشاهدة المحاضرة';
+  document.getElementById('video-download-btn').href = url;
+  video.src = url;
+  document.getElementById('video-modal').classList.add('open');
+  video.play();
+  updatePlayBtn();
+}
 
+function closeVideoModal(){
+  const video = document.getElementById('custom-video-player');
+  video.pause();
+  video.src = '';
+  document.getElementById('video-modal').classList.remove('open');
+}
+
+const video = document.getElementById('custom-video-player');
+const progress = document.getElementById('video-progress');
+
+video?.addEventListener('timeupdate', () => {
+  if (video.duration) {
+    progress.value = (video.currentTime / video.duration) * 100;
+    document.getElementById('video-time').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+  }
+});
+
+progress?.addEventListener('input', () => {
+  if (video.duration) {
+    video.currentTime = (progress.value / 100) * video.duration;
+  }
+});
+
+function togglePlayPause(){
+  if (video.paused) { video.play(); } else { video.pause(); }
+  updatePlayBtn();
+}
+
+function updatePlayBtn(){
+  const btn = document.getElementById('play-btn');
+  if(btn) btn.innerHTML = video.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+}
+
+function rewindVideo(sec){ video.currentTime = Math.max(0, video.currentTime - sec); }
+function forwardVideo(sec){ video.currentTime = Math.min(video.duration, video.currentTime + sec); }
+
+function toggleFullScreen(){
+  if (video.requestFullscreen) video.requestFullscreen();
+  else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+let shareTargetUrl = '';
+
+function openShareSheet(url, text){
+  shareTargetUrl = url;
+  const linkInput = document.getElementById('share-link-input');
+  const overlay = document.getElementById('share-overlay');
+  if(linkInput) linkInput.value = url;
+  if(overlay) {
+    overlay.dataset.text = text || 'بوابة الطلاب';
+    overlay.classList.add('open');
+  }
+}
+
+function closeShareSheet(){
+  document.getElementById('share-overlay')?.classList.remove('open');
+}
+
+function copyShareLink(){
+  navigator.clipboard.writeText(shareTargetUrl);
+  showToast('تم نسخ الرابط', 'success');
+}
+
+function shareVia(platform){
+  const url = encodeURIComponent(shareTargetUrl);
+  const text = encodeURIComponent(document.getElementById('share-overlay')?.dataset.text || 'بوابة الطلاب');
+  let link = '';
+  switch(platform){
+    case 'whatsapp': link = `https://wa.me/?text=${text}%20${url}`; break;
+    case 'facebook': link = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+    case 'messenger': link = `fb-messenger://share/?link=${url}`; break;
+    case 'whatsapp_status':
+    case 'facebook_story':
+    case 'instagram_story':
+    case 'instagram':
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط، يمكنك لصقه الآن', 'success');
+      return;
+    case 'more':
+      if(navigator.share){ navigator.share({ title:'بوابة الطلاب', url: shareTargetUrl }).catch(()=>{}); return; }
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط', 'success');
+      return;
+  }
+  window.open(link, '_blank');
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  const d = document.createElement('div');
+  d.innerText = str;
+  return d.innerHTML;
+}
+
+function formatDate(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleString('ar-EG', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  }catch(e){ return ''; }
+}
+
+document.addEventListener('click', (e)=>{
+  const dd = document.getElementById('notif-dropdown');
+  const bell = document.getElementById('bell-btn');
+  if(dd && bell && dd.classList.contains('open') && !dd.contains(e.target) && !bell.contains(e.target)){
+    dd.classList.remove('open');
+  }
+});
+</script>
 </body>
 </html>
