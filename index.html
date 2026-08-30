@@ -1508,6 +1508,94 @@ if(view === 'questions' || view === 'lectures'){
   if(questionsSubj) questionsSubj.innerHTML = optionsHTML;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+  async function loadSchedule() {
+  const container = document.getElementById('schedule-container');
+  if (!container) return;
+
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الجدول...</p></div>';
+
+  try {
+    const year = currentProfile?.academic_year || '1';
+
+    const { data, error } = await _supabase
+      .from('schedule')
+      .select('*')
+      .eq('academic_year', year)
+      .eq('term', currentScheduleTerm);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>لا يوجد جدول دراسي متوفر حالياً لهذا الترم</p></div>';
+      return;
+    }
+
+    // بناء جدول الحصص/المحاضرات
+    renderScheduleTable(data);
+
+  } catch (err) {
+    console.error('Error loading schedule:', err);
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>تعذر تحميل الجدول الدراسي</p></div>';
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+  async function loadGrades() {
+  const container = document.getElementById('grades-container'); // أو العنصر المحتوي للرسم/الدرجات
+  if (!container) return;
+
+  // عرض مؤشر التحميل
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الدرجات...</p></div>';
+
+  try {
+    const year = currentProfile?.academic_year || '1';
+    const userId = _supabase.auth.user()?.id;
+
+    const { data, error } = await _supabase
+      .from('grades')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('academic_year', year)
+      .eq('term', currentGradesTerm); // التأكد من المتغير المحدد
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد درجات مسجلة لهذا الترم بعد</p></div>';
+      return;
+    }
+
+    // هنا يتم رسم البياني أو عرض الجدول بالبيانات المرجعة
+    renderGradesChartAndTable(data);
+
+  } catch (err) {
+    console.error('Error loading grades:', err);
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ أثناء جلب الدرجات</p></div>';
+  }
+}
+
 </script>
 
 
