@@ -509,6 +509,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 <div class="toast-container" id="toast-container"></div>
 
+
+  
 <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
@@ -526,6 +528,7 @@ const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?seed=Student&b
 /* ================== Toast ================== */
 function showToast(message, type='info'){
   const container = document.getElementById('toast-container');
+  if(!container) return;
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerText = message;
@@ -537,19 +540,26 @@ function showToast(message, type='info'){
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
-  const { data: { session } } = await _supabase.auth.getSession();
-  if(!session){
-    window.location.href = 'login.html';
-    return;
+  try {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = session.user;
+    await loadProfile();
+    renderProfileUI();
+    maybeShowWelcome();
+    await refreshNotifications();
+    await loadPosts();
+  } catch(err) {
+    console.error('Initialization error:', err);
+  } finally {
+    const loadingScreen = document.getElementById('loading-screen');
+    const appScreen = document.getElementById('app');
+    if(loadingScreen) loadingScreen.style.display = 'none';
+    if(appScreen) appScreen.style.display = 'block';
   }
-  currentUser = session.user;
-  await loadProfile();
-  renderProfileUI();
-  maybeShowWelcome();
-  await refreshNotifications();
-  await loadPosts();
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
 }
 
 async function loadProfile(){
@@ -561,41 +571,54 @@ async function loadProfile(){
 function renderProfileUI(){
   const name = currentProfile?.full_name || currentUser.email;
   const avatar = currentProfile?.avatar_url || DEFAULT_AVATAR;
-  document.getElementById('topbar-name').innerText = name;
-  document.getElementById('topbar-avatar').src = avatar;
-  document.getElementById('sidebar-avatar').src = avatar;
-  document.getElementById('sidebar-name').innerText = name;
+  
+  const topName = document.getElementById('topbar-name');
+  const topAvatar = document.getElementById('topbar-avatar');
+  const sideAvatar = document.getElementById('sidebar-avatar');
+  const sideName = document.getElementById('sidebar-name');
+  const sideYear = document.getElementById('sidebar-year');
+
+  if(topName) topName.innerText = name;
+  if(topAvatar) topAvatar.src = avatar;
+  if(sideAvatar) sideAvatar.src = avatar;
+  if(sideName) sideName.innerText = name;
+  
   const yearMap = {'1':'السنة الأولى','2':'السنة الثانية','3':'السنة الثالثة','4':'السنة الرابعة'};
-  document.getElementById('sidebar-year').innerText = yearMap[currentProfile?.academic_year] || '';
+  if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || '';
 }
 
 /* ================== رسالة الترحيب (أول دخول فقط) ================== */
 async function maybeShowWelcome(){
   if(currentProfile && !currentProfile.first_login_shown){
-    document.getElementById('welcome-title').innerText = `أهلاً بيك يا ${currentProfile.full_name || 'طالبنا العزيز'} 👋`;
+    const welcomeTitle = document.getElementById('welcome-title');
+    if(welcomeTitle) welcomeTitle.innerText = `أهلاً بيك يا ${currentProfile.full_name || 'طالبنا العزيز'} 👋`;
     const overlay = document.getElementById('welcome-overlay');
-    overlay.classList.add('show');
-    setTimeout(()=> overlay.classList.remove('show'), 3200);
+    if(overlay) {
+      overlay.classList.add('show');
+      setTimeout(()=> overlay.classList.remove('show'), 3200);
+    }
     await _supabase.from('yasser_ayman').update({ first_login_shown:true }).eq('id', currentUser.id);
   }
 }
 
 /* ================== Sidebar / Notifications toggles ================== */
 function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebar-overlay').classList.toggle('open');
+  document.getElementById('sidebar')?.classList.toggle('open');
+  document.getElementById('sidebar-overlay')?.classList.toggle('open');
 }
+
 function toggleQuestionsMenu(el){
-  document.getElementById('questions-submenu').classList.toggle('open');
-  document.getElementById('q-chevron').classList.toggle('fa-chevron-up');
+  document.getElementById('questions-submenu')?.classList.toggle('open');
+  document.getElementById('q-chevron')?.classList.toggle('fa-chevron-up');
 }
 
 async function toggleNotifications(){
   const dd = document.getElementById('notif-dropdown');
+  if(!dd) return;
   dd.classList.toggle('open');
   if(dd.classList.contains('open')){
-    // إخفاء الشارة وتحديث آخر وقت مشاهدة
-    document.getElementById('notif-badge').style.display = 'none';
+    const badge = document.getElementById('notif-badge');
+    if(badge) badge.style.display = 'none';
     await _supabase.from('yasser_ayman').update({ last_notification_check: new Date().toISOString() }).eq('id', currentUser.id);
   }
 }
@@ -610,6 +633,8 @@ async function refreshNotifications(){
 
   const list = document.getElementById('notif-list');
   const badge = document.getElementById('notif-badge');
+  if(!list || !badge) return;
+
   if(error || !data || data.length === 0){
     list.innerHTML = '<div class="notif-empty">لا يوجد إشعارات جديدة</div>';
     badge.style.display = 'none';
@@ -627,16 +652,28 @@ async function refreshNotifications(){
 /* ================== التنقل بين الصفحات ================== */
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+view).classList.add('active');
+  const targetView = document.getElementById('view-'+view);
+  if(targetView) targetView.classList.add('active');
+  
   document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
-  if(el) el.closest('.menu-item')?.classList.add('active');
-  toggleSidebar();
+  if(el) {
+    const item = el.closest('.menu-item') || el;
+    item.classList.add('active');
+  }
+  
+  const sidebar = document.getElementById('sidebar');
+  if(sidebar && sidebar.classList.contains('open')) {
+    toggleSidebar();
+  }
+  
   if(view === 'grades') loadGrades();
   if(view === 'questions'){
-    const subj = document.getElementById('q-subject-select').value;
-    const term = document.getElementById('q-term-select').value;
-    document.getElementById('questions-subject').value = subj;
-    document.getElementById('questions-term').value = term;
+    const subjSelect = document.getElementById('q-subject-select');
+    const termSelect = document.getElementById('q-term-select');
+    const qSubj = document.getElementById('questions-subject');
+    const qTerm = document.getElementById('questions-term');
+    if(subjSelect && qSubj) qSubj.value = subjSelect.value;
+    if(termSelect && qTerm) qTerm.value = termSelect.value;
   }
   if(view === 'schedule') loadSchedule();
   if(view === 'lectures') renderLectureSubjectTabs();
@@ -647,23 +684,29 @@ function openImageMenu(e, type){
   e.stopPropagation();
   imageTargetType = type;
   const menu = document.getElementById('image-menu');
+  if(!menu) return;
   menu.style.top = (e.clientY + 10) + 'px';
   menu.style.left = Math.max(10, e.clientX - 170) + 'px';
   menu.classList.add('open');
   document.addEventListener('click', closeImageMenuOnce);
 }
+
 function closeImageMenuOnce(){
-  document.getElementById('image-menu').classList.remove('open');
+  const menu = document.getElementById('image-menu');
+  if(menu) menu.classList.remove('open');
   document.removeEventListener('click', closeImageMenuOnce);
 }
+
 function viewImage(){
   const src = currentProfile?.avatar_url || DEFAULT_AVATAR;
   window.open(src, '_blank');
 }
+
 function triggerImageChange(){
-  document.getElementById('image-file-input').click();
+  document.getElementById('image-file-input')?.click();
 }
-document.getElementById('image-file-input').addEventListener('change', async (e)=>{
+
+document.getElementById('image-file-input')?.addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   try{
@@ -673,6 +716,7 @@ document.getElementById('image-file-input').addEventListener('change', async (e)
     if(upErr) throw upErr;
     const { data } = _supabase.storage.from('avatars').getPublicUrl(path);
     await _supabase.from('yasser_ayman').update({ avatar_url: data.publicUrl }).eq('id', currentUser.id);
+    if(!currentProfile) currentProfile = {};
     currentProfile.avatar_url = data.publicUrl;
     renderProfileUI();
     showToast('تم تحديث الصورة بنجاح', 'success');
@@ -681,9 +725,10 @@ document.getElementById('image-file-input').addEventListener('change', async (e)
   }
   e.target.value = '';
 });
+
 async function deleteImage(){
   await _supabase.from('yasser_ayman').update({ avatar_url: null }).eq('id', currentUser.id);
-  currentProfile.avatar_url = null;
+  if(currentProfile) currentProfile.avatar_url = null;
   renderProfileUI();
   showToast('تم حذف الصورة', 'success');
 }
@@ -692,6 +737,8 @@ async function deleteImage(){
 async function loadPosts(){
   const year = currentProfile?.academic_year || '1';
   const container = document.getElementById('posts-container');
+  if(!container) return;
+
   const { data: posts, error } = await _supabase.from('posts').select('*')
     .or(`academic_year.eq.all,academic_year.eq.${year}`)
     .order('created_at', { ascending:false });
@@ -714,7 +761,6 @@ async function buildPostCard(post){
     _supabase.from('post_views').select('*', { count:'exact', head:true }).eq('post_id', post.id),
   ]);
 
-  // تسجيل مشاهدة (مرة واحدة لكل مستخدم لكل بوست)
   _supabase.from('post_views').insert({ post_id: post.id, user_id: currentUser.id }).then(()=>{});
 
   const div = document.createElement('div');
@@ -730,7 +776,7 @@ async function buildPostCard(post){
       </div>
       <div class="post-content">${escapeHtml(post.content||'')}</div>
     </div>
-    ${post.image_url ? `<img class="post-image" src="${post.image_url}" alt="">` : ''}
+    ${post.image_url ? `<img class="post-image" src="${escapeHtml(post.image_url)}" alt="">` : ''}
     <div class="post-actions">
       <div class="left-group">
         <button class="act-btn ${myLike?'liked':''}" data-post="${post.id}" onclick="toggleLike('${post.id}', this)">
@@ -755,14 +801,16 @@ async function toggleLike(postId, btn){
   if(isLiked){
     await _supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', currentUser.id);
     btn.classList.remove('liked');
-    btn.querySelector('i').className = 'far fa-heart';
-    countSpan.innerText = Math.max(0, parseInt(countSpan.innerText)-1);
+    const icon = btn.querySelector('i');
+    if(icon) icon.className = 'far fa-heart';
+    if(countSpan) countSpan.innerText = Math.max(0, parseInt(countSpan.innerText || 0) - 1);
   }else{
     const { error } = await _supabase.from('post_likes').insert({ post_id: postId, user_id: currentUser.id });
     if(!error){
       btn.classList.add('liked');
-      btn.querySelector('i').className = 'fas fa-heart';
-      countSpan.innerText = parseInt(countSpan.innerText)+1;
+      const icon = btn.querySelector('i');
+      if(icon) icon.className = 'fas fa-heart';
+      if(countSpan) countSpan.innerText = parseInt(countSpan.innerText || 0) + 1;
     }
   }
 }
@@ -775,23 +823,26 @@ function sharePost(postId){
 /* ================== التعليقات (تدعم الردود) ================== */
 async function openComments(postId){
   currentPostIdForComments = postId;
-  document.getElementById('comments-overlay').classList.add('open');
+  document.getElementById('comments-overlay')?.classList.add('open');
   await renderComments();
 }
+
 function closeComments(){
-  document.getElementById('comments-overlay').classList.remove('open');
+  document.getElementById('comments-overlay')?.classList.remove('open');
   currentPostIdForComments = null;
 }
 
 async function renderComments(){
   const list = document.getElementById('comments-list');
+  if(!list) return;
   list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+  
   const { data: comments, error } = await _supabase.from('post_comments').select('*')
     .eq('post_id', currentPostIdForComments).order('created_at', { ascending:true });
+    
   if(error || !comments){ list.innerHTML = '<div class="notif-empty">تعذر تحميل التعليقات</div>'; return; }
   if(comments.length === 0){ list.innerHTML = '<div class="notif-empty">لا توجد تعليقات بعد، كن أول من يعلق</div>'; return; }
 
-  // جلب لايكات التعليقات الخاصة بي
   const { data: myLikes } = await _supabase.from('comment_likes').select('comment_id').eq('user_id', currentUser.id);
   const myLikedSet = new Set((myLikes||[]).map(l=>l.comment_id));
 
@@ -808,8 +859,8 @@ async function renderComments(){
     return `
       <div class="comment-item">
         <div class="comment-bubble">
-          <div class="comment-author">${c.user_id === currentUser.id ? (currentProfile.full_name||'أنا') : 'طالب'}</div>
-          <div class="comment-text">${escapeHtml(c.content)}</div>
+          <div class="comment-author">${c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب'}</div>
+          <div class="comment-text">${escapeHtml(c.content||'')}</div>
         </div>
         <div class="comment-foot">
           <button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب</button>
@@ -828,11 +879,12 @@ async function renderComments(){
 }
 
 function toggleReplyBox(commentId){
-  document.getElementById('reply-box-'+commentId).classList.toggle('open');
+  document.getElementById('reply-box-'+commentId)?.classList.toggle('open');
 }
 
 async function submitComment(){
   const input = document.getElementById('comment-input');
+  if(!input) return;
   const text = input.value.trim();
   if(!text) return;
   const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, content: text });
@@ -844,6 +896,7 @@ async function submitComment(){
 
 async function submitReply(parentId){
   const input = document.getElementById('reply-input-'+parentId);
+  if(!input) return;
   const text = input.value.trim();
   if(!text) return;
   const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, parent_id: parentId, content: text });
@@ -867,13 +920,14 @@ async function toggleCommentLike(commentId, btn){
 function setTerm(term, el){
   currentTerm = term;
   document.querySelectorAll('.term-toggle button').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   loadGrades();
 }
+
 function setExamType(type, el){
   currentExamType = type;
   document.querySelectorAll('.exam-type-tabs button').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   loadGrades();
 }
 
@@ -887,7 +941,9 @@ function gradeInfo(percent){
 
 async function loadGrades(){
   const container = document.getElementById('grades-container');
+  if(!container) return;
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+  
   const { data: grades, error } = await _supabase.from('grades').select('*')
     .eq('student_id', currentUser.id)
     .eq('term', currentTerm)
@@ -905,10 +961,11 @@ async function loadGrades(){
   container.innerHTML = grades.map(g=>{
     const percent = Math.round((g.score / g.max_score) * 1000)/10;
     const info = gradeInfo(percent);
+    const certData = encodeURIComponent(JSON.stringify({subject: g.subject_name, percent, label: info.label, rank: g.rank}));
     return `
     <div class="grade-card">
       <div class="grade-card-top">
-        <div class="grade-subject">${escapeHtml(g.subject_name)}</div>
+        <div class="grade-subject">${escapeHtml(g.subject_name||'')}</div>
         <div class="grade-badge ${info.cls}">${info.label}</div>
       </div>
       <div class="grade-score-row">
@@ -921,16 +978,29 @@ async function loadGrades(){
         <div>ساعة الامتحان: <b>${g.exam_time || '-'}</b></div>
         <div>تاريخ النتيجة: <b>${g.result_date || '-'}</b></div>
       </div>
-      <button class="print-btn" onclick='printCertificate(${JSON.stringify({subject:g.subject_name, percent, label:info.label, rank:g.rank})})'>
+      <button class="print-btn" onclick="printCertificateFromData('${certData}')">
         <i class="fas fa-print"></i> طباعة شهادة
       </button>
     </div>`;
   }).join('');
 }
 
+function printCertificateFromData(encodedData){
+  try {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    printCertificate(data);
+  } catch(e) {
+    console.error('Certificate data error', e);
+  }
+}
+
 function drawChart(grades){
   const svg = document.getElementById('grades-chart');
-  if(grades.length === 0){ svg.innerHTML = '<text x="160" y="90" text-anchor="middle" fill="#94a3b8" font-size="12">لا توجد بيانات لعرضها</text>'; return; }
+  if(!svg) return;
+  if(!grades || grades.length === 0){ 
+    svg.innerHTML = '<text x="160" y="90" text-anchor="middle" fill="#94a3b8" font-size="12">لا توجد بيانات لعرضها</text>'; 
+    return; 
+  }
   const w = 320, h = 180, padding = 30, barGap = 14;
   const barW = Math.min(46, (w - padding*2) / grades.length - barGap);
   let bars = '';
@@ -941,7 +1011,7 @@ function drawChart(grades){
     const y = h - 30 - barH;
     bars += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="6" fill="url(#gradGrad)"/>`;
     bars += `<text x="${x+barW/2}" y="${y-6}" text-anchor="middle" font-size="10" fill="#4f46e5" font-weight="700">${Math.round(percent)}%</text>`;
-    bars += `<text x="${x+barW/2}" y="${h-14}" text-anchor="middle" font-size="9" fill="#64748b">${(g.subject_name||'').slice(0,6)}</text>`;
+    bars += `<text x="${x+barW/2}" y="${h-14}" text-anchor="middle" font-size="9" fill="#64748b">${escapeHtml((g.subject_name||'').slice(0,6))}</text>`;
   });
   svg.innerHTML = `
     <defs><linearGradient id="gradGrad" x1="0" y1="1" x2="0" y2="0">
@@ -952,11 +1022,18 @@ function drawChart(grades){
 }
 
 function printCertificate({subject, percent, label, rank}){
-  document.getElementById('cert-name').innerText = currentProfile?.full_name || currentUser.email;
-  document.getElementById('cert-percent').innerText = percent + '%';
-  document.getElementById('cert-grade').innerText = label;
-  document.getElementById('cert-rank').innerText = rank ? ('#'+rank) : '-';
-  document.getElementById('cert-subject-line').innerText = 'مادة: ' + subject;
+  const cName = document.getElementById('cert-name');
+  const cPercent = document.getElementById('cert-percent');
+  const cGrade = document.getElementById('cert-grade');
+  const cRank = document.getElementById('cert-rank');
+  const cSubj = document.getElementById('cert-subject-line');
+
+  if(cName) cName.innerText = currentProfile?.full_name || currentUser.email;
+  if(cPercent) cPercent.innerText = percent + '%';
+  if(cGrade) cGrade.innerText = label;
+  if(cRank) cRank.innerText = rank ? ('#'+rank) : '-';
+  if(cSubj) cSubj.innerText = 'مادة: ' + subject;
+  
   window.print();
 }
 
@@ -966,12 +1043,13 @@ let currentScheduleTerm = '1';
 function setScheduleTerm(term, el){
   currentScheduleTerm = term;
   document.querySelectorAll('#view-schedule .term-toggle button').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   loadSchedule();
 }
 
 async function loadSchedule(){
   const container = document.getElementById('schedule-container');
+  if(!container) return;
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
@@ -989,12 +1067,12 @@ async function loadSchedule(){
       <i class="far fa-clock"></i> تم رفع الجدول بتاريخ: ${formatDate(data.created_at)}
     </div>
     <div class="schedule-box">
-      <img id="schedule-img" src="${data.image_url}" alt="الجدول الدراسي">
+      <img id="schedule-img" src="${escapeHtml(data.image_url)}" alt="الجدول الدراسي">
     </div>
     <div class="schedule-actions">
       <button onclick="printSchedule()"><i class="fas fa-print"></i> طباعة</button>
-      <button onclick="downloadSchedule('${data.image_url}')"><i class="fas fa-download"></i> تحميل</button>
-      <button onclick="openShareSheet('${data.image_url}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
+      <button onclick="downloadSchedule('${escapeHtml(data.image_url)}')"><i class="fas fa-download"></i> تحميل</button>
+      <button onclick="openShareSheet('${escapeHtml(data.image_url)}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
     </div>`;
 }
 
@@ -1002,6 +1080,7 @@ function printSchedule(){
   const img = document.getElementById('schedule-img');
   if(!img) return;
   const w = window.open('', '_blank');
+  if(!w) return;
   w.document.write(`<html dir="rtl"><head><title>طباعة الجدول</title></head><body style="margin:0;text-align:center;">
     <img src="${img.src}" style="max-width:100%;"><script>window.onload=()=>{window.print();}<\/script></body></html>`);
   w.document.close();
@@ -1023,7 +1102,7 @@ async function downloadSchedule(url){
 /* ================== المحاضرات الكلية ================== */
 let currentLecturesTerm = '1';
 let currentLectureSubject = '';
-// أسماء المواد لكل فرقة/ترم: هيتم تعبئتها لاحقًا من الأدمن (5 مواد بالترم الأول، 6 بالترم الثاني)
+
 const LECTURE_SUBJECTS = {
   '1': { '1':[], '2':[] },
   '2': { '1':[], '2':[] },
@@ -1035,31 +1114,34 @@ function setLecturesTerm(term, el){
   currentLecturesTerm = term;
   currentLectureSubject = '';
   document.querySelectorAll('#view-lectures .term-toggle button').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   renderLectureSubjectTabs();
-  document.getElementById('lectures-container').innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحاضرات</p></div>';
+  const container = document.getElementById('lectures-container');
+  if(container) container.innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحاضرات</p></div>';
 }
 
 function renderLectureSubjectTabs(){
   const year = currentProfile?.academic_year || '1';
   const subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
   const tabsEl = document.getElementById('lectures-subject-tabs');
+  if(!tabsEl) return;
   if(subjects.length === 0){
     tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);">سيتم إضافة أسماء المواد قريبًا</span>';
     return;
   }
-  tabsEl.innerHTML = subjects.map(s => `<button onclick="setLectureSubject('${s}', this)">${s}</button>`).join('');
+  tabsEl.innerHTML = subjects.map(s => `<button onclick="setLectureSubject('${escapeHtml(s)}', this)">${escapeHtml(s)}</button>`).join('');
 }
 
 function setLectureSubject(subject, el){
   currentLectureSubject = subject;
   document.querySelectorAll('#lectures-subject-tabs button').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   loadLectures();
 }
 
 async function loadLectures(){
   const container = document.getElementById('lectures-container');
+  if(!container) return;
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
@@ -1078,31 +1160,38 @@ async function loadLectures(){
         ${l.course_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> كورس: ${escapeHtml(l.course_name)}</span>` : ''}
       </div>
       <div class="lecture-files">
-        ${l.pdf_url ? `<a class="lecture-file-link" href="${l.pdf_url}" target="_blank"><i class="fas fa-file-pdf"></i> ملف المحاضرة (PDF)</a>` : ''}
-        ${l.video_url ? `<a class="lecture-file-link" href="${l.video_url}" target="_blank"><i class="fas fa-video"></i> فيديو الشرح</a>` : ''}
+        ${l.pdf_url ? `<a class="lecture-file-link" href="${escapeHtml(l.pdf_url)}" target="_blank"><i class="fas fa-file-pdf"></i> ملف المحاضرة (PDF)</a>` : ''}
+        ${l.video_url ? `<a class="lecture-file-link" href="${escapeHtml(l.video_url)}" target="_blank"><i class="fas fa-video"></i> فيديو الشرح</a>` : ''}
       </div>
     </div>`).join('');
 }
 
-/* ================== شيت المشاركة (يستخدم للبوستات والجدول) ================== */
+/* ================== شيت المشاركة ================== */
 let shareTargetUrl = '';
 
 function openShareSheet(url, text){
   shareTargetUrl = url;
-  document.getElementById('share-link-input').value = url;
-  document.getElementById('share-overlay').dataset.text = text || 'بوابة الطلاب';
-  document.getElementById('share-overlay').classList.add('open');
+  const linkInput = document.getElementById('share-link-input');
+  const overlay = document.getElementById('share-overlay');
+  if(linkInput) linkInput.value = url;
+  if(overlay) {
+    overlay.dataset.text = text || 'بوابة الطلاب';
+    overlay.classList.add('open');
+  }
 }
+
 function closeShareSheet(){
-  document.getElementById('share-overlay').classList.remove('open');
+  document.getElementById('share-overlay')?.classList.remove('open');
 }
+
 function copyShareLink(){
   navigator.clipboard.writeText(shareTargetUrl);
   showToast('تم نسخ الرابط', 'success');
 }
+
 function shareVia(platform){
   const url = encodeURIComponent(shareTargetUrl);
-  const text = encodeURIComponent(document.getElementById('share-overlay').dataset.text || 'بوابة الطلاب');
+  const text = encodeURIComponent(document.getElementById('share-overlay')?.dataset.text || 'بوابة الطلاب');
   let link = '';
   switch(platform){
     case 'whatsapp': link = `https://wa.me/?text=${text}%20${url}`; break;
@@ -1111,7 +1200,6 @@ function shareVia(platform){
     case 'whatsapp_status':
     case 'facebook_story':
     case 'instagram_story':
-      // منصات الستوري بتحتاج فتح التطبيق نفسه ورفع الصورة يدويًا، فبننسخلك الرابط أولًا
       navigator.clipboard.writeText(shareTargetUrl);
       showToast('تم نسخ الرابط، افتح التطبيق وحط الصورة/الرابط في الستوري', 'success');
       return;
@@ -1130,10 +1218,12 @@ function shareVia(platform){
 
 /* ================== أدوات مساعدة ================== */
 function escapeHtml(str){
+  if(!str) return '';
   const d = document.createElement('div');
   d.innerText = str;
   return d.innerHTML;
 }
+
 function formatDate(iso){
   try{
     const d = new Date(iso);
@@ -1145,26 +1235,19 @@ function formatDate(iso){
 document.addEventListener('click', (e)=>{
   const dd = document.getElementById('notif-dropdown');
   const bell = document.getElementById('bell-btn');
-  if(dd.classList.contains('open') && !dd.contains(e.target) && !bell.contains(e.target)){
+  if(dd && bell && dd.classList.contains('open') && !dd.contains(e.target) && !bell.contains(e.target)){
     dd.classList.remove('open');
   }
 });
-
-
-    </script>
- 
-      
-  
-
-
-
-
-
-
-
-
-
-  
-
+</script>
 </body>
-  </html>
+</html>
+
+  
+
+
+
+
+
+
+
