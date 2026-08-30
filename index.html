@@ -548,9 +548,11 @@ window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
   try {
-    // 1. التحقق من وجود Session محلياً
+    // إعطاء وقت بسيط لمعالجة رمز الدخول القادم من جوجل/فيسبوك قبل التحقق من الجلسة
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
-    
+
     if (sessionError || !session) {
       await forceFullLogout();
       return;
@@ -558,11 +560,11 @@ async function init(){
 
     currentUser = session.user;
 
-    // 2. التحقق المباشر من وجود الحساب فعلياً في قاعدة البيانات
-    const profileExists = await loadProfile();
-    
-    // إذا تم مسح الحساب من قاعدة البيانات
-    if (!profileExists) {
+    const result = await loadProfile();
+
+    // نسجل الخروج فقط لو تأكدنا 100% إن الصف مش موجود في الجدول
+    // (مش لو حصل خطأ شبكة أو صلاحيات عادي)
+    if (result === 'not_found') {
       showToast('حسابك لم يعد موجوداً، تم تسجيل الخروج تلقائياً', 'error');
       await forceFullLogout();
       return;
@@ -575,7 +577,7 @@ async function init(){
 
   } catch(err) {
     console.error('Initialization error:', err);
-    await forceFullLogout();
+    // خطأ غير متوقع فقط - لا نسجل خروج المستخدم تلقائياً حفاظاً على تجربته
   } finally {
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
@@ -588,16 +590,23 @@ async function loadProfile(){
   const { data, error } = await _supabase.from('yasser_ayman')
     .select('*')
     .eq('id', currentUser.id)
-    .maybeSingle(); // استخدام maybeSingle لمنع توقف الكود عند عدم وجود بيانات
+    .maybeSingle();
 
-  if (error || !data) {
-    console.error('Profile not found or deleted:', error);
-    return false; // الحساب غير موجود في الجدول
+  if (error) {
+    // خطأ فعلي (شبكة/صلاحيات) - ده مش دليل على إن الحساب اتمسح
+    console.error('Profile load error:', error);
+    return 'error';
+  }
+
+  if (!data) {
+    // مفيش خطأ، ومفيش صف بردو = الحساب فعلاً غير موجود في الجدول
+    return 'not_found';
   }
 
   currentProfile = data;
-  return true; // الحساب موجود
-}
+  return 'ok';
+      }
+
 
 /* ================== دالة التخريج الإجباري والتنظيف الشامل ================== */
 async function forceFullLogout(){
