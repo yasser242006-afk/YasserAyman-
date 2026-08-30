@@ -402,6 +402,36 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       </div>
     </section>
 
+
+    <!-- SCHEDULE -->
+<section class="view" id="view-schedule">
+  <div class="page-title"><i class="fas fa-calendar-days"></i> الجدول الدراسي</div>
+
+  <div class="term-toggle">
+    <button class="active" data-term="1" onclick="setScheduleTerm('1',this)">الترم الأول</button>
+    <button data-term="2" onclick="setScheduleTerm('2',this)">الترم الثاني</button>
+  </div>
+
+  <div id="schedule-container">
+    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الجدول...</p></div>
+  </div>
+</section>
+
+<!-- LECTURES -->
+<section class="view" id="view-lectures">
+  <div class="page-title"><i class="fas fa-chalkboard-user"></i> المحاضرات الكلية</div>
+
+  <div class="term-toggle">
+    <button class="active" data-term="1" onclick="setLecturesTerm('1',this)">الترم الأول</button>
+    <button data-term="2" onclick="setLecturesTerm('2',this)">الترم الثاني</button>
+  </div>
+
+  <div class="exam-type-tabs" id="lectures-subject-tabs"></div>
+
+  <div id="lectures-container">
+    <div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحاضرات</p></div>
+  </div>
+</section>
   </main>
 
   <!-- ===== Comments modal ===== -->
@@ -436,6 +466,45 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
     </div>
   </div>
 
+</div>
+  <!-- ===== Share sheet modal ===== -->
+<div class="modal-overlay" id="share-overlay">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <h3><i class="fas fa-share-nodes"></i> مشاركة</h3>
+      <button class="modal-close" onclick="closeShareSheet()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="share-sheet">
+      <button class="share-opt" onclick="shareVia('whatsapp')">
+        <div class="share-icon" style="background:#25D366"><i class="fab fa-whatsapp"></i></div><span>واتساب</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('whatsapp_status')">
+        <div class="share-icon" style="background:#25D366"><i class="fas fa-circle-notch"></i></div><span>ستوري واتساب</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('facebook')">
+        <div class="share-icon" style="background:#1877F2"><i class="fab fa-facebook-f"></i></div><span>فيسبوك</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('facebook_story')">
+        <div class="share-icon" style="background:#1877F2"><i class="fas fa-circle-notch"></i></div><span>ستوري فيسبوك</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('messenger')">
+        <div class="share-icon" style="background:#0084FF"><i class="fab fa-facebook-messenger"></i></div><span>ماسنجر</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('instagram')">
+        <div class="share-icon" style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)"><i class="fab fa-instagram"></i></div><span>انستجرام</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('instagram_story')">
+        <div class="share-icon" style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)"><i class="fas fa-circle-notch"></i></div><span>ستوري انستا</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('more')">
+        <div class="share-icon" style="background:var(--text-light)"><i class="fas fa-ellipsis"></i></div><span>المزيد</span>
+      </button>
+    </div>
+    <div class="share-link-row">
+      <input type="text" id="share-link-input" readonly>
+      <button onclick="copyShareLink()">نسخ الرابط</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast-container" id="toast-container"></div>
