@@ -1476,7 +1476,38 @@ async function downloadFile(fileUrl, fileName) {
     window.open(fileUrl, '_blank');
   }
 }
- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // أضف هذه السطور داخل دالة switchView(view, el) عند اختيار أسئلة الامتحانات أو المحاضرات:
+if(view === 'questions' || view === 'lectures'){
+  const year = currentProfile?.academic_year || '1';
+  const term = currentLecturesTerm || '1';
+  const subjects = LECTURE_SUBJECTS[year]?.[term] || [];
+  
+  const qSubj = document.getElementById('q-subject-select');
+  const questionsSubj = document.getElementById('questions-subject');
+
+  const optionsHTML = '<option value="">اختر المادة</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+
+  if(qSubj) qSubj.innerHTML = optionsHTML;
+  if(questionsSubj) questionsSubj.innerHTML = optionsHTML;
+}
+
 </script>
 
 
