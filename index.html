@@ -680,11 +680,12 @@ let currentExamType = 'quiz';
 let currentPostIdForComments = null;
 let imageTargetType = null;
 
+let currentScheduleTerm = '1';
 let currentLecturesTerm = '1';
 let currentLectureSubject = '';
 let currentLectureCategory = 'lecture'; // lecture | section | course | programming
 
-/* أسماء المواد الدراسية */
+/* أسماء المواد الدراسية لكل فرقة وترم */
 const LECTURE_SUBJECTS = {
   '1': {
     '1': ['مقدمة في الحاسبات', 'مقدمة في نظم التشغيل', 'مراسلات و مصطلحات إنجليزية', 'مبادئ الإقتصاد', 'مبادئ تنظيم وإدارة'],
@@ -694,8 +695,14 @@ const LECTURE_SUBJECTS = {
     '1': ['قواعد البيانات (1)', 'البرمجة الهيكلية المتقدمة', 'محاسبة شركات', 'دراسات إقتصادية بلغة إنجليزية', 'إدارة الانتاج و العمليات'],
     '2': ['تسويق', 'قانون تجاري', 'نظم معلومات إدارية', 'إحصاء', 'رياضيات تمويل', 'تطبيقات الانترنت و الوسائط المتعددة']
   },
-  '3': { '1': [], '2': [] },
-  '4': { '1': [], '2': [] }
+  '3': {
+    '1': [], // أضف هنا مواد ترم أول سنة ثالثة (5 مواد)
+    '2': []  // أضف هنا مواد ترم تاني سنة ثالثة (6 مواد)
+  },
+  '4': {
+    '1': [], // أضف هنا مواد ترم أول سنة رابعة (5 مواد)
+    '2': []  // أضف هنا مواد ترم تاني سنة رابعة (6 مواد)
+  }
 };
 
 /* ================== Toast ================== */
@@ -718,7 +725,6 @@ function getDefaultAvatar(){
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
-  // سقف أمان: لو أي حاجة علّقت أكتر من 8 ثواني، افتح الموقع برضو بدل ما يفضل عالق للأبد
   const safetyTimeout = setTimeout(()=>{
     console.warn('Init timeout - forcing app to show');
     const loadingScreen = document.getElementById('loading-screen');
@@ -767,7 +773,7 @@ async function loadProfile(){
       .eq('id', currentUser.id)
       .maybeSingle();
 
-    if (error) return 'error';
+    if (error) { console.error('Profile load error:', error); return 'error'; }
     if (!data) return 'not_found';
 
     currentProfile = data;
@@ -796,14 +802,9 @@ async function createFreshProfileRow(){
       .select()
       .maybeSingle();
 
-    if (error) {
-      currentProfile = userData;
-      return;
-    }
-
+    if (error) { currentProfile = userData; return; }
     currentProfile = data || userData;
   } catch(e) {
-    console.error('createFreshProfileRow error:', e);
     currentProfile = userData;
   }
 }
@@ -811,7 +812,7 @@ async function createFreshProfileRow(){
 function renderProfileUI(){
   const name = currentProfile?.full_name || currentUser?.email || 'طالب';
   const avatar = currentProfile?.avatar_url || getDefaultAvatar();
-  
+
   const topName = document.getElementById('topbar-name');
   const topAvatar = document.getElementById('topbar-avatar');
   const sideAvatar = document.getElementById('sidebar-avatar');
@@ -822,7 +823,7 @@ function renderProfileUI(){
   if(topAvatar) topAvatar.src = avatar;
   if(sideAvatar) sideAvatar.src = avatar;
   if(sideName) sideName.innerText = name;
-  
+
   const yearMap = {'1':'السنة الأولى','2':'السنة الثانية','3':'السنة الثالثة','4':'السنة الرابعة'};
   if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'السنة الأولى';
 }
@@ -888,22 +889,21 @@ async function refreshNotifications(){
     </div>`).join('');
 }
 
+/* ================== التنقل بين الصفحات ================== */
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const targetView = document.getElementById('view-'+view);
   if(targetView) targetView.classList.add('active');
-  
+
   document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
   if(el) {
     const item = el.closest('.menu-item') || el;
     item.classList.add('active');
   }
-  
+
   const sidebar = document.getElementById('sidebar');
-  if(sidebar && sidebar.classList.contains('open')) {
-    toggleSidebar();
-  }
-  
+  if(sidebar && sidebar.classList.contains('open')) toggleSidebar();
+
   if(view === 'grades') loadGrades();
   if(view === 'questions'){
     const subjSelect = document.getElementById('q-subject-select');
@@ -917,7 +917,54 @@ function switchView(view, el){
   if(view === 'lectures') renderLectureSubjectTabs();
 }
 
-/* ================== إدارة المنشورات والتعليقات والجدول والدرجات ================== */
+/* ================== الصورة الشخصية ================== */
+function openImageMenu(e, type){
+  e.stopPropagation();
+  imageTargetType = type;
+  const menu = document.getElementById('image-menu');
+  if(!menu) return;
+  menu.style.top = (e.clientY + 10) + 'px';
+  menu.style.left = Math.max(10, e.clientX - 170) + 'px';
+  menu.classList.add('open');
+  document.addEventListener('click', closeImageMenuOnce);
+}
+function closeImageMenuOnce(){
+  document.getElementById('image-menu')?.classList.remove('open');
+  document.removeEventListener('click', closeImageMenuOnce);
+}
+function viewImage(){
+  window.open(currentProfile?.avatar_url || getDefaultAvatar(), '_blank');
+}
+function triggerImageChange(){
+  document.getElementById('image-file-input')?.click();
+}
+document.getElementById('image-file-input')?.addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const ext = file.name.split('.').pop();
+    const path = `${currentUser.id}/avatar_${Date.now()}.${ext}`;
+    const { error: upErr } = await _supabase.storage.from('avatars').upload(path, file, { upsert:true });
+    if(upErr) throw upErr;
+    const { data } = _supabase.storage.from('avatars').getPublicUrl(path);
+    await _supabase.from('yasser_ayman').update({ avatar_url: data.publicUrl }).eq('id', currentUser.id);
+    if(!currentProfile) currentProfile = {};
+    currentProfile.avatar_url = data.publicUrl;
+    renderProfileUI();
+    showToast('تم تحديث الصورة بنجاح', 'success');
+  }catch(err){
+    showToast('حدث خطأ أثناء رفع الصورة: '+err.message, 'error');
+  }
+  e.target.value = '';
+});
+async function deleteImage(){
+  await _supabase.from('yasser_ayman').update({ avatar_url: null }).eq('id', currentUser.id);
+  if(currentProfile) currentProfile.avatar_url = null;
+  renderProfileUI();
+  showToast('تم حذف الصورة', 'success');
+}
+
+/* ================== المنشورات ================== */
 async function loadPosts(){
   const year = currentProfile?.academic_year || '1';
   const container = document.getElementById('posts-container');
@@ -963,7 +1010,7 @@ async function buildPostCard(post){
     ${post.image_url ? `<img class="post-image" src="${escapeHtml(post.image_url)}" alt="">` : ''}
     <div class="post-actions">
       <div class="left-group">
-        <button class="act-btn ${myLike?'liked':''}" data-post="${post.id}" onclick="toggleLike('${post.id}', this)">
+        <button class="act-btn ${myLike?'liked':''}" onclick="toggleLike('${post.id}', this)">
           <i class="fa-heart ${myLike?'fas':'far'}"></i> <span class="like-count">${likeCount||0}</span>
         </button>
         <button class="act-btn" onclick="openComments('${post.id}')">
@@ -1004,12 +1051,12 @@ function sharePost(postId){
   openShareSheet(url, 'شاهد هذا المنشور في بوابة الطلاب');
 }
 
+/* ================== التعليقات ================== */
 async function openComments(postId){
   currentPostIdForComments = postId;
   document.getElementById('comments-overlay')?.classList.add('open');
   await renderComments();
 }
-
 function closeComments(){
   document.getElementById('comments-overlay')?.classList.remove('open');
   currentPostIdForComments = null;
@@ -1019,10 +1066,10 @@ async function renderComments(){
   const list = document.getElementById('comments-list');
   if(!list) return;
   list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
-  
+
   const { data: comments, error } = await _supabase.from('post_comments').select('*')
     .eq('post_id', currentPostIdForComments).order('created_at', { ascending:true });
-    
+
   if(error || !comments){ list.innerHTML = '<div class="notif-empty">تعذر تحميل التعليقات</div>'; return; }
   if(comments.length === 0){ list.innerHTML = '<div class="notif-empty">لا توجد تعليقات بعد، كن أول من يعلق</div>'; return; }
 
@@ -1050,7 +1097,7 @@ async function renderComments(){
           <button onclick="toggleReplyBox('${c.id}')"><i class="far fa-comment-dots"></i> رد</button>
         </div>
         <div class="reply-box" id="reply-box-${c.id}">
-          <input type="text" class="comment-input-row-inline" id="reply-input-${c.id}" placeholder="اكتب ردك..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:16px;font-size:12px;font-family:var(--font-family);outline:none;">
+          <input type="text" id="reply-input-${c.id}" placeholder="اكتب ردك..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:16px;font-size:12px;font-family:var(--font-family);outline:none;">
           <button onclick="submitReply('${c.id}')" style="background:var(--primary);color:#fff;border:none;border-radius:16px;padding:0 14px;font-size:11px;cursor:pointer;">إرسال</button>
         </div>
         ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
@@ -1099,22 +1146,197 @@ async function toggleCommentLike(commentId, btn){
   await renderComments();
 }
 
-/* ================== قسم المحاضرات والكورسات ================== */
+/* ================== الدرجات ================== */
+function setTerm(term, el){
+  currentTerm = term;
+  document.querySelectorAll('#view-grades .term-toggle button').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  loadGrades();
+}
+function setExamType(type, el){
+  currentExamType = type;
+  document.querySelectorAll('.exam-type-tabs button').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  loadGrades();
+}
+
+function gradeInfo(percent){
+  if(percent >= 85) return { label:'امتياز', cls:'excellent' };
+  if(percent >= 75) return { label:'جيد جدًا', cls:'vgood' };
+  if(percent >= 65) return { label:'جيد', cls:'good' };
+  if(percent >= 50) return { label:'مقبول', cls:'pass' };
+  return { label:'ضعيف', cls:'weak' };
+}
+
+async function loadGrades(){
+  const container = document.getElementById('grades-container');
+  if(!container) return;
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+
+  const { data: grades, error } = await _supabase.from('grades').select('*')
+    .eq('student_id', currentUser.id)
+    .eq('term', currentTerm)
+    .eq('exam_type', currentExamType)
+    .order('created_at', { ascending:false });
+
+  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات</p></div>'; return; }
+  if(!grades || grades.length === 0){
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد درجات مسجلة بعد</p></div>';
+    drawChart([]);
+    return;
+  }
+
+  drawChart(grades);
+  container.innerHTML = grades.map(g=>{
+    const percent = Math.round((g.score / g.max_score) * 1000)/10;
+    const info = gradeInfo(percent);
+    const certData = encodeURIComponent(JSON.stringify({subject: g.subject_name, percent, label: info.label, rank: g.rank}));
+    return `
+    <div class="grade-card">
+      <div class="grade-card-top">
+        <div class="grade-subject">${escapeHtml(g.subject_name||'')}</div>
+        <div class="grade-badge ${info.cls}">${info.label}</div>
+      </div>
+      <div class="grade-score-row">
+        <div class="grade-score-big">${g.score} / ${g.max_score}</div>
+        <div style="font-size:13px;color:var(--text-secondary)">النسبة: <b style="color:var(--text)">${percent}%</b></div>
+      </div>
+      <div class="grade-grid">
+        <div>المركز: <b>${g.rank ? '#'+g.rank : '-'}</b></div>
+        <div>تاريخ الامتحان: <b>${g.exam_date || '-'}</b></div>
+        <div>ساعة الامتحان: <b>${g.exam_time || '-'}</b></div>
+        <div>تاريخ النتيجة: <b>${g.result_date || '-'}</b></div>
+      </div>
+      <button class="print-btn" onclick="printCertificateFromData('${certData}')">
+        <i class="fas fa-print"></i> طباعة شهادة
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function printCertificateFromData(encodedData){
+  try {
+    printCertificate(JSON.parse(decodeURIComponent(encodedData)));
+  } catch(e) { console.error('Certificate data error', e); }
+}
+
+function drawChart(grades){
+  const svg = document.getElementById('grades-chart');
+  if(!svg) return;
+  if(!grades || grades.length === 0){
+    svg.innerHTML = '<text x="160" y="90" text-anchor="middle" fill="#94a3b8" font-size="12">لا توجد بيانات لعرضها</text>';
+    return;
+  }
+  const w = 320, h = 180, padding = 30, barGap = 14;
+  const barW = Math.min(46, (w - padding*2) / grades.length - barGap);
+  let bars = '';
+  grades.forEach((g, i)=>{
+    const percent = (g.score / g.max_score) * 100;
+    const barH = (percent/100) * (h - 50);
+    const x = padding + i*(barW+barGap);
+    const y = h - 30 - barH;
+    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="6" fill="url(#gradGrad)"/>`;
+    bars += `<text x="${x+barW/2}" y="${y-6}" text-anchor="middle" font-size="10" fill="#4f46e5" font-weight="700">${Math.round(percent)}%</text>`;
+    bars += `<text x="${x+barW/2}" y="${h-14}" text-anchor="middle" font-size="9" fill="#64748b">${escapeHtml((g.subject_name||'').slice(0,6))}</text>`;
+  });
+  svg.innerHTML = `
+    <defs><linearGradient id="gradGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient></defs>
+    <line x1="20" y1="${h-30}" x2="${w-10}" y2="${h-30}" stroke="#e2e8f0" stroke-width="1"/>
+    ${bars}`;
+}
+
+function printCertificate({subject, percent, label, rank}){
+  const cName = document.getElementById('cert-name');
+  const cPercent = document.getElementById('cert-percent');
+  const cGrade = document.getElementById('cert-grade');
+  const cRank = document.getElementById('cert-rank');
+  const cSubj = document.getElementById('cert-subject-line');
+
+  if(cName) cName.innerText = currentProfile?.full_name || currentUser.email;
+  if(cPercent) cPercent.innerText = percent + '%';
+  if(cGrade) cGrade.innerText = label;
+  if(cRank) cRank.innerText = rank ? ('#'+rank) : '-';
+  if(cSubj) cSubj.innerText = 'مادة: ' + subject;
+
+  window.print();
+}
+
+/* ================== الجدول الدراسي ================== */
+function setScheduleTerm(term, el){
+  currentScheduleTerm = term;
+  document.querySelectorAll('#view-schedule .term-toggle button').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  loadSchedule();
+}
+
+async function loadSchedule(){
+  const container = document.getElementById('schedule-container');
+  if(!container) return;
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+  const year = currentProfile?.academic_year || '1';
+
+  const { data, error } = await _supabase.from('schedule').select('*')
+    .eq('term', currentScheduleTerm).eq('academic_year', year)
+    .order('created_at', { ascending:false }).limit(1).maybeSingle();
+
+  if(error || !data){
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لم يتم رفع الجدول لهذا الترم بعد</p></div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="schedule-meta">
+      <i class="far fa-clock"></i> تم رفع الجدول بتاريخ: ${formatDate(data.created_at)}
+    </div>
+    <div class="schedule-box">
+      <img id="schedule-img" src="${escapeHtml(data.image_url)}" alt="الجدول الدراسي">
+    </div>
+    <div class="schedule-actions">
+      <button onclick="printSchedule()"><i class="fas fa-print"></i> طباعة</button>
+      <button onclick="downloadSchedule('${escapeHtml(data.image_url)}')"><i class="fas fa-download"></i> تحميل</button>
+      <button onclick="openShareSheet('${escapeHtml(data.image_url)}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
+    </div>`;
+}
+
+function printSchedule(){
+  const img = document.getElementById('schedule-img');
+  if(!img) return;
+  const w = window.open('', '_blank');
+  if(!w) return;
+  w.document.write(`<html dir="rtl"><head><title>طباعة الجدول</title></head><body style="margin:0;text-align:center;">
+    <img src="${img.src}" style="max-width:100%;"><script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  w.document.close();
+}
+
+async function downloadSchedule(url){
+  try{
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'الجدول-الدراسي.jpg';
+    link.click();
+  }catch(e){
+    window.open(url, '_blank');
+  }
+}
+
+/* ================== المحاضرات الكلية ================== */
 function setLecturesTerm(term, el){
   currentLecturesTerm = term;
   currentLectureSubject = '';
-  document.querySelectorAll('#view-lectures .term-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#view-lectures .term-toggle button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
-  
-  if(currentLectureCategory !== 'programming'){
-    renderLectureSubjectTabs();
-  }
+  if(currentLectureCategory !== 'programming') renderLectureSubjectTabs();
   resetLecturesContainer();
 }
 
 function setLectureCategory(cat, el){
   currentLectureCategory = cat;
-  document.querySelectorAll('#lecture-category-tabs button').forEach(b => b.classList.remove('active'));
+  currentLectureSubject = '';
+  document.querySelectorAll('#lecture-category-tabs button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
 
   const subjTabs = document.getElementById('lectures-subject-tabs');
@@ -1138,7 +1360,7 @@ function renderLectureSubjectTabs(){
   const subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
   const tabsEl = document.getElementById('lectures-subject-tabs');
   if(!tabsEl) return;
-  
+
   if(subjects.length === 0){
     tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);padding:6px;">سيتم إضافة أسماء المواد قريبًا</span>';
     return;
@@ -1148,7 +1370,7 @@ function renderLectureSubjectTabs(){
 
 function setLectureSubject(subject, el){
   currentLectureSubject = subject;
-  document.querySelectorAll('#lectures-subject-tabs button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#lectures-subject-tabs button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
   loadLectures();
 }
@@ -1160,7 +1382,6 @@ async function loadLectures(){
   const year = currentProfile?.academic_year || '1';
 
   let query = _supabase.from('lectures').select('*');
-
   if(currentLectureCategory === 'programming'){
     query = query.eq('category', 'programming');
   } else {
@@ -1172,14 +1393,8 @@ async function loadLectures(){
 
   const { data, error } = await query.order('created_at', { ascending: false });
 
-  if(error){ 
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات</p></div>'; 
-    return; 
-  }
-  if(!data || data.length === 0){ 
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; 
-    return; 
-  }
+  if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات</p></div>'; return; }
+  if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; return; }
 
   container.innerHTML = data.map(l => {
     const titleEscaped = escapeHtml(l.lecture_title || 'محاضرة');
@@ -1193,25 +1408,23 @@ async function loadLectures(){
         ${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}
         ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
       </div>
-      
-      <div class="lecture-actions-grid" style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
         ${pdfUrl ? `
-          <div class="file-action-group" style="display:flex; gap:8px;">
-            <button class="act-btn" onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer;">
+          <div style="display:flex; gap:8px;">
+            <button onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
               <i class="fas fa-file-pdf"></i> قراءة الـ PDF
             </button>
-            <a href="${pdfUrl}" download target="_blank" class="act-btn" style="background:#f3f4f6; color:#333; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+            <a href="${pdfUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
               <i class="fas fa-download"></i> تحميل
             </a>
           </div>
         ` : ''}
-
         ${videoUrl ? `
-          <div class="file-action-group" style="display:flex; gap:8px;">
-            <button class="act-btn" onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer;">
+          <div style="display:flex; gap:8px;">
+            <button onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
               <i class="fas fa-play-circle"></i> مشاهدة الفيديو
             </button>
-            <a href="${videoUrl}" download target="_blank" class="act-btn" style="background:#f3f4f6; color:#333; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+            <a href="${videoUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
               <i class="fas fa-download"></i> تحميل
             </a>
           </div>
@@ -1222,22 +1435,20 @@ async function loadLectures(){
 }
 
 function getCategoryName(cat){
-  const map = { 'lecture': 'محاضرة', 'section': 'سكشن', 'course': 'كورس', 'programming': 'برمجة' };
+  const map = { lecture:'محاضرة', section:'سكشن', course:'كورس', programming:'كورس برمجة' };
   return map[cat] || cat;
 }
 
-/* ================== دوال التحكم في الـ PDF والمودال ================== */
+/* ================== مودال PDF ================== */
 function openPdfModal(url, title){
   const modal = document.getElementById('pdf-modal');
   const frame = document.getElementById('pdf-frame');
   const titleEl = document.getElementById('pdf-modal-title');
   if(!modal || !frame) return;
-  
   frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
   if(titleEl) titleEl.innerText = title;
   modal.classList.add('open');
 }
-
 function closePdfModal(){
   const modal = document.getElementById('pdf-modal');
   const frame = document.getElementById('pdf-frame');
@@ -1245,106 +1456,129 @@ function closePdfModal(){
   if(modal) modal.classList.remove('open');
 }
 
-/* ================== دوال مشغل الفيديو ================== */
-const videoPlayer = document.getElementById('custom-video-player');
-const progressInput = document.getElementById('video-progress');
-
+/* ================== مودال الفيديو ================== */
 function openVideoModal(url, title){
   const modal = document.getElementById('video-modal');
+  const player = document.getElementById('custom-video-player');
   const titleEl = document.getElementById('video-modal-title');
   const downloadBtn = document.getElementById('video-download-btn');
-  
-  if(!modal || !videoPlayer) return;
-  
-  videoPlayer.src = url;
+  if(!modal || !player) return;
+
+  player.src = url;
   if(titleEl) titleEl.innerText = title;
   if(downloadBtn) downloadBtn.href = url;
-  
+
   modal.classList.add('open');
-  videoPlayer.play();
+  player.play();
   updatePlayBtnIcon(true);
 }
-
 function closeVideoModal(){
   const modal = document.getElementById('video-modal');
-  if(videoPlayer) {
-    videoPlayer.pause();
-    videoPlayer.src = '';
-  }
+  const player = document.getElementById('custom-video-player');
+  if(player){ player.pause(); player.src = ''; }
   if(modal) modal.classList.remove('open');
 }
-
 function togglePlayPause(){
-  if(!videoPlayer) return;
-  if(videoPlayer.paused){
-    videoPlayer.play();
-    updatePlayBtnIcon(true);
-  } else {
-    videoPlayer.pause();
-    updatePlayBtnIcon(false);
-  }
+  const player = document.getElementById('custom-video-player');
+  if(!player) return;
+  if(player.paused){ player.play(); updatePlayBtnIcon(true); }
+  else { player.pause(); updatePlayBtnIcon(false); }
 }
-
 function updatePlayBtnIcon(isPlaying){
   const btn = document.getElementById('play-btn');
   if(btn) btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
 }
-
 function rewindVideo(seconds){
-  if(videoPlayer) videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - seconds);
+  const player = document.getElementById('custom-video-player');
+  if(player) player.currentTime = Math.max(0, player.currentTime - seconds);
 }
-
 function forwardVideo(seconds){
-  if(videoPlayer) videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + seconds);
+  const player = document.getElementById('custom-video-player');
+  if(player && !isNaN(player.duration)) player.currentTime = Math.min(player.duration, player.currentTime + seconds);
 }
-
 function toggleFullScreen(){
-  if(!videoPlayer) return;
-  if(videoPlayer.requestFullscreen){
-    videoPlayer.requestFullscreen();
-  } else if(videoPlayer.webkitRequestFullscreen){
-    videoPlayer.webkitRequestFullscreen();
-  }
+  const player = document.getElementById('custom-video-player');
+  if(!player) return;
+  if(player.requestFullscreen) player.requestFullscreen();
+  else if(player.webkitRequestFullscreen) player.webkitRequestFullscreen();
 }
-
-if(videoPlayer){
-  videoPlayer.addEventListener('timeupdate', ()=>{
-    if(!isNaN(videoPlayer.duration)){
-      const val = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-      if(progressInput) progressInput.value = val;
-      
-      const timeEl = document.getElementById('video-time');
-      if(timeEl){
-        timeEl.innerText = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
-      }
-    }
-  });
-
-  videoPlayer.addEventListener('ended', ()=> updatePlayBtnIcon(false));
-}
-
-if(progressInput){
-  progressInput.addEventListener('input', ()=>{
-    if(videoPlayer && !isNaN(videoPlayer.duration)){
-      videoPlayer.currentTime = (progressInput.value / 100) * videoPlayer.duration;
-    }
-  });
-}
-
 function formatTime(sec){
+  if(isNaN(sec)) return '00:00';
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
 }
+document.addEventListener('DOMContentLoaded', ()=>{
+  const player = document.getElementById('custom-video-player');
+  const progressInput = document.getElementById('video-progress');
+  if(player){
+    player.addEventListener('timeupdate', ()=>{
+      if(!isNaN(player.duration)){
+        if(progressInput) progressInput.value = (player.currentTime / player.duration) * 100;
+        const timeEl = document.getElementById('video-time');
+        if(timeEl) timeEl.innerText = `${formatTime(player.currentTime)} / ${formatTime(player.duration)}`;
+      }
+    });
+    player.addEventListener('ended', ()=> updatePlayBtnIcon(false));
+  }
+  if(progressInput){
+    progressInput.addEventListener('input', ()=>{
+      if(player && !isNaN(player.duration)) player.currentTime = (progressInput.value / 100) * player.duration;
+    });
+  }
+});
 
-/* ================== أدوات مساعدة العامة ================== */
+/* ================== شيت المشاركة ================== */
+let shareTargetUrl = '';
+
+function openShareSheet(url, text){
+  shareTargetUrl = url;
+  const linkInput = document.getElementById('share-link-input');
+  const overlay = document.getElementById('share-overlay');
+  if(linkInput) linkInput.value = url;
+  if(overlay) { overlay.dataset.text = text || 'بوابة الطلاب'; overlay.classList.add('open'); }
+}
+function closeShareSheet(){
+  document.getElementById('share-overlay')?.classList.remove('open');
+}
+function copyShareLink(){
+  navigator.clipboard.writeText(shareTargetUrl);
+  showToast('تم نسخ الرابط', 'success');
+}
+function shareVia(platform){
+  const url = encodeURIComponent(shareTargetUrl);
+  const text = encodeURIComponent(document.getElementById('share-overlay')?.dataset.text || 'بوابة الطلاب');
+  let link = '';
+  switch(platform){
+    case 'whatsapp': link = `https://wa.me/?text=${text}%20${url}`; break;
+    case 'facebook': link = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+    case 'messenger': link = `fb-messenger://share/?link=${url}`; break;
+    case 'whatsapp_status':
+    case 'facebook_story':
+    case 'instagram_story':
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط، افتح التطبيق وحط الرابط في الستوري', 'success');
+      return;
+    case 'instagram':
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط، افتحه داخل انستجرام لمشاركته', 'success');
+      return;
+    case 'more':
+      if(navigator.share){ navigator.share({ title:'بوابة الطلاب', url: shareTargetUrl }).catch(()=>{}); return; }
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط', 'success');
+      return;
+  }
+  window.open(link, '_blank');
+}
+
+/* ================== أدوات مساعدة ================== */
 function escapeHtml(str){
   if(!str) return '';
   const d = document.createElement('div');
   d.innerText = str;
   return d.innerHTML;
 }
-
 function formatDate(iso){
   try{
     const d = new Date(iso);
@@ -1359,7 +1593,7 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
-</script>
+  </script>
 
 
   
