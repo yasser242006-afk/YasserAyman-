@@ -523,7 +523,12 @@ let currentTerm = '1';
 let currentExamType = 'quiz';
 let currentPostIdForComments = null;
 let imageTargetType = null; // 'avatar' or 'cover'
-const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?seed=Student&backgroundColor=4f46e5,0ea5e9';
+
+/* أفاتار افتراضي ديناميكي: بيرجع أول حرف من اسم الطالب الحقيقي بدل كلمة ثابتة */
+function getDefaultAvatar(){
+  const name = currentProfile?.full_name || currentUser?.email || 'Student';
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
+}
 
 /* ================== Toast ================== */
 function showToast(message, type='info'){
@@ -547,6 +552,13 @@ async function init(){
     const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
     
     if (sessionError || !session) {
+      await forceFullLogout();
+      return;
+    }
+
+    // 1.5 تحقق حقيقي من السيرفر (مش بس من الكاش المحفوظ في المتصفح) إن الحساب لسه موجود ومش محذوف
+    const { data: userCheck, error: userCheckError } = await _supabase.auth.getUser();
+    if (userCheckError || !userCheck?.user) {
       await forceFullLogout();
       return;
     }
@@ -615,7 +627,7 @@ async function forceFullLogout(){
 
 function renderProfileUI(){
   const name = currentProfile?.full_name || currentUser.email;
-  const avatar = currentProfile?.avatar_url || DEFAULT_AVATAR;
+  const avatar = currentProfile?.avatar_url || getDefaultAvatar();
   
   const topName = document.getElementById('topbar-name');
   const topAvatar = document.getElementById('topbar-avatar');
@@ -743,7 +755,7 @@ function closeImageMenuOnce(){
 }
 
 function viewImage(){
-  const src = currentProfile?.avatar_url || DEFAULT_AVATAR;
+  const src = currentProfile?.avatar_url || getDefaultAvatar();
   window.open(src, '_blank');
 }
 
@@ -1284,7 +1296,7 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
-</script>
+    </script>
 </body>
 </html>
 
