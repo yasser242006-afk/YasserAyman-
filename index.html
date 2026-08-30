@@ -556,13 +556,6 @@ async function init(){
       return;
     }
 
-    // 1.5 تحقق حقيقي من السيرفر (مش بس من الكاش المحفوظ في المتصفح) إن الحساب لسه موجود ومش محذوف
-    const { data: userCheck, error: userCheckError } = await _supabase.auth.getUser();
-    if (userCheckError || !userCheck?.user) {
-      await forceFullLogout();
-      return;
-    }
-
     currentUser = session.user;
 
     // 2. التحقق المباشر من وجود الحساب فعلياً في قاعدة البيانات
