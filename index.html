@@ -664,6 +664,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 </div>
 
+
+
 <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
@@ -715,6 +717,15 @@ function getDefaultAvatar(){
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
+  // سقف أمان: لو أي حاجة علّقت أكتر من 8 ثواني، افتح الموقع برضو بدل ما يفضل عالق للأبد
+  const safetyTimeout = setTimeout(()=>{
+    console.warn('Init timeout - forcing app to show');
+    const loadingScreen = document.getElementById('loading-screen');
+    const appScreen = document.getElementById('app');
+    if(loadingScreen) loadingScreen.style.display = 'none';
+    if(appScreen) appScreen.style.display = 'block';
+  }, 8000);
+
   try {
     await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -740,6 +751,7 @@ async function init(){
   } catch(err) {
     console.error('Initialization error:', err);
   } finally {
+    clearTimeout(safetyTimeout);
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
     if(loadingScreen) loadingScreen.style.display = 'none';
@@ -777,17 +789,22 @@ async function createFreshProfileRow(){
     updated_at: new Date().toISOString()
   };
 
-  const { data, error } = await _supabase.from('yasser_ayman')
-    .upsert(userData, { onConflict: 'id' })
-    .select()
-    .maybeSingle();
+  try {
+    const { data, error } = await _supabase.from('yasser_ayman')
+      .upsert(userData, { onConflict: 'id' })
+      .select()
+      .maybeSingle();
 
-  if (error) {
+    if (error) {
+      currentProfile = userData;
+      return;
+    }
+
+    currentProfile = data || userData;
+  } catch(e) {
+    console.error('createFreshProfileRow error:', e);
     currentProfile = userData;
-    return;
   }
-
-  currentProfile = data || userData;
 }
 
 function renderProfileUI(){
@@ -1342,6 +1359,11 @@ document.addEventListener('click', (e)=>{
   }
 });
 </script>
+
+
+
+
+  
 
 
     
