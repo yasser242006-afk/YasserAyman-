@@ -1149,6 +1149,35 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
+
+  // ضَع هذا الكود في صفحة index.html
+async function verifyUserOrLogout() {
+    // 1. التحقق من وجود حساب Auth فعال من السيرفر
+    const { data: { user }, error: authError } = await _supabase.auth.getUser();
+
+    if (authError || !user) {
+        await _supabase.auth.signOut();
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 2. التحقق من وجود سجل للمستخدم داخل جدول yasser_ayman
+    const { data: profile, error: dbError } = await _supabase
+        .from('yasser_ayman')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    // إذا كان البريد محذوفاً من الجدول أو حدث خطأ
+    if (dbError || !profile) {
+        await _supabase.auth.signOut();
+        window.location.href = 'login.html';
+    }
+}
+
+// تشغيل الفحص فور تحميل الصفحة
+window.addEventListener('DOMContentLoaded', verifyUserOrLogout);
+
   </script>
  
       
