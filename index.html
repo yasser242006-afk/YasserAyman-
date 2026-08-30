@@ -1150,50 +1150,6 @@ document.addEventListener('click', (e)=>{
   }
 });
 
-  // ضَع هذا الكود الجديد في صفحة index.html (بدلاً من القديم)
-async function verifyUserOrLogout() {
-    // 1. التحقق من وجود حساب Auth فعال من السيرفر
-    const { data: { user }, error: authError } = await _supabase.auth.getUser();
-
-    if (authError || !user) {
-        await _supabase.auth.signOut();
-        window.location.href = 'login.html';
-        return;
-    }
-
-    // 2. التحقق من وجود سجل للمستخدم داخل جدول yasser_ayman
-    const { data: profile, error: dbError } = await _supabase
-        .from('yasser_ayman')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-
-    // 3. إذا كان المستخدم غير موجود في الجدول (مثل أول تسجيل بعد المسح)، أنشئ السجل فوراً
-    if (!profile) {
-        const userData = {
-            id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-            phone: user.user_metadata?.phone || '',
-            academic_year: '1',
-            updated_at: new Date()
-        };
-
-        const { error: insertError } = await _supabase
-            .from('yasser_ayman')
-            .upsert(userData, { onConflict: 'id' });
-
-        if (insertError) {
-            console.error('فشل إنشاء بيانات المستخدم:', insertError.message);
-            await _supabase.auth.signOut();
-            window.location.href = 'login.html';
-            return;
-        }
-    }
-}
-
-// تشغيل الفحص فور تحميل الصفحة
-window.addEventListener('DOMContentLoaded', verifyUserOrLogout);
 
     </script>
  
