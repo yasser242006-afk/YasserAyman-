@@ -510,6 +510,16 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 <div class="toast-container" id="toast-container"></div>
 
 
+
+
+
+
+
+
+
+
+
+
   
 <script>
 /* ================== إعداد Supabase ================== */
@@ -562,12 +572,10 @@ async function init(){
 
     const result = await loadProfile();
 
-    // نسجل الخروج فقط لو تأكدنا 100% إن الصف مش موجود في الجدول
-    // (مش لو حصل خطأ شبكة أو صلاحيات عادي)
+    // لو الحساب مش موجود في الجدول (سواء أول مرة يسجل، أو كان موجود واتمسح من القاعدة)
+    // نعامله كأنه بيسجل لأول مرة: نعمله صف جديد ونكمله عادي، مش نطرده
     if (result === 'not_found') {
-      showToast('حسابك لم يعد موجوداً، تم تسجيل الخروج تلقائياً', 'error');
-      await forceFullLogout();
-      return;
+      await createFreshProfileRow();
     }
 
     renderProfileUI();
@@ -599,13 +607,42 @@ async function loadProfile(){
   }
 
   if (!data) {
-    // مفيش خطأ، ومفيش صف بردو = الحساب فعلاً غير موجود في الجدول
+    // مفيش خطأ، ومفيش صف بردو = الصف غير موجود في الجدول (أول مرة أو كان محذوف)
     return 'not_found';
   }
 
   currentProfile = data;
   return 'ok';
-      }
+}
+
+/* ================== إنشاء صف بروفايل جديد (يعامل الشخص كأنه بيسجل لأول مرة) ================== */
+async function createFreshProfileRow(){
+  const userData = {
+    id: currentUser.id,
+    email: currentUser.email,
+    full_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '',
+    phone: currentUser.user_metadata?.phone || '',
+    academic_year: currentUser.user_metadata?.academic_year || '1',
+    avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '',
+    first_login_shown: false,
+    last_notification_check: new Date().toISOString(),
+    updated_at: new Date()
+  };
+
+  const { data, error } = await _supabase.from('yasser_ayman')
+    .upsert(userData, { onConflict: 'id' })
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error creating fresh profile row:', error);
+    // حتى لو فشل الحفظ في القاعدة، نكمل بالبيانات دي مؤقتاً عشان الشخص يقدر يستخدم الموقع
+    currentProfile = userData;
+    return;
+  }
+
+  currentProfile = data || userData;
+}
 
 
 /* ================== دالة التخريج الإجباري والتنظيف الشامل ================== */
@@ -657,6 +694,7 @@ async function maybeShowWelcome(){
       setTimeout(()=> overlay.classList.remove('show'), 3200);
     }
     await _supabase.from('yasser_ayman').update({ first_login_shown:true }).eq('id', currentUser.id);
+    currentProfile.first_login_shown = true;
   }
 }
 
@@ -1298,7 +1336,8 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
-    </script>
+                                                                        </script>
+  
 </body>
 </html>
 
