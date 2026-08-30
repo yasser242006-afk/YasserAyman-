@@ -335,7 +335,21 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 
 
+.exam-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch; /* سحب سلس للموبايل */
+  scrollbar-width: none; /* إخفاء شريط التمرير في Firefox */
+}
 
+/* إخفاء شريط التمرير في Chrome, Safari, Edge */
+.exam-type-tabs::-webkit-scrollbar {
+  display: none;
+}
+ 
 
 </style>
 </head>
