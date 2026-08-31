@@ -1437,18 +1437,41 @@ async function loadAttendanceSessions() {
         // بعد إضافة العنصر، سنقوم بإنشاء QR code
         // سننشئه بعد عرض الصفحة
         setTimeout(() => {
-          const qrDiv = document.getElementById(qrContainerId);
-          if (qrDiv) {
-            new QRCode(qrDiv, {
-              text: session.code,
-              width: 128,
-              height: 128,
-              colorDark: "#4f46e5",
-              colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.H
-            });
-          }
-        }, 100);
+  const qrDiv = document.getElementById(qrContainerId);
+  if (qrDiv) {
+    new QRCode(qrDiv, {
+      text: session.code,
+      width: 128,
+      height: 128,
+      colorDark: "#4f46e5",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // ===== إضافة شعار الطاقية في منتصف الباركود =====
+    qrDiv.style.position = 'relative';
+    qrDiv.style.display = 'inline-block';
+    
+    const logoOverlay = document.createElement('div');
+    logoOverlay.style.position = 'absolute';
+    logoOverlay.style.top = '50%';
+    logoOverlay.style.left = '50%';
+    logoOverlay.style.transform = 'translate(-50%, -50%)';
+    logoOverlay.style.width = '32px'; // الحجم الصغير للشعار
+    logoOverlay.style.height = '32px';
+    logoOverlay.style.backgroundColor = '#ffffff'; // خلفية بيضاء للشعار
+    logoOverlay.style.borderRadius = '50%'; // شكل دائري للخلفية
+    logoOverlay.style.boxShadow = '0 0 0 3px #ffffff'; // إطار أبيض حول الشعار
+    logoOverlay.style.display = 'flex';
+    logoOverlay.style.alignItems = 'center';
+    logoOverlay.style.justifyContent = 'center';
+    logoOverlay.style.zIndex = '10';
+    logoOverlay.innerHTML = '<i class="fas fa-graduation-cap" style="color:#4f46e5; font-size:20px;"></i>';
+    
+    qrDiv.appendChild(logoOverlay);
+    // ===== نهاية إضافة الشعار =====
+  }
+}, 100);
         // إضافة زر مسح QR (يستخدم الكاميرا)
         const scanBtnId = `scan-btn-${session.id}`;
         qrHtml += `<button id="${scanBtnId}" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(79,70,229,0.35);transition:all 0.2s ease;hover:transform:scale(1.05);hover:box-shadow:0 6px 20px rgba(79,70,229,0.45);" onclick="startQRScanner('${session.id}', '${session.code}')" title="مسح الحضور"><i class="fas fa-camera"></i></button>`;
