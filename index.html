@@ -1253,14 +1253,28 @@ function getCategoryName(cat){ const map = { lecture:'محاضرة', section:'س
 /* ================== تعبئة قائمة مواد صفحة أسئلة الامتحانات ================== */
 function populateQuestionsSubjects(){
   const year = currentProfile?.academic_year || '1';
-  const allSubjects = new Set([...(LECTURE_SUBJECTS[year]?.['1'] || []), ...(LECTURE_SUBJECTS[year]?.['2'] || [])]);
-  const fillSelect = (selectEl) => {
-    if(!selectEl) return;
-    selectEl.innerHTML = '<option value="">اختر المادة</option>' + Array.from(allSubjects).map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-  };
-  fillSelect(document.getElementById('q-subject-select'));
-  fillSelect(document.getElementById('questions-subject'));
+function getSubjectsForTerm(year, term){
+  if(term === '1') return LECTURE_SUBJECTS[year]?.['1'] || [];
+  if(term === '2') return LECTURE_SUBJECTS[year]?.['2'] || [];
+  return [...(LECTURE_SUBJECTS[year]?.['1'] || []), ...(LECTURE_SUBJECTS[year]?.['2'] || [])];
 }
+
+function updateSubjectSelectByTerm(subjectSelectId, termSelectId){
+  const year = currentProfile?.academic_year || '1';
+  const termEl = document.getElementById(termSelectId);
+  const term = termEl ? termEl.value : 'all';
+  const subjects = getSubjectsForTerm(year, term);
+  const selectEl = document.getElementById(subjectSelectId);
+  if(!selectEl) return;
+  const prevValue = selectEl.value;
+  selectEl.innerHTML = '<option value="">اختر المادة</option>' + subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  if(subjects.includes(prevValue)) selectEl.value = prevValue;
+}
+
+function populateQuestionsSubjects(){
+  updateSubjectSelectByTerm('q-subject-select', 'q-term-select');
+  updateSubjectSelectByTerm('questions-subject', 'questions-term');
+  }
 
 /* ================== مودال PDF ================== */
 function openPdfModal(url, title){
