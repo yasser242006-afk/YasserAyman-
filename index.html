@@ -691,7 +691,7 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-/* ================== تهيئة الصفحة والتحقق من الحساب ================== */
+/* ================== تهيئة الصفحة والتحقق من الحساب (المعدلة لمنع الخروج التلقائي) ================== */
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
@@ -714,13 +714,9 @@ async function init(){
     }
 
     currentUser = session.user;
-    const result = await loadProfile();
 
-    // إذا تم طرد الحساب من قاعدة البيانات الخارجية (الصف غير موجود)
-    if (result === 'not_found') {
-      await forceFullLogout();
-      return;
-    }
+    // تحضير أو إيجاد البروفايل تلقائياً بدون طرد المستخدم
+    await loadOrCreateProfile();
 
     renderProfileUI();
 
@@ -744,33 +740,38 @@ async function init(){
   }
 }
 
-async function loadProfile(){
+async function loadOrCreateProfile(){
   try {
     const { data, error } = await _supabase.from('yasser_ayman')
       .select('*')
       .eq('id', currentUser.id)
       .maybeSingle();
 
-    if (error) { console.error('Profile load error:', error); return 'error'; }
-    if (!data) return 'not_found';
+    if (data) {
+      currentProfile = data;
+      return;
+    }
 
-    currentProfile = data;
-    return 'ok';
-  } catch(e) {
-    return 'error';
-  }
-}
+    // إذا لم يجد الصف، يقوم بالإنشاء التلقائي لمنع الحلقة المفرغة
+    const fallbackName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'طالب';
+    const newUser = {
+      id: currentUser.id,
+      email: currentUser.email,
+      full_name: fallbackName,
+      academic_year: null
+    };
 
-/* ================== تسجيل خروج إجباري عند الطرد ================== */
-async function forceFullLogout(){
-  try {
-    await _supabase.auth.signOut();
+    const { data: createdData, error: createError } = await _supabase
+      .from('yasser_ayman')
+      .upsert([newUser])
+      .select()
+      .maybeSingle();
+
+    currentProfile = createdData || newUser;
   } catch(e) {
-    console.log('Signout error', e);
+    console.error('Profile creation/loading error:', e);
+    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: 'طالب' };
   }
-  localStorage.clear();
-  sessionStorage.clear();
-  window.location.href = 'login.html';
 }
 
 /* ================== اختيار الفرقة الدراسية وتخزينها ================== */
