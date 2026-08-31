@@ -911,11 +911,11 @@ function switchView(view, el){
   if(sidebar.classList.contains('open')) toggleSidebar();
   if(view === 'grades') loadGrades();
   if(view === 'questions'){ 
+  if(view === 'questions'){ 
     const subjSelect = document.getElementById('q-subject-select');
     const termSelect = document.getElementById('q-term-select');
-    document.getElementById('questions-term').value = termSelect.value;
-    updateSubjectSelectByTerm('questions-subject','questions-term');
     document.getElementById('questions-subject').value = subjSelect.value;
+    document.getElementById('questions-term').value = termSelect.value;
     loadExamQuestions();
   }
   if(view === 'schedule') loadSchedule();
