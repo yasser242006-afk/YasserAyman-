@@ -433,6 +433,10 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 }
 .top10-search-btn:hover{background:var(--primary);}
 .top10-search-btn:hover i{color:#fff;} 
+
+  .top10-search-btn i{color:var(--primary);transition:var(--transition);}
+.top10-search-btn:hover{background:var(--primary);}
+.top10-search-btn:hover i{color:#fff;} 
 </style>
 </head>
 <body>
@@ -641,7 +645,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
           <option value="final">فاينال</option>
           <option value="all">الكل</option>
         </select>
-        <button class="top10-search-btn" onclick="loadTop10()" title="عرض"><i class="fas fa-search" style="color:var(--primary);"></i></button> 
+        <button class="top10-search-btn" onclick="loadTop10()" title="عرض"><i class="fas fa-search"></i></button>
       </div>
       <div id="top10-container"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل البيانات...</p></div></div>
     </section>
