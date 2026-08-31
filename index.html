@@ -336,8 +336,36 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 
 
- 
+ .year-select-overlay{
+  position:fixed;inset:0;z-index:500;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.year-select-overlay.show{display:flex;animation:fadeSlide .3s ease;}
+.year-select-box{
+  background:var(--bg-card);border-radius:var(--radius-lg);padding:32px 24px;text-align:center;
+  max-width:380px;width:100%;box-shadow:var(--shadow-lg);animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+.year-select-box h2{font-size:18px;font-weight:800;margin-top:12px;}
+.year-select-box p{font-size:12px;color:var(--text-secondary);margin-top:6px;margin-bottom:20px;}
+.year-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.year-card{
+  border:2px solid var(--border);border-radius:var(--radius-md);padding:18px 10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:8px;transition:var(--transition);
+}
+.year-card i{font-size:22px;color:var(--primary);}
+.year-card span{font-size:13px;font-weight:700;color:var(--text);}
+.year-card:hover{border-color:var(--primary-light);background:rgba(79,70,229,.04);}
+.year-card.selected{border-color:var(--primary);background:linear-gradient(135deg,rgba(79,70,229,.1),rgba(14,165,233,.06));}
+.year-confirm-btn{
+  width:100%;padding:13px;border-radius:var(--radius-sm);border:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+  font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;transition:var(--transition);
+}
+.year-confirm-btn:disabled{opacity:.5;cursor:not-allowed;}
+.year-confirm-btn:not(:disabled):hover{transform:translateY(-2px);} 
 
+
+  
 </style>
 </head>
 <body>
@@ -346,6 +374,32 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 <div id="app" style="display:none">
 
+
+<div id="year-select-overlay" class="year-select-overlay">
+  <div class="year-select-box">
+    <i class="fas fa-graduation-cap" style="font-size:40px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+    <h2>اختر فرقتك الدراسية</h2>
+    <p>اختيارك هيتحفظ تلقائيًا ومش هيتكرر تاني</p>
+    <div class="year-cards-grid">
+      <div class="year-card" onclick="pickYearOption('1', this)">
+        <i class="fas fa-1"></i><span>الفرقة الأولى</span>
+      </div>
+      <div class="year-card" onclick="pickYearOption('2', this)">
+        <i class="fas fa-2"></i><span>الفرقة الثانية</span>
+      </div>
+      <div class="year-card" onclick="pickYearOption('3', this)">
+        <i class="fas fa-3"></i><span>الفرقة الثالثة</span>
+      </div>
+      <div class="year-card" onclick="pickYearOption('4', this)">
+        <i class="fas fa-4"></i><span>الفرقة الرابعة</span>
+      </div>
+    </div>
+    <button id="year-confirm-btn" class="year-confirm-btn" disabled onclick="confirmYearSelection()">تأكيد الاختيار</button>
+  </div>
+</div>
+  
+
+  
   <!-- ===== Welcome overlay ===== -->
   <div id="welcome-overlay">
     <div class="welcome-box">
