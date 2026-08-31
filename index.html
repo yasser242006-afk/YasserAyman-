@@ -1448,28 +1448,32 @@ async function loadAttendanceSessions() {
       correctLevel: QRCode.CorrectLevel.H
     });
 
-    // ===== إضافة شعار الطاقية في منتصف الباركود =====
-    qrDiv.style.position = 'relative';
-    qrDiv.style.display = 'inline-block';
-    
-    const logoOverlay = document.createElement('div');
-    logoOverlay.style.position = 'absolute';
-    logoOverlay.style.top = '50%';
-    logoOverlay.style.left = '50%';
-    logoOverlay.style.transform = 'translate(-50%, -50%)';
-    logoOverlay.style.width = '32px'; // الحجم الصغير للشعار
-    logoOverlay.style.height = '32px';
-    logoOverlay.style.backgroundColor = '#ffffff'; // خلفية بيضاء للشعار
-    logoOverlay.style.borderRadius = '50%'; // شكل دائري للخلفية
-    logoOverlay.style.boxShadow = '0 0 0 3px #ffffff'; // إطار أبيض حول الشعار
-    logoOverlay.style.display = 'flex';
-    logoOverlay.style.alignItems = 'center';
-    logoOverlay.style.justifyContent = 'center';
-    logoOverlay.style.zIndex = '10';
-    logoOverlay.innerHTML = '<i class="fas fa-graduation-cap" style="color:#4f46e5; font-size:20px;"></i>';
-    
-    qrDiv.appendChild(logoOverlay);
-    // ===== نهاية إضافة الشعار =====
+    // ===== تعديل: توسيط الباركود كامل وإضافة الشعار في منتصفه =====
+qrDiv.style.position = 'relative';
+qrDiv.style.display = 'flex';
+qrDiv.style.justifyContent = 'center';
+qrDiv.style.alignItems = 'center';
+qrDiv.style.margin = '0 auto'; // هذه السطر هو الأهم ليتوسط في الصفحة
+qrDiv.style.width = '128px';   // تحديد عرض ثابت حتى لا يتمدد
+qrDiv.style.height = '128px';  // تحديد ارتفاع ثابت
+
+const logoOverlay = document.createElement('div');
+logoOverlay.style.position = 'absolute';
+logoOverlay.style.top = '50%';
+logoOverlay.style.left = '50%';
+logoOverlay.style.transform = 'translate(-50%, -50%)';
+logoOverlay.style.width = '32px'; 
+logoOverlay.style.height = '32px';
+logoOverlay.style.backgroundColor = '#ffffff'; 
+logoOverlay.style.borderRadius = '50%'; 
+logoOverlay.style.boxShadow = '0 0 0 3px #ffffff'; 
+logoOverlay.style.display = 'flex';
+logoOverlay.style.alignItems = 'center';
+logoOverlay.style.justifyContent = 'center';
+logoOverlay.style.zIndex = '10';
+logoOverlay.innerHTML = '<i class="fas fa-graduation-cap" style="color:#4f46e5; font-size:20px;"></i>';
+
+qrDiv.appendChild(logoOverlay);
   }
 }, 100);
         // إضافة زر مسح QR (يستخدم الكاميرا)
