@@ -687,26 +687,39 @@ input[type="checkbox"]:checked {
         }
     }
 
-    // 6. خطوة 1: إرسال رمز التحقق OTP للبريد
-    async function handleSendOTP() {
-        const email = document.getElementById('forgot-email').value.trim();
-        if (!email) {
-            showToast('يرجى إدخال البريد الإلكتروني', 'error');
-            return;
-        }
 
-        resetEmailStore = email;
-
-        const { error } = await _supabase.auth.signInWithOtp({ email });
-        if (error) {
-            showToast(error.message, 'error');
-        } else {
-            document.getElementById('target-email-display').innerText = email;
-            showToast('تم إرسال رمز التحقق إلى بريدك الإلكتروني', 'success');
-            showForm('otp');
-        }
+// 6. خطوة 1: إرسال رمز تحقق (OTP) مكون من 6 أرقام للبريد
+async function handleSendOTP() {
+    const email = document.getElementById('forgot-email').value.trim();
+    if (!email) {
+        showToast('يرجى إدخال البريد الإلكتروني', 'error');
+        return;
     }
 
+    resetEmailStore = email;
+
+    // إرسال OTP (رمز) بدلاً من الرابط السحري
+    const { error } = await _supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+            // عدم تحديد redirectTo بيخلي Supabase ترسل رمز OTP بدل الرابط
+            shouldCreateUser: false // مهم عشان منعملش حساب جديد بالغلط
+        }
+    });
+
+    if (error) {
+        showToast(error.message, 'error');
+    } else {
+        document.getElementById('target-email-display').innerText = email;
+        showToast('تم إرسال رمز التحقق المكون من 6 أرقام إلى بريدك الإلكتروني', 'success');
+        showForm('otp'); // ننتقل لصفحة إدخال الرمز
+    }
+}
+
+
+
+        
+    
     // 7. خطوة 2: تأكيد الرمز المدخل
     async function handleVerifyOTP() {
         const token = document.getElementById('otp-code').value.trim();
