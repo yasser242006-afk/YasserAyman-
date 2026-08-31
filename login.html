@@ -389,247 +389,285 @@
 
     <div class="toast-container" id="toast-container"></div>
 
+
+
+
+
+
+
+
+    
+    
+        
+        
+        
+        
+        
+        
+                    
     <script>
-        // 1. تهيئة Supabase بالبيانات الخاصة بمشروع Students_Organized
-        const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 1. تهيئة Supabase بالبيانات الخاصة بمشروع Students_Organized
+    const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let resetEmailStore = ''; // تخزين البريد الإلكتروني المخصص لاستعادة كلمة السر
+    let resetEmailStore = ''; // تخزين البريد الإلكتروني المخصص لاستعادة كلمة السر
 
-        // التنقل بين الشاشات
-        function showForm(formType) {
-            document.getElementById('login-form').style.display = formType === 'login' ? 'block' : 'none';
-            document.getElementById('signup-form').style.display = formType === 'signup' ? 'block' : 'none';
-            document.getElementById('forgot-form').style.display = formType === 'forgot' ? 'block' : 'none';
-            document.getElementById('otp-form').style.display = formType === 'otp' ? 'block' : 'none';
-            document.getElementById('reset-password-form').style.display = formType === 'reset' ? 'block' : 'none';
+    // التنقل بين الشاشات
+    function showForm(formType) {
+        document.getElementById('login-form').style.display = formType === 'login' ? 'block' : 'none';
+        document.getElementById('signup-form').style.display = formType === 'signup' ? 'block' : 'none';
+        document.getElementById('forgot-form').style.display = formType === 'forgot' ? 'block' : 'none';
+        document.getElementById('otp-form').style.display = formType === 'otp' ? 'block' : 'none';
+        document.getElementById('reset-password-form').style.display = formType === 'reset' ? 'block' : 'none';
+    }
+
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
         }
+    }
 
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fas fa-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'fas fa-eye';
-            }
-        }
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerText = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        // 2. مزامنة البيانات وتخزينها في الجدول الخاص بك yasser_ayman
-        async function saveUserToYasserAymanTable(user, extraData = {}) {
-            const userData = {
-                id: user.id,
-                email: user.email,
-                full_name: extraData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || '',
-                phone: extraData.phone || user.user_metadata?.phone || '',
-                academic_year: extraData.academic_year || '1',
-                avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
-                updated_at: new Date()
-            };
-
-            const { error } = await _supabase
-                .from('yasser_ayman')
-                .upsert(userData, { onConflict: 'id' });
-
-            if (error) {
-                console.error('جدول yasser_ayman خطا في حفظ البيانات:', error.message);
-            }
-        }
-
-// 3. تسجيل الدخول بواسطة Google أو Facebook
-async function handleOAuth(provider) {
-    try {
-        const options = {
-            redirectTo: window.location.origin + window.location.pathname.replace('login.html','') + 'index.html'
+    // 2. مزامنة البيانات وتخزينها في الجدول الخاص بك yasser_ayman
+    async function saveUserToYasserAymanTable(user, extraData = {}) {
+        const userData = {
+            id: user.id,
+            email: user.email,
+            full_name: extraData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || '',
+            phone: extraData.phone || user.user_metadata?.phone || '',
+            academic_year: extraData.academic_year || '1',
+            avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
+            updated_at: new Date()
         };
 
-        // إعدادات خاصة بجوجل لإظهار الحسابات
-        if (provider === 'google') {
-            options.queryParams = {
-                prompt: 'select_account'
+        const { error } = await _supabase
+            .from('yasser_ayman')
+            .upsert(userData, { onConflict: 'id' });
+
+        if (error) {
+            console.error('جدول yasser_ayman خطا في حفظ البيانات:', error.message);
+        }
+    }
+
+    // 3. تسجيل الدخول بواسطة Google أو Facebook (تم التعديل)
+    async function handleOAuth(provider) {
+        try {
+            // طريقة مضمونة لبناء الرابط الصحيح
+            const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+            const options = {
+                redirectTo: baseUrl + 'index.html'
             };
-        }
 
-        // إعدادات الفيسبوك (سيطلب الإذن بالدخول بالحساب المفتوح فوراً)
-        const { data, error } = await _supabase.auth.signInWithOAuth({
-            provider: provider,
-            options: options
-        });
-
-        if (error) throw error;
-    } catch (err) {
-        showToast(err.message, 'error');
-    }
-}
-
-        // 4. إنشاء حساب جديد بالبريد الإلكتروني
-        async function handleSignup() {
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const fullName = document.getElementById('signup-name').value;
-            const phone = document.getElementById('signup-phone').value;
-            const year = document.getElementById('signup-year').value;
-
-            if (!email || !password || !fullName) {
-                showToast('برجاء ملء جميع الحقول المطلوبة', 'error');
-                return;
+            // إعدادات خاصة بجوجل لإظهار الحسابات
+            if (provider === 'google') {
+                options.queryParams = {
+                    prompt: 'select_account'
+                };
             }
 
-            try {
-                const { data, error } = await _supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: { full_name: fullName, phone: phone, academic_year: year }
-                    }
-                });
-
-                if (error) throw error;
-
-                if (data.user) {
-                    await saveUserToYasserAymanTable(data.user, { full_name: fullName, phone: phone, academic_year: year });
-                    showToast('تم إنشاء الحساب بنجاح!', 'success');
-                    setTimeout(() => window.location.href = 'index.html', 1500);
-                }
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
-        }
-
-        // 5. تسجيل الدخول العادي
-        async function handleLogin() {
-        async function handleLogin() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-
-    if (!email || !password) {
-        showToast('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
-        return;
-    }
-
-    try {
-        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-
-        if (data.user) {
-            await saveUserToYasserAymanTable(data.user);
-            
-            // ========== 🟢 هنا مكان إضافة كود الحفظ ==========
-            localStorage.setItem('last_email', email);
-            localStorage.setItem('last_password', password);
-            // ================================================
-
-            showToast('تم تسجيل الدخول بنجاح', 'success');
-            setTimeout(() => window.location.href = 'index.html', 1000);
-        }
-    } catch (err) {
-        showToast('خطأ في تسجيل الدخول: ' + err.message, 'error');
-    }
-    }
-
-        // 6. خطوة 1: إرسال رمز التحقق OTP للبريد
-        async function handleSendOTP() {
-            const email = document.getElementById('forgot-email').value.trim();
-            if (!email) {
-                showToast('يرجى إدخال البريد الإلكتروني', 'error');
-                return;
-            }
-
-            resetEmailStore = email;
-
-            const { error } = await _supabase.auth.signInWithOtp({ email });
-            if (error) {
-                showToast(error.message, 'error');
-            } else {
-                document.getElementById('target-email-display').innerText = email;
-                showToast('تم إرسال رمز التحقق إلى بريدك الإلكتروني', 'success');
-                showForm('otp');
-            }
-        }
-
-        // 7. خطوة 2: تأكيد الرمز المدخل
-        async function handleVerifyOTP() {
-            const token = document.getElementById('otp-code').value.trim();
-            if (!token) {
-                showToast('يرجى إدخال رمز التحقق', 'error');
-                return;
-            }
-
-            const { data, error } = await _supabase.auth.verifyOtp({
-                email: resetEmailStore,
-                token: token,
-                type: 'email'
+            const { data, error } = await _supabase.auth.signInWithOAuth({
+                provider: provider,
+                options: options
             });
 
-            if (error) {
-                showToast('رمز التحقق غير صحيح أو انتهت صلاحيته', 'error');
-            } else {
-                showToast('تم التأكد من الرمز بنجاح!', 'success');
-                showForm('reset');
-            }
+            if (error) throw error;
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // 4. إنشاء حساب جديد بالبريد الإلكتروني
+    async function handleSignup() {
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const fullName = document.getElementById('signup-name').value;
+        const phone = document.getElementById('signup-phone').value;
+        const year = document.getElementById('signup-year').value;
+
+        if (!email || !password || !fullName) {
+            showToast('برجاء ملء جميع الحقول المطلوبة', 'error');
+            return;
         }
 
-        // 8. خطوة 3: تحديث كلمة المرور الجديدة
-        async function handleUpdatePassword() {
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
+        try {
+            const { data, error } = await _supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: fullName, phone: phone, academic_year: year }
+                }
+            });
 
-            if (!newPassword || !confirmPassword) {
-                showToast('يرجى إدخال كلمة المرور وتأكيدها', 'error');
-                return;
+            if (error) throw error;
+
+            if (data.user) {
+                await saveUserToYasserAymanTable(data.user, { full_name: fullName, phone: phone, academic_year: year });
+                showToast('تم إنشاء الحساب بنجاح!', 'success');
+                setTimeout(() => window.location.href = 'index.html', 1500);
             }
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
 
-            if (newPassword !== confirmPassword) {
-                showToast('كلمتا المرور غير متطابقتين', 'error');
-                return;
-            }
+    // 5. تسجيل الدخول العادي (تم إصلاح التكرار وإضافة حفظ البيانات)
+    async function handleLogin() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
 
-            const { error } = await _supabase.auth.updateUser({ password: newPassword });
+        if (!email || !password) {
+            showToast('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
+            return;
+        }
 
-            if (error) {
-                showToast(error.message, 'error');
-            } else {
-                showToast('تم تغيير كلمة المرور بنجاح!', 'success');
+        try {
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+
+            if (data.user) {
+                await saveUserToYasserAymanTable(data.user);
+                
+                // حفظ البريد وكلمة السر للاستخدام التلقائي في下次
+                localStorage.setItem('last_email', email);
+                localStorage.setItem('last_password', password);
+
+                showToast('تم تسجيل الدخول بنجاح', 'success');
                 setTimeout(() => window.location.href = 'index.html', 1000);
             }
+        } catch (err) {
+            showToast('خطأ في تسجيل الدخول: ' + err.message, 'error');
         }
-
-        // 9. زر تخطي لتجاوز مرحلة تغيير كلمة السر والدخول للموقع
-        function skipPasswordReset() {
-            showToast('تم التخطي، مرحباً بك!', 'info');
-            setTimeout(() => window.location.href = 'index.html', 500);
-        }
-
-        // فحص الجلسة تلقائياً عند فتح الصفحة
-        window.addEventListener('DOMContentLoaded', async () => {
-    // ========== 🟢 هنا مكان إضافة كود تعبئة الحقول ==========
-    const savedEmail = localStorage.getItem('last_email');
-    const savedPass = localStorage.getItem('last_password');
-    const emailInput = document.getElementById('login-email');
-    const passInput = document.getElementById('login-password');
-    if (emailInput && savedEmail) emailInput.value = savedEmail;
-    if (passInput && savedPass) passInput.value = savedPass;
-    // ======================================================
-
-    // الكود القديم بتاع فحص الجلسة
-    const { data: { session } } = await _supabase.auth.getSession();
-    if (session && document.getElementById('reset-password-form').style.display !== 'block') {
-        await saveUserToYasserAymanTable(session.user);
-        window.location.href = 'index.html';
     }
-});
-    </script>
+
+    // 6. خطوة 1: إرسال رمز التحقق OTP للبريد
+    async function handleSendOTP() {
+        const email = document.getElementById('forgot-email').value.trim();
+        if (!email) {
+            showToast('يرجى إدخال البريد الإلكتروني', 'error');
+            return;
+        }
+
+        resetEmailStore = email;
+
+        const { error } = await _supabase.auth.signInWithOtp({ email });
+        if (error) {
+            showToast(error.message, 'error');
+        } else {
+            document.getElementById('target-email-display').innerText = email;
+            showToast('تم إرسال رمز التحقق إلى بريدك الإلكتروني', 'success');
+            showForm('otp');
+        }
+    }
+
+    // 7. خطوة 2: تأكيد الرمز المدخل
+    async function handleVerifyOTP() {
+        const token = document.getElementById('otp-code').value.trim();
+        if (!token) {
+            showToast('يرجى إدخال رمز التحقق', 'error');
+            return;
+        }
+
+        const { data, error } = await _supabase.auth.verifyOtp({
+            email: resetEmailStore,
+            token: token,
+            type: 'email'
+        });
+
+        if (error) {
+            showToast('رمز التحقق غير صحيح أو انتهت صلاحيته', 'error');
+        } else {
+            showToast('تم التأكد من الرمز بنجاح!', 'success');
+            showForm('reset');
+        }
+    }
+
+    // 8. خطوة 3: تحديث كلمة المرور الجديدة
+    async function handleUpdatePassword() {
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (!newPassword || !confirmPassword) {
+            showToast('يرجى إدخال كلمة المرور وتأكيدها', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast('كلمتا المرور غير متطابقتين', 'error');
+            return;
+        }
+
+        const { error } = await _supabase.auth.updateUser({ password: newPassword });
+
+        if (error) {
+            showToast(error.message, 'error');
+        } else {
+            showToast('تم تغيير كلمة المرور بنجاح!', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        }
+    }
+
+    // 9. زر تخطي لتجاوز مرحلة تغيير كلمة السر والدخول للموقع
+    function skipPasswordReset() {
+        showToast('تم التخطي، مرحباً بك!', 'info');
+        setTimeout(() => window.location.href = 'index.html', 500);
+    }
+
+    // 10. تحميل الوضع الداكن والفاتح (جديد)
+    (function loadSavedThemeForLogin() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+            document.body.style.setProperty('--bg', '#0f172a');
+            document.body.style.setProperty('--bg-card', '#1e293b');
+            document.body.style.setProperty('--text', '#f8fafc');
+            document.body.style.setProperty('--text-secondary', '#94a3b8');
+            document.body.style.setProperty('--border', '#334155');
+            document.body.style.setProperty('--shadow-lg', '0 10px 40px rgba(0,0,0,0.5)');
+        }
+    })();
+
+    // 11. تحميل اللون المحفوظ (جديد)
+    (function loadSavedColorForLogin() {
+        const saved = localStorage.getItem('app-primary-color');
+        if (saved) {
+            document.documentElement.style.setProperty('--primary', saved);
+            document.documentElement.style.setProperty('--primary-dark', saved);
+            document.documentElement.style.setProperty('--primary-light', saved + '80');
+        }
+    })();
+
+    // 12. فحص الجلسة وتعبئة الحقول تلقائياً عند فتح الصفحة
+    window.addEventListener('DOMContentLoaded', async () => {
+        // ===== تعبئة البريد وكلمة السر المحفوظين =====
+        const savedEmail = localStorage.getItem('last_email');
+        const savedPass = localStorage.getItem('last_password');
+        const emailInput = document.getElementById('login-email');
+        const passInput = document.getElementById('login-password');
+        if (emailInput && savedEmail) emailInput.value = savedEmail;
+        if (passInput && savedPass) passInput.value = savedPass;
+
+        // ===== فحص الجلسة الحالية =====
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (session && document.getElementById('reset-password-form').style.display !== 'block') {
+            await saveUserToYasserAymanTable(session.user);
+            window.location.href = 'index.html';
+        }
+    });
+                                                             </script>
 </body>
 </html>
