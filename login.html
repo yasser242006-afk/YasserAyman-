@@ -510,27 +510,34 @@ async function handleOAuth(provider) {
 
         // 5. تسجيل الدخول العادي
         async function handleLogin() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+        async function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
 
-            if (!email || !password) {
-                showToast('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
-                return;
-            }
+    if (!email || !password) {
+        showToast('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
+        return;
+    }
 
-            try {
-                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
+    try {
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
 
-                if (data.user) {
-                    await saveUserToYasserAymanTable(data.user);
-                    showToast('تم تسجيل الدخول بنجاح', 'success');
-                    setTimeout(() => window.location.href = 'index.html', 1000);
-                }
-            } catch (err) {
-                showToast('خطأ في تسجيل الدخول: ' + err.message, 'error');
-            }
+        if (data.user) {
+            await saveUserToYasserAymanTable(data.user);
+            
+            // ========== 🟢 هنا مكان إضافة كود الحفظ ==========
+            localStorage.setItem('last_email', email);
+            localStorage.setItem('last_password', password);
+            // ================================================
+
+            showToast('تم تسجيل الدخول بنجاح', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1000);
         }
+    } catch (err) {
+        showToast('خطأ في تسجيل الدخول: ' + err.message, 'error');
+    }
+    }
 
         // 6. خطوة 1: إرسال رمز التحقق OTP للبريد
         async function handleSendOTP() {
