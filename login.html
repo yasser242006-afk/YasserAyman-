@@ -607,12 +607,22 @@ async function handleOAuth(provider) {
 
         // فحص الجلسة تلقائياً عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (session && document.getElementById('reset-password-form').style.display !== 'block') {
-                await saveUserToYasserAymanTable(session.user);
-                window.location.href = 'index.html';
-            }
-        });
+    // ========== 🟢 هنا مكان إضافة كود تعبئة الحقول ==========
+    const savedEmail = localStorage.getItem('last_email');
+    const savedPass = localStorage.getItem('last_password');
+    const emailInput = document.getElementById('login-email');
+    const passInput = document.getElementById('login-password');
+    if (emailInput && savedEmail) emailInput.value = savedEmail;
+    if (passInput && savedPass) passInput.value = savedPass;
+    // ======================================================
+
+    // الكود القديم بتاع فحص الجلسة
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (session && document.getElementById('reset-password-form').style.display !== 'block') {
+        await saveUserToYasserAymanTable(session.user);
+        window.location.href = 'index.html';
+    }
+});
     </script>
 </body>
 </html>
