@@ -1658,7 +1658,7 @@ function renderAttendanceChart(subjectStats = null) {
   const absent = subjects.reduce((sum, s) => sum + subjectStats[s].absent, 0);
   
   const data = [present, late, absent];
-  const labels = ['✅ حاضر', '⏰ متأخر', '❌ غائب'];
+  const labels = [' حاضر', ' متأخر', ' غائب'];
   const colors = ['#10b981', '#f59e0b', '#ef4444'];
   
   const width = canvas.width;
