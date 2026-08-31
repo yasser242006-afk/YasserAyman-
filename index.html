@@ -534,17 +534,21 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       <div class="menu-item" onclick="toggleQuestionsMenu(this)"><i class="fas fa-file-circle-question"></i><span>أسئلة الامتحانات</span><i class="fas fa-chevron-down" style="margin-right:auto;font-size:11px;" id="q-chevron"></i></div>
       <div class="menu-sub" id="questions-submenu">
   <div class="mini-select-group">
-    <select class="mini-select" id="q-term-select" onchange="...">...</select>
+    <select class="mini-select" id="q-term-select" onchange="updateSubjectSelectByTerm('q-subject-select','q-term-select')">
+      <option value="all">الكل</option>
+      <option value="1">الترم الأول</option>
+      <option value="2">الترم الثاني</option>
+    </select>
     <i class="fas fa-calendar-week"></i>
   </div>
   <div class="mini-select-group">
-    <select class="mini-select" id="q-subject-select">...</select>
+    <select class="mini-select" id="q-subject-select"><option value="">اختر المادة</option></select>
     <i class="fas fa-book"></i>
   </div>
   <button class="submenu-search-btn" style="width:100%;" onclick="switchView('questions', document.querySelector('.menu-item'))">
     <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
   </button>
-      </div>
+</div>
       <div class="menu-item" onclick="switchView('schedule', this)"><i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span></div>
       <div class="menu-item" onclick="switchView('lectures', this)"><i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span></div>
       <!-- New Attendance menu -->
