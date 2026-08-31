@@ -807,6 +807,8 @@ async function init(){
       await createFreshProfileRow();
     }
 
+    await ensureAcademicYearSelected();
+
     renderProfileUI();
     maybeShowWelcome();
     await refreshNotifications();
