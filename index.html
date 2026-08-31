@@ -1489,8 +1489,8 @@ qrDiv.appendChild(logoOverlay);
           <span style="font-size:12px;color:var(--text-secondary);">${escapeHtml(session.doctor_name || 'د. غير محدد')}</span>
         </div>
         <div class="session-info">
-          <span>📅 ${new Date(session.start_time).toLocaleDateString('ar-EG')}</span>
-          <span>🕒 ${new Date(session.start_time).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})} - ${new Date(session.end_time).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}</span>
+          <span> ${new Date(session.start_time).toLocaleDateString('ar-EG')}</span>
+          <span> ${new Date(session.start_time).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})} - ${new Date(session.end_time).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}</span>
         </div>
         ${qrHtml}
         ${statusHtml}
