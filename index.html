@@ -417,6 +417,22 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .top10-table tr:last-child td:last-child {
   border-radius: 0 0 12px 0;
 } 
+
+
+
+
+
+
+  .top10-search-btn{
+  width:48px;height:48px;flex-shrink:0;
+  border-radius:var(--radius-sm);
+  border:2px solid var(--primary);
+  background:var(--bg-card);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:var(--transition);
+}
+.top10-search-btn:hover{background:var(--primary);}
+.top10-search-btn:hover i{color:#fff;} 
 </style>
 </head>
 <body>
@@ -625,7 +641,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
           <option value="final">فاينال</option>
           <option value="all">الكل</option>
         </select>
-        <button class="icon-btn" onclick="loadTop10()" title="عرض"><i class="fas fa-search" style="color:var(--primary);"></i></button>
+        <button class="top10-search-btn" onclick="loadTop10()" title="عرض"><i class="fas fa-search" style="color:var(--primary);"></i></button> 
       </div>
       <div id="top10-container"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل البيانات...</p></div></div>
     </section>
