@@ -2613,20 +2613,33 @@ function showAppInfo() {
     });
   }
 
-// ========== تسجيل الخروج ==========
+// ========== تسجيل الخروج (مع الحفاظ على تفضيلات الثيم واللون) ==========
 async function logoutUser() {
-  if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-    try {
-      await _supabase.auth.signOut();
-      localStorage.removeItem('app-primary-color');
-      localStorage.removeItem('theme');
-      // تنظيف أي بيانات أخرى
-      sessionStorage.clear();
-      window.location.href = 'login.html';
-    } catch (e) {
-      showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
+    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+        try {
+            // حفظ تفضيلات الثيم واللون قبل المسح
+            const theme = localStorage.getItem('theme');
+            const color = localStorage.getItem('app-primary-color');
+            
+            await _supabase.auth.signOut();
+            
+            // مسح بيانات الجلسة فقط (مش تفضيلات الثيم)
+            sessionStorage.clear();
+            
+            // إعادة حفظ تفضيلات الثيم واللون
+            if (theme) localStorage.setItem('theme', theme);
+            if (color) localStorage.setItem('app-primary-color', color);
+            
+            // حفظ البريد وكلمة السر للدخول السريع (اختياري)
+            // لو عايز تشيلهم عشان الأمان، امسح السطرين دول
+            // localStorage.removeItem('last_email');
+            // localStorage.removeItem('last_password');
+            
+            window.location.href = 'login.html';
+        } catch (e) {
+            showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
+        }
     }
-  }
 }
 
 
