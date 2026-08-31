@@ -2731,36 +2731,105 @@ function showAppInfo() {
   }
 
 // ========== تسجيل الخروج (مع الحفاظ على تفضيلات الثيم واللون) ==========
+// ========== تسجيل الخروج (مع صندوق تأكيد منسق) ==========
 async function logoutUser() {
-    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-        try {
-            // حفظ تفضيلات الثيم واللون قبل المسح
-            const theme = localStorage.getItem('theme');
-            const color = localStorage.getItem('app-primary-color');
-            
-            await _supabase.auth.signOut();
-            
-            // مسح بيانات الجلسة فقط (مش تفضيلات الثيم)
-            sessionStorage.clear();
-            
-            // إعادة حفظ تفضيلات الثيم واللون
-            if (theme) localStorage.setItem('theme', theme);
-            if (color) localStorage.setItem('app-primary-color', color);
-            
-            // حفظ البريد وكلمة السر للدخول السريع (اختياري)
-            // لو عايز تشيلهم عشان الأمان، امسح السطرين دول
-            // localStorage.removeItem('last_email');
-            // localStorage.removeItem('last_password');
-            
-            window.location.href = 'login.html';
-        } catch (e) {
-            showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
-        }
+    const confirmed = await showConfirm({
+        title: 'تسجيل الخروج',
+        message: 'هل أنت متأكد من تسجيل الخروج؟',
+        confirmText: 'تسجيل خروج',
+        cancelText: 'إلغاء',
+        icon: 'fas fa-right-from-bracket',
+        iconClass: 'danger',
+        confirmClass: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    try {
+        // حفظ تفضيلات الثيم واللون قبل المسح
+        const theme = localStorage.getItem('theme');
+        const color = localStorage.getItem('app-primary-color');
+        
+        await _supabase.auth.signOut();
+        
+        // مسح بيانات الجلسة فقط (مش تفضيلات الثيم)
+        sessionStorage.clear();
+        
+        // إعادة حفظ تفضيلات الثيم واللون
+        if (theme) localStorage.setItem('theme', theme);
+        if (color) localStorage.setItem('app-primary-color', color);
+        
+        // حفظ البريد وكلمة السر للدخول السريع (اختياري)
+        // لو عايز تشيلهم عشان الأمان، امسح السطرين دول
+        // localStorage.removeItem('last_email');
+        // localStorage.removeItem('last_password');
+        
+        window.location.href = 'login.html';
+    } catch (e) {
+        showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
     }
+  }
+
+// ===== صندوق تأكيد مخصص =====
+function showConfirm(options) {
+    return new Promise((resolve) => {
+        const { 
+            title = 'تأكيد', 
+            message = 'هل أنت متأكد؟', 
+            confirmText = 'حسناً', 
+            cancelText = 'إلغاء',
+            icon = 'fas fa-exclamation-triangle',
+            iconClass = '',
+            confirmClass = 'danger'
+        } = options;
+
+        // إنشاء الـ overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'confirm-overlay';
+
+        overlay.innerHTML = `
+            <div class="confirm-box">
+                <div class="icon ${iconClass}">
+                    <i class="${icon}"></i>
+                </div>
+                <h3>${title}</h3>
+                <p>${message}</p>
+                <div class="buttons">
+                    <button class="btn-cancel">${cancelText}</button>
+                    <button class="btn-confirm ${confirmClass}">${confirmText}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // التعامل مع الأزرار
+        const cancelBtn = overlay.querySelector('.btn-cancel');
+        const confirmBtn = overlay.querySelector('.btn-confirm');
+
+        const cleanup = () => {
+            overlay.remove();
+        };
+
+        cancelBtn.addEventListener('click', () => {
+            cleanup();
+            resolve(false);
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            cleanup();
+            resolve(true);
+        });
+
+        // إغلاق عند الضغط خارج الصندوق
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                cleanup();
+                resolve(false);
+            }
+        });
+    });
 }
-
-
-
 
 
 
