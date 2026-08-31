@@ -1620,53 +1620,63 @@ async function loadAttendanceRecords() {
   }
 }
 
-// رسم بياني للحضور والغياب باستخدام canvas
+
+
+// رسم بياني للحضور والغياب باستخدام canvas (نسخة محسنة)
 function renderAttendanceChart(subjectStats = null) {
   const canvas = document.getElementById('attendance-chart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  // إذا لم تكن stats موجودة، نحاول جلبها من السجلات
+  
+  // ضبط حجم canvas ليكون واضح
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const containerWidth = Math.min(rect.width || 300, 400);
+  const size = Math.min(containerWidth, 320);
+  canvas.width = size * 2;
+  canvas.height = size * 2;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  
   if (!subjectStats) {
-    // نعيد تحميل السجلات ثم نرسم
     loadAttendanceRecords();
     return;
   }
-  // نأخذ أول مادة لعرض النسبة (أو يمكن جمع الكل)
+  
   const subjects = Object.keys(subjectStats);
   if (subjects.length === 0) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '14px Cairo';
+    ctx.font = '28px Cairo';
     ctx.textAlign = 'center';
     ctx.fillText('لا توجد بيانات', canvas.width/2, canvas.height/2);
     return;
   }
-  // نرسم رسم بياني دائري (pie chart)
+  
   const total = subjects.reduce((sum, s) => sum + subjectStats[s].total, 0);
   const present = subjects.reduce((sum, s) => sum + subjectStats[s].present, 0);
   const late = subjects.reduce((sum, s) => sum + subjectStats[s].late, 0);
   const absent = subjects.reduce((sum, s) => sum + subjectStats[s].absent, 0);
-
+  
   const data = [present, late, absent];
-  const labels = ['حاضر', 'متأخر', 'غائب'];
+  const labels = ['✅ حاضر', '⏰ متأخر', '❌ غائب'];
   const colors = ['#10b981', '#f59e0b', '#ef4444'];
-
+  
   const width = canvas.width;
   const height = canvas.height;
-  const radius = Math.min(width, height) / 2 - 20;
+  const radius = Math.min(width, height) / 2 - 40;
   const centerX = width / 2;
-  const centerY = height / 2;
-
+  const centerY = height / 2 - 30;
+  
   ctx.clearRect(0, 0, width, height);
-
+  
   if (total === 0) {
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '14px Cairo';
+    ctx.font = '28px Cairo';
     ctx.textAlign = 'center';
     ctx.fillText('لا توجد بيانات', centerX, centerY);
     return;
   }
-
+  
   let startAngle = -Math.PI / 2;
   data.forEach((value, i) => {
     const sliceAngle = (value / total) * 2 * Math.PI;
@@ -1676,33 +1686,60 @@ function renderAttendanceChart(subjectStats = null) {
     ctx.closePath();
     ctx.fillStyle = colors[i];
     ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
     startAngle += sliceAngle;
   });
-
-  // رسم المركز الأبيض (دائري)
+  
+  // المركز الأبيض
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius * 0.5, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, radius * 0.45, 0, 2 * Math.PI);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
+  
+  // النسبة المئوية في المنتصف
   ctx.fillStyle = '#0f172a';
-  ctx.font = 'bold 16px Cairo';
+  ctx.font = 'bold 36px Cairo';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(`${((present / total) * 100).toFixed(0)}%`, centerX, centerY);
-
-  // إضافة أسطورة
-  let legendY = 10;
-  ctx.font = '12px Cairo';
+  const percent = ((present / total) * 100);
+  ctx.fillText(`${Math.round(percent)}%`, centerX, centerY - 10);
+  ctx.font = '18px Cairo';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('حضور', centerX, centerY + 28);
+  
+  // الأسطورة (دوائر على اليمين)
+  const legendX = width - 100;
+  let legendY = 50;
   ctx.textAlign = 'right';
   labels.forEach((label, i) => {
+    const pct = ((data[i]/total)*100);
+    // ارسم دائرة
+    ctx.beginPath();
+    ctx.arc(legendX - 6, legendY + 8, 10, 0, 2 * Math.PI);
     ctx.fillStyle = colors[i];
-    ctx.fillRect(width - 80, legendY, 12, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
     ctx.fillStyle = '#0f172a';
-    ctx.fillText(`${label} (${((data[i]/total)*100).toFixed(0)}%)`, width - 90, legendY + 10);
-    legendY += 20;
+    ctx.font = 'bold 18px Cairo';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${label}`, legendX - 20, legendY + 8);
+    ctx.font = '15px Cairo';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(`${Math.round(pct)}%`, legendX - 20, legendY + 34);
+    legendY += 60;
   });
-}
+  }
 
+
+
+
+
+    
 /* ============================================================
    ========== نظام العشرة الأوائل ==========
    ============================================================ */
