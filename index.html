@@ -392,6 +392,32 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   padding: 4px 8px;
   font-size: 11px;
 } 
+
+
+
+
+
+
+
+  .top10-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.top10-table th:first-child {
+  border-radius: 0 12px 0 0;
+}
+.top10-table th:last-child {
+  border-radius: 12px 0 0 0;
+}
+.top10-table tr:last-child td:first-child {
+  border-radius: 0 0 0 12px;
+}
+.top10-table tr:last-child td:last-child {
+  border-radius: 0 0 12px 0;
+} 
 </style>
 </head>
 <body>
