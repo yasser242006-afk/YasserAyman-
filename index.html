@@ -2474,17 +2474,37 @@ function toggleTheme() {
   }
 })();
 
-// ========== مسح البيانات المحلية ==========
-function clearAllLocalData() {
-  if (confirm('هل أنت متأكد من مسح جميع البيانات المخزنة محلياً؟')) {
+// ========== مسح البيانات (مع صندوق تأكيد منسق) ==========
+async function clearAllLocalData() {
+    const confirmed = await showConfirm({
+        title: 'مسح البيانات',
+        message: 'هل أنت متأكد من مسح جميع البيانات المخزنة محلياً؟<br><small style="color:var(--text-light);">سيتم حذف الإعدادات والتفضيلات المخزنة على جهازك فقط.</small>',
+        confirmText: 'مسح',
+        cancelText: 'إلغاء',
+        icon: 'fas fa-trash-can',
+        iconClass: 'danger',
+        confirmClass: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    // حفظ التفضيلات
+    const theme = localStorage.getItem('theme');
+    const color = localStorage.getItem('app-primary-color');
+    const email = localStorage.getItem('last_email');
+    const pass = localStorage.getItem('last_password');
+    
     localStorage.clear();
     sessionStorage.clear();
+    
+    if (theme) localStorage.setItem('theme', theme);
+    if (color) localStorage.setItem('app-primary-color', color);
+    if (email) localStorage.setItem('last_email', email);
+    if (pass) localStorage.setItem('last_password', pass);
+    
     showToast('تم مسح جميع البيانات', 'success');
-    // إعادة تحميل الصفحة لتطبيق الإعدادات الافتراضية
     setTimeout(() => location.reload(), 1000);
-  }
-}
-
+    }
 // ========== تثبيت التطبيق (PWA) ==========
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
