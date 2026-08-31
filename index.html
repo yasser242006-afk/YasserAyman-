@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>بوابة الطلاب </title>
-<!-- Open Graph Meta Tags -->
+<!-- Open Graph Meta Tags (لجميع منصات التواصل) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="بوابة الطلاب ">
 <meta property="og:description" content="البوابة الإلكترونية الخاصة بالطلاب">
@@ -13,6 +13,8 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+
+
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -220,8 +222,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   border-right:4px solid var(--primary);font-size:13px;animation:fadeSlide .2s ease;}
 .toast.error{border-right-color:var(--danger);}
 .toast.success{border-right-color:var(--success);}
-
-/* Schedule page */
+  /* Schedule page */
 .schedule-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);margin-bottom:14px;}
 .schedule-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
 .schedule-box img{width:100%;display:block;}
@@ -249,32 +250,93 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .share-link-row{display:flex;gap:8px;padding:0 18px 18px;}
 .share-link-row input{flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--bg);color:var(--text-secondary);}
 .share-link-row button{padding:0 16px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-family:var(--font-family);font-weight:700;font-size:12px;cursor:pointer;}
-
-/* Popups */
+/* ================== المودالات (Popups) ================== */
 .custom-modal {
-  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.75); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
 }
 .custom-modal.open { display: flex; }
-.modal-content { background: #fff; border-radius: 16px; width: 90%; max-width: 900px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
-.modal-header { padding: 14px 20px; background: #4f46e5; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 900px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 14px 20px;
+  background: #4f46e5;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .modal-header h3 { font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px; }
 .close-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+
+/* عرض الـ PDF */
 .pdf-content { height: 85vh; }
 .pdf-content .modal-body { flex: 1; padding: 0; }
 #pdf-frame { width: 100%; height: 100%; border: none; }
+
+/* المشغل المخصص للفيديو */
 .video-content { max-width: 800px; background: #000; }
 .video-player-wrapper { position: relative; background: #000; display: flex; flex-direction: column; }
 #custom-video-player { width: 100%; max-height: 60vh; background: #000; cursor: pointer; }
-.video-controls { background: rgba(15, 23, 42, 0.9); padding: 10px 15px; display: flex; flex-direction: column; gap: 8px; }
-#video-progress { width: 100%; accent-color: #4f46e5; cursor: pointer; }
-.controls-row { display: flex; justify-content: space-between; align-items: center; color: #fff; }
+
+.video-controls {
+  background: rgba(15, 23, 42, 0.9);
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#video-progress {
+  width: 100%;
+  accent-color: #4f46e5;
+  cursor: pointer;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
 .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; }
-.video-controls button, .video-controls a { background: transparent; border: none; color: #fff; font-size: 14px; cursor: pointer; transition: 0.2s; text-decoration: none; }
+
+.video-controls button, .video-controls a {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  text-decoration: none;
+}
 .video-controls button:hover, .video-controls a:hover { color: #38bdf8; }
 #video-time { font-size: 12px; color: #cbd5e1; }
 
-.year-select-overlay{
+
+
+
+
+
+
+ .year-select-overlay{
   position:fixed;inset:0;z-index:500;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
   display:none;align-items:center;justify-content:center;padding:20px;
 }
@@ -301,6 +363,9 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 }
 .year-confirm-btn:disabled{opacity:.5;cursor:not-allowed;}
 .year-confirm-btn:not(:disabled):hover{transform:translateY(-2px);} 
+
+
+  
 </style>
 </head>
 <body>
@@ -309,29 +374,31 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 
 <div id="app" style="display:none">
 
-  <!-- ===== نافذة اختيار الفرقة الدراسية ===== -->
-  <div id="year-select-overlay" class="year-select-overlay">
-    <div class="year-select-box">
-      <i class="fas fa-graduation-cap" style="font-size:40px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
-      <h2>اختر فرقتك الدراسية</h2>
-      <p>اختيارك هيتحفظ تلقائيًا ومش هيتكرر تاني</p>
-      <div class="year-cards-grid">
-        <div class="year-card" onclick="pickYearOption('1', this)">
-          <i class="fas fa-1"></i><span>الفرقة الأولى</span>
-        </div>
-        <div class="year-card" onclick="pickYearOption('2', this)">
-          <i class="fas fa-2"></i><span>الفرقة الثانية</span>
-        </div>
-        <div class="year-card" onclick="pickYearOption('3', this)">
-          <i class="fas fa-3"></i><span>الفرقة الثالثة</span>
-        </div>
-        <div class="year-card" onclick="pickYearOption('4', this)">
-          <i class="fas fa-4"></i><span>الفرقة الرابعة</span>
-        </div>
+
+<div id="year-select-overlay" class="year-select-overlay">
+  <div class="year-select-box">
+    <i class="fas fa-graduation-cap" style="font-size:40px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+    <h2>اختر فرقتك الدراسية</h2>
+    <p>اختيارك هيتحفظ تلقائيًا ومش هيتكرر تاني</p>
+    <div class="year-cards-grid">
+      <div class="year-card" onclick="pickYearOption('1', this)">
+        <i class="fas fa-1"></i><span>الفرقة الأولى</span>
       </div>
-      <button id="year-confirm-btn" class="year-confirm-btn" disabled onclick="confirmYearSelection()">تأكيد الاختيار</button>
+      <div class="year-card" onclick="pickYearOption('2', this)">
+        <i class="fas fa-2"></i><span>الفرقة الثانية</span>
+      </div>
+      <div class="year-card" onclick="pickYearOption('3', this)">
+        <i class="fas fa-3"></i><span>الفرقة الثالثة</span>
+      </div>
+      <div class="year-card" onclick="pickYearOption('4', this)">
+        <i class="fas fa-4"></i><span>الفرقة الرابعة</span>
+      </div>
     </div>
+    <button id="year-confirm-btn" class="year-confirm-btn" disabled onclick="confirmYearSelection()">تأكيد الاختيار</button>
   </div>
+</div>
+  
+
   
   <!-- ===== Welcome overlay ===== -->
   <div id="welcome-overlay">
@@ -398,6 +465,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       <div class="menu-sub" id="questions-submenu">
         <select class="mini-select" id="q-subject-select">
           <option value="">اختر المادة</option>
+          <!-- سيتم إضافة أسماء المواد لاحقًا -->
         </select>
         <select class="mini-select" id="q-term-select">
           <option value="all">الكل</option>
@@ -405,21 +473,25 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
           <option value="2">الترم الثاني</option>
         </select>
         <div class="menu-item" style="padding:8px 10px;font-size:12px;" onclick="switchView('questions', document.querySelector('.menu-item'))">
-          <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
-        </div>
-      </div>
+  <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
+</div>
+</div>
 
-      <div class="menu-item" onclick="switchView('schedule', this)">
-        <i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span>
-      </div>
+<div class="menu-item" onclick="switchView('schedule', this)">
+  <i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span>
+</div>
 
-      <div class="menu-item" onclick="switchView('lectures', this)">
-        <i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span>
-      </div>
+<div class="menu-item" onclick="switchView('lectures', this)">
+  <i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span>
+</div>
+
+<!-- مساحة لعناصر قائمة إضافية لاحقًا -->
+
+      <!-- مساحة لعناصر قائمة إضافية لاحقًا -->
     </nav>
   </aside>
 
-  <!-- ===== Image action menu ===== -->
+  <!-- ===== Image action menu (avatar/cover) ===== -->
   <div id="image-menu">
     <button onclick="viewImage()"><i class="fas fa-eye"></i> عرض الصورة</button>
     <button onclick="triggerImageChange()"><i class="fas fa-camera"></i> تغيير الصورة</button>
@@ -484,42 +556,48 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       </div>
     </section>
 
+
     <!-- SCHEDULE -->
-    <section class="view" id="view-schedule">
-      <div class="page-title"><i class="fas fa-calendar-days"></i> الجدول الدراسي</div>
+<section class="view" id="view-schedule">
+  <div class="page-title"><i class="fas fa-calendar-days"></i> الجدول الدراسي</div>
 
-      <div class="term-toggle">
-        <button class="active" data-term="1" onclick="setScheduleTerm('1',this)">الترم الأول</button>
-        <button data-term="2" onclick="setScheduleTerm('2',this)">الترم الثاني</button>
-      </div>
+  <div class="term-toggle">
+    <button class="active" data-term="1" onclick="setScheduleTerm('1',this)">الترم الأول</button>
+    <button data-term="2" onclick="setScheduleTerm('2',this)">الترم الثاني</button>
+  </div>
 
-      <div id="schedule-container">
-        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الجدول...</p></div>
-      </div>
-    </section>
+  <div id="schedule-container">
+    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الجدول...</p></div>
+  </div>
+</section>
 
-    <!-- LECTURES -->
-    <section class="view" id="view-lectures">
-      <div class="page-title"><i class="fas fa-chalkboard-user"></i> المحاضرات الكلية</div>
+<section class="view" id="view-lectures">
+  <div class="page-title"><i class="fas fa-chalkboard-user"></i> المحاضرات الكلية</div>
 
-      <div class="term-toggle">
-        <button class="active" data-term="1" onclick="setLecturesTerm('1',this)">الترم الأول</button>
-        <button data-term="2" onclick="setLecturesTerm('2',this)">الترم الثاني</button>
-      </div>
+  <!-- تبويب الترم -->
+  <div class="term-toggle">
+    <button class="active" data-term="1" onclick="setLecturesTerm('1',this)">الترم الأول</button>
+    <button data-term="2" onclick="setLecturesTerm('2',this)">الترم الثاني</button>
+  </div>
 
-      <div class="exam-type-tabs" id="lecture-category-tabs">
-        <button class="active" onclick="setLectureCategory('lecture', this)"><i class="fas fa-book-open"></i> محاضرات</button>
-        <button onclick="setLectureCategory('section', this)"><i class="fas fa-layer-group"></i> سكاشن</button>
-        <button onclick="setLectureCategory('course', this)"><i class="fas fa-graduation-cap"></i> كورسات</button>
-        <button onclick="setLectureCategory('programming', this)"><i class="fas fa-code"></i> كورسات برمجة (HTML/CSS/JS)</button>
-      </div>
+  <!-- تبويبات نوع المحتوى -->
+  <div class="exam-type-tabs" id="lecture-category-tabs">
+    <button class="active" onclick="setLectureCategory('lecture', this)"><i class="fas fa-book-open"></i> محاضرات</button>
+    <button onclick="setLectureCategory('section', this)"><i class="fas fa-layer-group"></i> سكاشن</button>
+    <button onclick="setLectureCategory('course', this)"><i class="fas fa-graduation-cap"></i> كورسات</button>
+    <button onclick="setLectureCategory('programming', this)"><i class="fas fa-code"></i> كورسات برمجة (HTML/CSS/JS)</button>
+  </div>
 
-      <div class="exam-type-tabs" id="lectures-subject-tabs" style="margin-top:10px;"></div>
+  <!-- أزرار المواد الديناميكية -->
+  <div class="exam-type-tabs" id="lectures-subject-tabs" style="margin-top:10px;"></div>
 
-      <div id="lectures-container">
-        <div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة أو نوع الكورس لعرض المحتوى</p></div>
-      </div>
-    </section>
+  <!-- حاوية عرض المحاضرات والملفات -->
+  <div id="lectures-container">
+    <div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة أو نوع الكورس لعرض المحتوى</p></div>
+  </div>
+</section>
+
+
     
   </main>
 
@@ -538,7 +616,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
     </div>
   </div>
 
-  <!-- ===== Certificate (print) ===== -->
+  <!-- ===== Certificate (hidden, for print) ===== -->
   <div id="certificate-print">
     <div class="cert">
       <i class="fas fa-graduation-cap cert-cap"></i>
@@ -555,79 +633,94 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
     </div>
   </div>
 
+</div>
   <!-- ===== Share sheet modal ===== -->
-  <div class="modal-overlay" id="share-overlay">
-    <div class="modal-sheet">
-      <div class="modal-head">
-        <h3><i class="fas fa-share-nodes"></i> مشاركة</h3>
-        <button class="modal-close" onclick="closeShareSheet()"><i class="fas fa-xmark"></i></button>
-      </div>
-      <div class="share-sheet">
-        <button class="share-opt" onclick="shareVia('whatsapp')">
-          <div class="share-icon" style="background:#25D366"><i class="fab fa-whatsapp"></i></div><span>واتساب</span>
-        </button>
-        <button class="share-opt" onclick="shareVia('facebook')">
-          <div class="share-icon" style="background:#1877F2"><i class="fab fa-facebook-f"></i></div><span>فيسبوك</span>
-        </button>
-        <button class="share-opt" onclick="shareVia('messenger')">
-          <div class="share-icon" style="background:#0084FF"><i class="fab fa-facebook-messenger"></i></div><span>ماسنجر</span>
-        </button>
-        <button class="share-opt" onclick="shareVia('more')">
-          <div class="share-icon" style="background:var(--text-light)"><i class="fas fa-ellipsis"></i></div><span>المزيد</span>
-        </button>
-      </div>
-      <div class="share-link-row">
-        <input type="text" id="share-link-input" readonly>
-        <button onclick="copyShareLink()">نسخ الرابط</button>
-      </div>
+<div class="modal-overlay" id="share-overlay">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <h3><i class="fas fa-share-nodes"></i> مشاركة</h3>
+      <button class="modal-close" onclick="closeShareSheet()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="share-sheet">
+      <button class="share-opt" onclick="shareVia('whatsapp')">
+        <div class="share-icon" style="background:#25D366"><i class="fab fa-whatsapp"></i></div><span>واتساب</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('whatsapp_status')">
+        <div class="share-icon" style="background:#25D366"><i class="fas fa-circle-notch"></i></div><span>ستوري واتساب</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('facebook')">
+        <div class="share-icon" style="background:#1877F2"><i class="fab fa-facebook-f"></i></div><span>فيسبوك</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('facebook_story')">
+        <div class="share-icon" style="background:#1877F2"><i class="fas fa-circle-notch"></i></div><span>ستوري فيسبوك</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('messenger')">
+        <div class="share-icon" style="background:#0084FF"><i class="fab fa-facebook-messenger"></i></div><span>ماسنجر</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('instagram')">
+        <div class="share-icon" style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)"><i class="fab fa-instagram"></i></div><span>انستجرام</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('instagram_story')">
+        <div class="share-icon" style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)"><i class="fas fa-circle-notch"></i></div><span>ستوري انستا</span>
+      </button>
+      <button class="share-opt" onclick="shareVia('more')">
+        <div class="share-icon" style="background:var(--text-light)"><i class="fas fa-ellipsis"></i></div><span>المزيد</span>
+      </button>
+    </div>
+    <div class="share-link-row">
+      <input type="text" id="share-link-input" readonly>
+      <button onclick="copyShareLink()">نسخ الرابط</button>
     </div>
   </div>
+</div>
 
-  <div class="toast-container" id="toast-container"></div>
+<div class="toast-container" id="toast-container"></div>
 
-  <!-- PDF Modal -->
-  <div id="pdf-modal" class="custom-modal">
-    <div class="modal-content pdf-content">
-      <div class="modal-header">
-        <h3 id="pdf-modal-title"><i class="fas fa-file-pdf"></i> عرض ملف الشرح</h3>
-        <button class="close-btn" onclick="closePdfModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <iframe id="pdf-frame" src="" frameborder="0"></iframe>
-      </div>
+
+
+<!-- ================== مودال عرض الـ PDF ================== -->
+<div id="pdf-modal" class="custom-modal">
+  <div class="modal-content pdf-content">
+    <div class="modal-header">
+      <h3 id="pdf-modal-title"><i class="fas fa-file-pdf"></i> عرض ملف الشرح</h3>
+      <button class="close-btn" onclick="closePdfModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="pdf-frame" src="" frameborder="0"></iframe>
     </div>
   </div>
+</div>
 
-  <!-- Video Modal -->
-  <div id="video-modal" class="custom-modal">
-    <div class="modal-content video-content">
-      <div class="modal-header">
-        <h3 id="video-modal-title"><i class="fas fa-video"></i> مشاهدة المحاضرة</h3>
-        <button class="close-btn" onclick="closeVideoModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="video-player-wrapper">
-          <video id="custom-video-player" src=""></video>
-          <div class="video-controls">
-            <input type="range" id="video-progress" value="0" min="0" step="0.1">
-            <div class="controls-row">
-              <div class="left-controls">
-                <button onclick="togglePlayPause()" id="play-btn"><i class="fas fa-play"></i></button>
-                <button onclick="rewindVideo(5)"><i class="fas fa-undo"></i> 5s</button>
-                <button onclick="forwardVideo(10)"><i class="fas fa-redo"></i> 10s</button>
-                <span id="video-time">00:00 / 00:00</span>
-              </div>
-              <div class="right-controls">
-                <a id="video-download-btn" href="" download target="_blank" class="control-btn"><i class="fas fa-download"></i></a>
-                <button onclick="toggleFullScreen()"><i class="fas fa-expand"></i></button>
-              </div>
+<!-- ================== مودال مشغل الفيديو الاحترافي ================== -->
+<div id="video-modal" class="custom-modal">
+  <div class="modal-content video-content">
+    <div class="modal-header">
+      <h3 id="video-modal-title"><i class="fas fa-video"></i> مشاهدة المحاضرة</h3>
+      <button class="close-btn" onclick="closeVideoModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="video-player-wrapper">
+        <video id="custom-video-player" src=""></video>
+
+        <!-- شريط تحكم الفيديو -->
+        <div class="video-controls">
+          <input type="range" id="video-progress" value="0" min="0" step="0.1">
+          <div class="controls-row">
+            <div class="left-controls">
+              <button onclick="togglePlayPause()" id="play-btn"><i class="fas fa-play"></i></button>
+              <button onclick="rewindVideo(5)" title="تأخير 5 ثواني"><i class="fas fa-undo"></i> 5s</button>
+              <button onclick="forwardVideo(10)" title="تقديم 10 ثواني"><i class="fas fa-redo"></i> 10s</button>
+              <span id="video-time">00:00 / 00:00</span>
+            </div>
+            <div class="right-controls">
+              <a id="video-download-btn" href="" download target="_blank" class="control-btn" title="تحميل الفيديو"><i class="fas fa-download"></i></a>
+              <button onclick="toggleFullScreen()" title="تكبير الشاشة"><i class="fas fa-expand"></i></button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -642,7 +735,6 @@ let currentTerm = '1';
 let currentExamType = 'quiz';
 let currentPostIdForComments = null;
 let imageTargetType = null;
-let selectedYearTemp = null;
 
 let currentScheduleTerm = '1';
 let currentLecturesTerm = '1';
@@ -678,20 +770,22 @@ function getDefaultAvatar(){
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
 }
 
-function escapeHtml(text) {
-  if (!text) return '';
-  return text.replace(/[&<>"']/g, function(m) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-  });
+/* ================== إنشاء بروفايل جديد ================== */
+async function createNewProfile() {
+  const newProfile = {
+    id: currentUser.id,
+    email: currentUser.email,
+    full_name: currentUser.user_metadata?.full_name || currentUser.email,
+    avatar_url: null,
+    academic_year: null,          // فارغة → ستظهر شاشة اختيار الفرقة
+    first_login_shown: false,     // false → ستظهر رسالة الترحيب
+    last_notification_check: new Date().toISOString(),
+  };
+  const { error } = await _supabase.from('yasser_ayman').insert([newProfile]);
+  if (error) throw error;
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-/* ================== تهيئة الصفحة والتحقق من الحساب (المعدلة لمنع الخروج التلقائي) ================== */
+/* ================== تهيئة الصفحة والتحقق من الحساب ================== */
 window.addEventListener('DOMContentLoaded', init);
 
 async function init(){
@@ -715,107 +809,74 @@ async function init(){
 
     currentUser = session.user;
 
-    // تحضير أو إيجاد البروفايل تلقائياً بدون طرد المستخدم
-    await loadOrCreateProfile();
+    // محاولة تحميل البروفايل
+    let profileResult = await loadProfile();
 
-    renderProfileUI();
-
-    // فحص ما إذا كان الطالب اختار الفرقة من قبل أم لا
-    if (!currentProfile?.academic_year) {
-      showYearSelectionOverlay();
-    } else {
-      maybeShowWelcome();
-      await refreshNotifications();
-      await loadPosts();
+    if (profileResult === 'not_found') {
+      // البروفايل غير موجود → ننشئ واحداً جديداً
+      await createNewProfile();
+      // نعيد تحميل البروفايل لتعيين currentProfile
+      await loadProfile();
+      // بعد الإنشاء، سيظهر اختيار الفرقة ورسالة الترحيب تلقائياً
+    } else if (profileResult === 'error') {
+      showToast('حدث خطأ أثناء تحميل بياناتك، حاول مرة أخرى', 'error');
+      // يمكنك هنا إما عرض رسالة أو إعادة التوجيه إلى login
+      // لكننا سنكتفي بالرسالة ونستمر
     }
 
-  } catch(err) {
+    // التأكد من اختيار الفرقة (إذا كانت فارغة)
+    await ensureAcademicYearSelected();
+
+    // عرض بيانات المستخدم في الواجهة
+    renderProfileUI();
+
+    // عرض رسالة ترحيب إذا كانت first_login_shown = false
+    maybeShowWelcome();
+
+    // تحديث الإشعارات وتحميل المنشورات
+    await refreshNotifications();
+    await loadPosts();
+
+  } catch (err) {
     console.error('Initialization error:', err);
+    // في حالة حدوث خطأ غير متوقع، نقوم بتسجيل الخروج
+    await forceFullLogout();
   } finally {
     clearTimeout(safetyTimeout);
     const loadingScreen = document.getElementById('loading-screen');
     const appScreen = document.getElementById('app');
-    if(loadingScreen) loadingScreen.style.display = 'none';
-    if(appScreen) appScreen.style.display = 'block';
+    if (loadingScreen) loadingScreen.style.display = 'none';
+    if (appScreen) appScreen.style.display = 'block';
   }
 }
 
-async function loadOrCreateProfile(){
+async function loadProfile(){
   try {
     const { data, error } = await _supabase.from('yasser_ayman')
       .select('*')
       .eq('id', currentUser.id)
       .maybeSingle();
 
-    if (data) {
-      currentProfile = data;
-      return;
-    }
+    if (error) { console.error('Profile load error:', error); return 'error'; }
+    if (!data) return 'not_found';
 
-    // إذا لم يجد الصف، يقوم بالإنشاء التلقائي لمنع الحلقة المفرغة
-    const fallbackName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'طالب';
-    const newUser = {
-      id: currentUser.id,
-      email: currentUser.email,
-      full_name: fallbackName,
-      academic_year: null
-    };
-
-    const { data: createdData, error: createError } = await _supabase
-      .from('yasser_ayman')
-      .upsert([newUser])
-      .select()
-      .maybeSingle();
-
-    currentProfile = createdData || newUser;
+    currentProfile = data;
+    return 'ok';
   } catch(e) {
-    console.error('Profile creation/loading error:', e);
-    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: 'طالب' };
+    return 'error';
   }
 }
 
-/* ================== اختيار الفرقة الدراسية وتخزينها ================== */
-function showYearSelectionOverlay(){
-  const overlay = document.getElementById('year-select-overlay');
-  if(overlay) overlay.classList.add('show');
-}
-
-function pickYearOption(year, cardEl){
-  selectedYearTemp = year;
-  document.querySelectorAll('.year-card').forEach(c => c.classList.remove('selected'));
-  if(cardEl) cardEl.classList.add('selected');
-  const btn = document.getElementById('year-confirm-btn');
-  if(btn) btn.disabled = false;
-}
-
-async function confirmYearSelection(){
-  if(!selectedYearTemp) return;
-  const btn = document.getElementById('year-confirm-btn');
-  if(btn) { btn.disabled = true; btn.innerText = 'جاري التخزين...'; }
-
+/* ================== تسجيل خروج إجباري وتنظيف شامل ================== */
+async function forceFullLogout(){
   try {
-    const { error } = await _supabase.from('yasser_ayman')
-      .update({ academic_year: selectedYearTemp })
-      .eq('id', currentUser.id);
-
-    if(error) throw error;
-
-    if(!currentProfile) currentProfile = {};
-    currentProfile.academic_year = selectedYearTemp;
-
-    const overlay = document.getElementById('year-select-overlay');
-    if(overlay) overlay.classList.remove('show');
-
-    renderProfileUI();
-    maybeShowWelcome();
-    await refreshNotifications();
-    await loadPosts();
-
-    showToast('تم حفظ فرقتك الدراسية بنجاح', 'success');
-  } catch(err) {
-    showToast('تعذر حفظ الفرقة الدراسية: ' + err.message, 'error');
-    if(btn) { btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; }
+    await _supabase.auth.signOut();
+  } catch(e) {
+    console.log('Signout error', e);
   }
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = 'login.html';
 }
 
 function renderProfileUI(){
@@ -833,8 +894,8 @@ function renderProfileUI(){
   if(sideAvatar) sideAvatar.src = avatar;
   if(sideName) sideName.innerText = name;
 
-  const yearMap = {'1':'الفرقة الأولى','2':'الفرقة الثانية','3':'الفرقة الثالثة','4':'الفرقة الرابعة'};
-  if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'لم تحدد الفرقة';
+  const yearMap = {'1':'السنة الأولى','2':'السنة الثانية','3':'السنة الثالثة','4':'السنة الرابعة'};
+  if(sideYear) sideYear.innerText = yearMap[currentProfile?.academic_year] || 'السنة الأولى';
 
   populateQuestionsSubjects();
 }
@@ -898,19 +959,6 @@ async function refreshNotifications(){
       <div class="notif-dot"></div>
       <div><b style="font-weight:700">منشور جديد</b><br><span style="color:var(--text-secondary)">${escapeHtml((p.content||'').slice(0,60))}</span></div>
     </div>`).join('');
-}
-
-function populateQuestionsSubjects(){
-  const year = currentProfile?.academic_year || '1';
-  const term1 = LECTURE_SUBJECTS[year]?.['1'] || [];
-  const term2 = LECTURE_SUBJECTS[year]?.['2'] || [];
-  const allSubjects = [...term1, ...term2];
-
-  const selects = [document.getElementById('q-subject-select'), document.getElementById('questions-subject')];
-  selects.forEach(sel => {
-    if(!sel) return;
-    sel.innerHTML = '<option value="">اختر المادة</option>' + allSubjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-  });
 }
 
 /* ================== التنقل بين الصفحات ================== */
@@ -1197,14 +1245,19 @@ async function loadGrades(){
   if(!container) return;
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
 
-  try {
-    const { data: grades, error } = await _supabase.from('grades').select('*')
-      .eq('student_id', currentUser.id)
-      .eq('term', currentTerm)
-      .eq('exam_type', currentExamType)
-      .order('created_at', { ascending:false });
+  const timeoutPromise = new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout')), 6000));
 
-    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات</p></div>'; return; }
+  try {
+    const { data: grades, error } = await Promise.race([
+      _supabase.from('grades').select('*')
+        .eq('student_id', currentUser.id)
+        .eq('term', currentTerm)
+        .eq('exam_type', currentExamType)
+        .order('created_at', { ascending:false }),
+      timeoutPromise
+    ]);
+
+    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات — تأكد من وجود جدول grades</p></div>'; return; }
     if(!grades || grades.length === 0){
       container.innerHTML = '<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد درجات مسجلة بعد</p></div>';
       drawChart([]);
@@ -1238,7 +1291,7 @@ async function loadGrades(){
       </div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>خطأ أثناء معالجة البيانات</p></div>';
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات — تأكد من وجود جدول grades في Supabase</p></div>';
   }
 }
 
@@ -1305,10 +1358,15 @@ async function loadSchedule(){
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
+  const timeoutPromise = new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout')), 6000));
+
   try {
-    const { data, error } = await _supabase.from('schedule').select('*')
-      .eq('term', currentScheduleTerm).eq('academic_year', year)
-      .order('created_at', { ascending:false }).limit(1).maybeSingle();
+    const { data, error } = await Promise.race([
+      _supabase.from('schedule').select('*')
+        .eq('term', currentScheduleTerm).eq('academic_year', year)
+        .order('created_at', { ascending:false }).limit(1).maybeSingle(),
+      timeoutPromise
+    ]);
 
     if(error || !data){
       container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لم يتم رفع الجدول لهذا الترم بعد</p></div>';
@@ -1328,7 +1386,7 @@ async function loadSchedule(){
         <button onclick="openShareSheet('${escapeHtml(data.image_url)}', 'الجدول الدراسي - بوابة الطلاب')"><i class="fas fa-share-nodes"></i> مشاركة</button>
       </div>`;
   } catch(e) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الجدول</p></div>';
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات — تأكد من وجود جدول schedule في Supabase</p></div>';
   }
 }
 
@@ -1413,96 +1471,296 @@ async function loadLectures(){
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
 
+  const timeoutPromise = new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout')), 6000));
+
   try {
     let query = _supabase.from('lectures').select('*');
-    
     if(currentLectureCategory === 'programming'){
       query = query.eq('category', 'programming');
     } else {
       query = query.eq('academic_year', year)
                    .eq('term', currentLecturesTerm)
-                   .eq('category', currentLectureCategory)
-                   .eq('subject_name', currentLectureSubject);
+                   .eq('subject_name', currentLectureSubject)
+                   .eq('category', currentLectureCategory);
     }
 
-    const { data: lectures, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await Promise.race([
+      query.order('created_at', { ascending: false }),
+      timeoutPromise
+    ]);
 
-    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل المحتوى</p></div>'; return; }
-    if(!lectures || lectures.length === 0){
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>لا توجد محاضرات متاحة حاليًا</p></div>';
-      return;
-    }
+    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات — تأكد من وجود جدول lectures</p></div>'; return; }
+    if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; return; }
 
-    container.innerHTML = lectures.map(l => `
+    container.innerHTML = data.map(l => {
+      const titleEscaped = escapeHtml(l.lecture_title || 'محاضرة');
+      const pdfUrl = l.pdf_url ? escapeHtml(l.pdf_url) : '';
+      const videoUrl = l.video_url ? escapeHtml(l.video_url) : '';
+
+      return `
       <div class="lecture-card">
-        <div class="lecture-title">${escapeHtml(l.title||'بدون عنوان')}</div>
+        <div class="lecture-title">${titleEscaped}</div>
         <div class="lecture-tags">
-          <span class="lecture-tag">${escapeHtml(l.subject_name || 'عام')}</span>
-          <span class="lecture-tag">${formatDate(l.created_at)}</span>
+          ${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}
+          ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
         </div>
-        <div class="lecture-files">
-          ${l.pdf_url ? `<a href="javascript:void(0)" onclick="openPdfModal('${escapeHtml(l.pdf_url)}', '${escapeHtml(l.title)}')" class="lecture-file-link"><i class="fas fa-file-pdf"></i> عرض/تحميل الشرح (PDF)</a>` : ''}
-          ${l.video_url ? `<a href="javascript:void(0)" onclick="openVideoModal('${escapeHtml(l.video_url)}', '${escapeHtml(l.title)}')" class="lecture-file-link"><i class="fas fa-video"></i> مشاهدة المحاضرة (فيديو)</a>` : ''}
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+          ${pdfUrl ? `
+            <div style="display:flex; gap:8px;">
+              <button onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
+                <i class="fas fa-file-pdf"></i> قراءة الـ PDF
+              </button>
+              <a href="${pdfUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+                <i class="fas fa-download"></i> تحميل
+              </a>
+            </div>
+          ` : ''}
+          ${videoUrl ? `
+            <div style="display:flex; gap:8px;">
+              <button onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
+                <i class="fas fa-play-circle"></i> مشاهدة الفيديو
+              </button>
+              <a href="${videoUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+                <i class="fas fa-download"></i> تحميل
+              </a>
+            </div>
+          ` : ''}
         </div>
-      </div>
-    `).join('');
-
+      </div>`;
+    }).join('');
   } catch(e) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في جلب المحاضرات</p></div>';
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات — تأكد من وجود جدول lectures في Supabase</p></div>';
   }
 }
 
-/* ================== نافذة المشغل والمستندات ================== */
-function openPdfModal(url, title) {
-  document.getElementById('pdf-modal-title').innerText = title || 'عرض ملف الشرح';
-  document.getElementById('pdf-frame').src = url;
-  document.getElementById('pdf-modal').classList.add('open');
-}
-function closePdfModal() {
-  document.getElementById('pdf-modal').classList.remove('open');
-  document.getElementById('pdf-frame').src = '';
+function getCategoryName(cat){
+  const map = { lecture:'محاضرة', section:'سكشن', course:'كورس', programming:'كورس برمجة' };
+  return map[cat] || cat;
 }
 
-function openVideoModal(url, title) {
-  document.getElementById('video-modal-title').innerText = title || 'مشاهدة المحاضرة';
+/* ================== تعبئة قائمة مواد صفحة أسئلة الامتحانات ================== */
+function populateQuestionsSubjects(){
+  const year = currentProfile?.academic_year || '1';
+  const allSubjects = new Set([
+    ...(LECTURE_SUBJECTS[year]?.['1'] || []),
+    ...(LECTURE_SUBJECTS[year]?.['2'] || [])
+  ]);
+
+  const fillSelect = (selectEl) => {
+    if(!selectEl) return;
+    selectEl.innerHTML = '<option value="">اختر المادة</option>' +
+      Array.from(allSubjects).map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  };
+
+  fillSelect(document.getElementById('q-subject-select'));
+  fillSelect(document.getElementById('questions-subject'));
+}
+
+/* ================== مودال PDF ================== */
+function openPdfModal(url, title){
+  const modal = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-frame');
+  const titleEl = document.getElementById('pdf-modal-title');
+  if(!modal || !frame) return;
+  frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+  if(titleEl) titleEl.innerText = title;
+  modal.classList.add('open');
+}
+function closePdfModal(){
+  const modal = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-frame');
+  if(frame) frame.src = '';
+  if(modal) modal.classList.remove('open');
+}
+
+/* ================== مودال الفيديو ================== */
+function openVideoModal(url, title){
+  const modal = document.getElementById('video-modal');
   const player = document.getElementById('custom-video-player');
+  const titleEl = document.getElementById('video-modal-title');
+  const downloadBtn = document.getElementById('video-download-btn');
+  if(!modal || !player) return;
+
   player.src = url;
-  document.getElementById('video-download-btn').href = url;
-  document.getElementById('video-modal').classList.add('open');
-}
-function closeVideoModal() {
-  const player = document.getElementById('custom-video-player');
-  player.pause();
-  player.src = '';
-  document.getElementById('video-modal').classList.remove('open');
-}
+  if(titleEl) titleEl.innerText = title;
+  if(downloadBtn) downloadBtn.href = url;
 
-/* ================== نافذة المشاركة ================== */
-let currentShareUrl = '';
-function openShareSheet(url, title){
-  currentShareUrl = url;
-  const input = document.getElementById('share-link-input');
-  if(input) input.value = url;
-  document.getElementById('share-overlay')?.classList.add('open');
+  modal.classList.add('open');
+  player.play();
+  updatePlayBtnIcon(true);
+}
+function closeVideoModal(){
+  const modal = document.getElementById('video-modal');
+  const player = document.getElementById('custom-video-player');
+  if(player){ player.pause(); player.src = ''; }
+  if(modal) modal.classList.remove('open');
+}
+function togglePlayPause(){
+  const player = document.getElementById('custom-video-player');
+  if(!player) return;
+  if(player.paused){ player.play(); updatePlayBtnIcon(true); }
+  else { player.pause(); updatePlayBtnIcon(false); }
+}
+function updatePlayBtnIcon(isPlaying){
+  const btn = document.getElementById('play-btn');
+  if(btn) btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+}
+function rewindVideo(seconds){
+  const player = document.getElementById('custom-video-player');
+  if(player) player.currentTime = Math.max(0, player.currentTime - seconds);
+}
+function forwardVideo(seconds){
+  const player = document.getElementById('custom-video-player');
+  if(player && !isNaN(player.duration)) player.currentTime = Math.min(player.duration, player.currentTime + seconds);
+}
+function toggleFullScreen(){
+  const player = document.getElementById('custom-video-player');
+  if(!player) return;
+  if(player.requestFullscreen) player.requestFullscreen();
+  else if(player.webkitRequestFullscreen) player.webkitRequestFullscreen();
+}
+function formatTime(sec){
+  if(isNaN(sec)) return '00:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const player = document.getElementById('custom-video-player');
+  const progressInput = document.getElementById('video-progress');
+  if(player){
+    player.addEventListener('timeupdate', ()=>{
+      if(!isNaN(player.duration)){
+        if(progressInput) progressInput.value = (player.currentTime / player.duration) * 100;
+        const timeEl = document.getElementById('video-time');
+        if(timeEl) timeEl.innerText = `${formatTime(player.currentTime)} / ${formatTime(player.duration)}`;
+      }
+    });
+    player.addEventListener('ended', ()=> updatePlayBtnIcon(false));
+  }
+  if(progressInput){
+    progressInput.addEventListener('input', ()=>{
+      if(player && !isNaN(player.duration)) player.currentTime = (progressInput.value / 100) * player.duration;
+    });
+  }
+});
+
+/* ================== شيت المشاركة ================== */
+let shareTargetUrl = '';
+
+function openShareSheet(url, text){
+  shareTargetUrl = url;
+  const linkInput = document.getElementById('share-link-input');
+  const overlay = document.getElementById('share-overlay');
+  if(linkInput) linkInput.value = url;
+  if(overlay) { overlay.dataset.text = text || 'بوابة الطلاب'; overlay.classList.add('open'); }
 }
 function closeShareSheet(){
   document.getElementById('share-overlay')?.classList.remove('open');
 }
 function copyShareLink(){
-  const input = document.getElementById('share-link-input');
-  if(input){
-    input.select();
-    navigator.clipboard.writeText(input.value);
-    showToast('تم نسخ الرابط', 'success');
-  }
+  navigator.clipboard.writeText(shareTargetUrl);
+  showToast('تم نسخ الرابط', 'success');
 }
 function shareVia(platform){
-  const url = encodeURIComponent(currentShareUrl);
-  if(platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${url}`, '_blank');
-  if(platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-  if(platform === 'messenger') window.open(`fb-messenger://share/?link=${url}`, '_blank');
-  if(platform === 'more' && navigator.share) navigator.share({ url: currentShareUrl });
+  const url = encodeURIComponent(shareTargetUrl);
+  const text = encodeURIComponent(document.getElementById('share-overlay')?.dataset.text || 'بوابة الطلاب');
+  let link = '';
+  switch(platform){
+    case 'whatsapp': link = `https://wa.me/?text=${text}%20${url}`; break;
+    case 'facebook': link = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+    case 'messenger': link = `fb-messenger://share/?link=${url}`; break;
+    case 'whatsapp_status':
+    case 'facebook_story':
+    case 'instagram_story':
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط، افتح التطبيق وحط الرابط في الستوري', 'success');
+      return;
+    case 'instagram':
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط، افتحه داخل انستجرام لمشاركته', 'success');
+      return;
+    case 'more':
+      if(navigator.share){ navigator.share({ title:'بوابة الطلاب', url: shareTargetUrl }).catch(()=>{}); return; }
+      navigator.clipboard.writeText(shareTargetUrl);
+      showToast('تم نسخ الرابط', 'success');
+      return;
+  }
+  window.open(link, '_blank');
 }
-</script>
+
+/* ================== أدوات مساعدة ================== */
+function escapeHtml(str){
+  if(!str) return '';
+  const d = document.createElement('div');
+  d.innerText = str;
+  return d.innerHTML;
+}
+function formatDate(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleString('ar-EG', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  }catch(e){ return ''; }
+}
+
+document.addEventListener('click', (e)=>{
+  const dd = document.getElementById('notif-dropdown');
+  const bell = document.getElementById('bell-btn');
+  if(dd && bell && dd.classList.contains('open') && !dd.contains(e.target) && !bell.contains(e.target)){
+    dd.classList.remove('open');
+  }
+});
+
+/* ================== اختيار الفرقة (مرة واحدة فقط) ================== */
+let pendingYearChoice = null;
+
+function ensureAcademicYearSelected(){
+  return new Promise((resolve) => {
+    if(currentProfile?.academic_year){ resolve(); return; }
+    const overlay = document.getElementById('year-select-overlay');
+    if(!overlay){ resolve(); return; }
+    overlay.classList.add('show');
+    window._resolveYearSelection = resolve;
+  });
+}
+
+function pickYearOption(year, el){
+  pendingYearChoice = year;
+  document.querySelectorAll('.year-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn = document.getElementById('year-confirm-btn');
+  if(btn) btn.disabled = false;
+}
+
+async function confirmYearSelection(){
+  if(!pendingYearChoice) return;
+  const btn = document.getElementById('year-confirm-btn');
+  if(btn){ btn.disabled = true; btn.innerText = 'جاري الحفظ...'; }
+
+  const { error } = await _supabase.from('yasser_ayman').update({ academic_year: pendingYearChoice }).eq('id', currentUser.id);
+
+  if(error){
+    showToast('حدث خطأ أثناء حفظ الفرقة، حاول تاني', 'error');
+    if(btn){ btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; }
+    return;
+  }
+
+  currentProfile.academic_year = pendingYearChoice;
+  document.getElementById('year-select-overlay')?.classList.remove('show');
+  if(btn){ btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; }
+
+  if(window._resolveYearSelection){
+    window._resolveYearSelection();
+    window._resolveYearSelection = null;
+  }
+}
+                                                 </script>
+  
+
+
+    
+
+                                                    
+
 </body>
 </html>
