@@ -2525,11 +2525,15 @@ function toggleTheme() {
   }
 })();
 
-// ========== مسح البيانات (مع صندوق تأكيد منسق) ==========
+
+
+
+
+
 async function clearAllLocalData() {
     const confirmed = await showConfirm({
         title: 'مسح البيانات',
-        message: 'هل أنت متأكد من مسح جميع البيانات المخزنة محلياً؟<br><small style="color:var(--text-light);">سيتم حذف الإعدادات والتفضيلات المخزنة على جهازك فقط.</small>',
+        message: 'هل أنت متأكد من مسح جميع بياناتك؟<br><small style="color:var(--text-light);">سيتم حذف إعداداتك واختيار الفرقة، وستحتاج لاختيارها من جديد عند دخولك القادم.</small>',
         confirmText: 'مسح',
         cancelText: 'إلغاء',
         icon: 'fas fa-trash-can',
@@ -2539,23 +2543,42 @@ async function clearAllLocalData() {
 
     if (!confirmed) return;
 
-    // حفظ التفضيلات
+    // حفظ التفضيلات المحلية (ثيم ولون) بس
     const theme = localStorage.getItem('theme');
     const color = localStorage.getItem('app-primary-color');
-    const email = localStorage.getItem('last_email');
-    const pass = localStorage.getItem('last_password');
-    
+
+    try {
+        // ===== الجزء الجديد: إعادة ضبط صف اليوزر في قاعدة البيانات =====
+        // بيرجّع الحساب لحالة "مستخدم جديد": بدون فرقة دراسية، وبدون رسالة ترحيب سابقة
+        const { error } = await _supabase
+            .from('yasser_ayman')
+            .update({ academic_year: null, first_login_shown: false })
+            .eq('id', currentUser.id);
+
+        if (error) {
+            showToast('حدث خطأ أثناء مسح بياناتك، حاول مرة أخرى', 'error');
+            return;
+        }
+
+        // مسح الجلسة الحالية عشان يدخل تاني من الأول (زي مستخدم جديد فعلاً)
+        await _supabase.auth.signOut();
+    } catch (e) {
+        showToast('حدث خطأ أثناء مسح بياناتك، حاول مرة أخرى', 'error');
+        return;
+    }
+
     localStorage.clear();
     sessionStorage.clear();
-    
+
     if (theme) localStorage.setItem('theme', theme);
     if (color) localStorage.setItem('app-primary-color', color);
-    if (email) localStorage.setItem('last_email', email);
-    if (pass) localStorage.setItem('last_password', pass);
-    
-    showToast('تم مسح جميع البيانات', 'success');
-    setTimeout(() => location.reload(), 1000);
-    }
+
+    showToast('تم مسح بياناتك بنجاح', 'success');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+}
+
+
+  
 // ========== تثبيت التطبيق (PWA) ==========
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
