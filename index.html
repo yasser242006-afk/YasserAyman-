@@ -1709,32 +1709,35 @@ function renderAttendanceChart(subjectStats = null) {
   ctx.fillStyle = '#64748b';
   ctx.fillText('حضور', centerX, centerY + 28);
   
-  // الأسطورة (دوائر على اليمين)
-  const legendX = width - 100;
-  let legendY = 50;
-  ctx.textAlign = 'right';
-  labels.forEach((label, i) => {
-    const pct = ((data[i]/total)*100);
-    // ارسم دائرة
-    ctx.beginPath();
-    ctx.arc(legendX - 6, legendY + 8, 10, 0, 2 * Math.PI);
-    ctx.fillStyle = colors[i];
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 18px Cairo';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${label}`, legendX - 20, legendY + 8);
-    ctx.font = '15px Cairo';
-    ctx.fillStyle = '#64748b';
-    ctx.fillText(`${Math.round(pct)}%`, legendX - 20, legendY + 34);
-    legendY += 60;
-  });
-  }
-
+  // الأسطورة (دوائر على اليمين مع مسافة مناسبة)
+const legendX = width - 20; // خليها على اليمين بالكامل
+let legendY = 60; // ابدأ من تحت عنوان "نسبة الحضور"
+ctx.textAlign = 'right';
+labels.forEach((label, i) => {
+  const pct = ((data[i]/total)*100);
+  
+  // ارسم دائرة
+  ctx.beginPath();
+  ctx.arc(legendX - 16, legendY + 12, 12, 0, 2 * Math.PI);
+  ctx.fillStyle = colors[i];
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // النص (اسم الحالة)
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 18px Cairo';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, legendX - 30, legendY + 12);
+  
+  // النسبة المئوية
+  ctx.fillStyle = '#64748b';
+  ctx.font = '14px Cairo';
+  ctx.fillText(`${Math.round(pct)}%`, legendX - 30, legendY + 38);
+  
+  legendY += 60; // مسافة بين كل سطر والتاني
+});
 
 
 
