@@ -846,7 +846,7 @@ async function createFreshProfileRow(){
     email: currentUser.email || '',
     full_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '',
     phone: currentUser.user_metadata?.phone || '',
-    academic_year: currentUser.user_metadata?.academic_year || '1',
+    academic_year: currentUser.user_metadata?.academic_year || '',
     avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '',
     first_login_shown: false,
     last_notification_check: new Date().toISOString(),
