@@ -201,6 +201,139 @@
         }
         .toast.error { border-right-color: var(--danger); }
         .toast.success { border-right-color: var(--success); }
+
+
+
+
+
+
+
+
+
+
+
+
+        /* ===== تحسينات زر تذكرني في الوضع الداكن ===== */
+body.dark input[type="checkbox"] {
+    accent-color: var(--primary);
+    filter: brightness(0.8);
+}
+
+body.dark input[type="checkbox"]:checked {
+    accent-color: var(--primary);
+    filter: brightness(1.2);
+}
+
+/* ===== تحسينات أزرار جوجل وفيسبوك في الوضع الداكن ===== */
+body.dark .btn-google {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #475569 !important;
+}
+
+body.dark .btn-google:hover {
+    background: #334155 !important;
+    border-color: #64748b !important;
+}
+
+body.dark .btn-google i {
+    color: #ffffff !important;
+}
+
+body.dark .btn-facebook {
+    background: #1a3a6a !important;
+    color: #f1f5f9 !important;
+    border-color: #1a3a6a !important;
+}
+
+body.dark .btn-facebook:hover {
+    background: #1e4a8a !important;
+}
+
+/* ===== تحسينات زر "تذكرني" والنص المجاور ===== */
+body.dark .flex.items-center.gap-2.text-sm.cursor-pointer {
+    color: #cbd5e1 !important;
+}
+
+body.dark .flex.items-center.gap-2.text-sm.cursor-pointer span {
+    color: #cbd5e1 !important;
+}
+
+/* ===== تحسين النصوص في الوضع الداكن ===== */
+body.dark .text-sm.text-\[var\(--text-secondary\)\] {
+    color: #94a3b8 !important;
+}
+
+body.dark .text-\[var\(--primary\)\] {
+    color: #818cf8 !important;
+}
+
+body.dark .text-\[var\(--primary\)\]:hover {
+    color: #a5b4fc !important;
+}
+
+/* ===== تحسين خلفية الـ card في الوضع الداكن ===== */
+body.dark .auth-card {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark .auth-card .logo h1 {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+        /* ===== تحسين أزرار جوجل وفيسبوك ===== */
+.btn-google {
+    background: #ffffff;
+    color: #1e293b;
+    border: 2px solid #e2e8f0;
+    transition: var(--transition);
+}
+
+.btn-google:hover {
+    border-color: #4285f4;
+    color: #4285f4;
+    background: #f8fafc;
+}
+
+.btn-google i {
+    color: #ea4335;
+}
+
+.btn-facebook {
+    background: #1877f2;
+    color: #ffffff;
+    border: 2px solid #1877f2;
+    transition: var(--transition);
+}
+
+.btn-facebook:hover {
+    background: #166fe5;
+    border-color: #166fe5;
+}
+
+.btn-facebook i {
+    color: #ffffff;
+}
+
+/* ===== تحسين زر تذكرني ===== */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    accent-color: var(--primary);
+}
+
+
+
+
+
+        
     </style>
 </head>
 <body>
