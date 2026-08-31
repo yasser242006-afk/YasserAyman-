@@ -556,7 +556,12 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       <!-- New Top 10 menu -->
       <div class="menu-item" onclick="switchView('top10', this)"><i class="fas fa-trophy"></i><span>العشرة الأوائل</span></div>
       <!-- إعدادات جديدة -->
-<div class="menu-item" onclick="switchView('settings', this)"><i class="fas fa-gear"></i><span>الإعدادات</span></div>
+      <!-- ===== قسم الإعدادات ===== -->
+<div class="label" style="margin-top:12px;">الإعدادات</div>
+<div class="menu-item" onclick="switchView('settings', this)"><i class="fas fa-gear"></i><span>صفحة الإعدادات</span></div>
+<div class="menu-item" onclick="installPWA()"><i class="fas fa-download"></i><span>تثبيت التطبيق</span></div>
+<div class="menu-item" onclick="openGroupModal()"><i class="fas fa-users"></i><span>انضم لجروبنا</span></div>
+<div class="menu-item" onclick="logoutUser()" style="color:var(--danger);"><i class="fas fa-right-from-bracket"></i><span>تسجيل خروج</span></div>
     </nav>
   </aside>
 
