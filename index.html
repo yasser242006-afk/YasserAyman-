@@ -723,8 +723,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 </div>
 
-
-  <script>
+<script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
@@ -740,9 +739,8 @@ let imageTargetType = null;
 let currentScheduleTerm = '1';
 let currentLecturesTerm = '1';
 let currentLectureSubject = '';
-let currentLectureCategory = 'lecture'; // lecture | section | course | programming
+let currentLectureCategory = 'lecture';
 
-/* أسماء المواد الدراسية لكل فرقة وترم */
 const LECTURE_SUBJECTS = {
   '1': {
     '1': ['مقدمة في الحاسبات', 'مقدمة في نظم التشغيل', 'مراسلات و مصطلحات إنجليزية', 'مبادئ الإقتصاد', 'مبادئ تنظيم وإدارة'],
@@ -752,14 +750,8 @@ const LECTURE_SUBJECTS = {
     '1': ['قواعد البيانات (1)', 'البرمجة الهيكلية المتقدمة', 'محاسبة شركات', 'دراسات إقتصادية بلغة إنجليزية', 'إدارة الانتاج و العمليات'],
     '2': ['تسويق', 'قانون تجاري', 'نظم معلومات إدارية', 'إحصاء', 'رياضيات تمويل', 'تطبيقات الانترنت و الوسائط المتعددة']
   },
-  '3': {
-    '1': [], // أضف هنا مواد ترم أول سنة ثالثة (5 مواد)
-    '2': []  // أضف هنا مواد ترم تاني سنة ثالثة (6 مواد)
-  },
-  '4': {
-    '1': [], // أضف هنا مواد ترم أول سنة رابعة (5 مواد)
-    '2': []  // أضف هنا مواد ترم تاني سنة رابعة (6 مواد)
-  }
+  '3': { '1': [], '2': [] },
+  '4': { '1': [], '2': [] }
 };
 
 /* ================== Toast ================== */
@@ -803,8 +795,12 @@ async function init(){
     currentUser = session.user;
     const result = await loadProfile();
 
-    if (result === 'not_found' || !currentProfile) {
-      await createFreshProfileRow();
+    // لو الصف مش موجود في الجدول، معناها الحساب اتمسح فعليًا من قاعدة البيانات
+    // (لأن صفحة login.html هي المسؤولة عن إنشاء الصف أول مرة قبل ما ييجي هنا)
+    // فبنطرده لصفحة تسجيل الدخول عشان يدخل من جديد ويتعمله حساب جديد
+    if (result === 'not_found') {
+      await forceFullLogout();
+      return;
     }
 
     await ensureAcademicYearSelected();
@@ -842,30 +838,16 @@ async function loadProfile(){
   }
 }
 
-async function createFreshProfileRow(){
-  const userData = {
-    id: currentUser.id,
-    email: currentUser.email || '',
-    full_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '',
-    phone: currentUser.user_metadata?.phone || '',
-    academic_year: currentUser.user_metadata?.academic_year || '',
-    avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '',
-    first_login_shown: false,
-    last_notification_check: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
+/* ================== تسجيل خروج إجباري وتنظيف شامل ================== */
+async function forceFullLogout(){
   try {
-    const { data, error } = await _supabase.from('yasser_ayman')
-      .upsert(userData, { onConflict: 'id' })
-      .select()
-      .maybeSingle();
-
-    if (error) { currentProfile = userData; return; }
-    currentProfile = data || userData;
+    await _supabase.auth.signOut();
   } catch(e) {
-    currentProfile = userData;
+    console.log('Signout error', e);
   }
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = 'login.html';
 }
 
 function renderProfileUI(){
@@ -898,8 +880,8 @@ async function maybeShowWelcome(){
       overlay.classList.add('show');
       setTimeout(()=> overlay.classList.remove('show'), 3200);
     }
-    await _supabase.from('yasser_ayman').update({ first_login_shown:true }).eq('id', currentUser.id);
-    currentProfile.first_login_shown = true;
+    const { error } = await _supabase.from('yasser_ayman').update({ first_login_shown:true }).eq('id', currentUser.id);
+    if(!error) currentProfile.first_login_shown = true;
   }
 }
 
@@ -1700,14 +1682,7 @@ document.addEventListener('click', (e)=>{
   }
 });
 
-
-
-
-
-
-
-
-    /* ================== اختيار الفرقة (مرة واحدة فقط) ================== */
+/* ================== اختيار الفرقة (مرة واحدة فقط) ================== */
 let pendingYearChoice = null;
 
 function ensureAcademicYearSelected(){
@@ -1733,9 +1708,15 @@ async function confirmYearSelection(){
   const btn = document.getElementById('year-confirm-btn');
   if(btn){ btn.disabled = true; btn.innerText = 'جاري الحفظ...'; }
 
-  await _supabase.from('yasser_ayman').update({ academic_year: pendingYearChoice }).eq('id', currentUser.id);
-  currentProfile.academic_year = pendingYearChoice;
+  const { error } = await _supabase.from('yasser_ayman').update({ academic_year: pendingYearChoice }).eq('id', currentUser.id);
 
+  if(error){
+    showToast('حدث خطأ أثناء حفظ الفرقة، حاول تاني', 'error');
+    if(btn){ btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; }
+    return;
+  }
+
+  currentProfile.academic_year = pendingYearChoice;
   document.getElementById('year-select-overlay')?.classList.remove('show');
   if(btn){ btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; }
 
@@ -1744,18 +1725,7 @@ async function confirmYearSelection(){
     window._resolveYearSelection = null;
   }
 }
-  </script>
-
-
-
-
-
-
-
-
-
-
-
+                                                 </script>
   
 
 
