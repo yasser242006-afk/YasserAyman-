@@ -702,8 +702,8 @@ async function handleSendOTP() {
     const { error } = await _supabase.auth.signInWithOtp({
         email: email,
         options: {
-            // عدم تحديد redirectTo بيخلي Supabase ترسل رمز OTP بدل الرابط
-            shouldCreateUser: false // مهم عشان منعملش حساب جديد بالغلط
+    emailRedirectTo: undefined, // يمنع إرسال الرابط
+    shouldCreateUser: false
         }
     });
 
