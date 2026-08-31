@@ -1098,6 +1098,7 @@ function switchView(view, el){
   if(el) { const item = el.closest('.menu-item') || el; item.classList.add('active'); }
   const sidebar = document.getElementById('sidebar');
   if(sidebar.classList.contains('open')) toggleSidebar();
+  
   if(view === 'grades') loadGrades();
   if(view === 'questions'){ 
     const subjSelect = document.getElementById('q-subject-select');
@@ -1111,7 +1112,14 @@ function switchView(view, el){
   if(view === 'lectures') renderLectureSubjectTabs();
   if(view === 'attendance') { loadAttendanceSessions(); loadAttendanceRecords(); }
   if(view === 'top10') loadTop10();
-}
+  
+  // ===== هنا مكان الإضافة الجديد =====
+  if (view === 'settings') {
+    // مش محتاج تعمل حاجة دلوقتي، لأن الألوان والثيم بيتم تحميلهم تلقائياً من localStorage
+    // بس لو حبيت تضيف حاجة خاصة بتحميل الإعدادات، حطها هنا
+    // مثال: loadSavedSettings();
+  }
+  }
 
 /* ================== الصورة الشخصية ================== */
 function openImageMenu(e, type){
