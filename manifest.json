@@ -1,1 +1,23 @@
-
+{
+  "name": "بوابة الطلاب",
+  "short_name": "بوابة الطلاب",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#4f46e5",
+  "theme_color": "#4f46e5",
+  "description": "البوابة بالطلاب - معهد نظم معلومات السلاب",
+  "icons": [
+    {
+      "src": "https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/c4bc7502-c913-436e-9e2f-3d0cead6b0b8.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/c4bc7502-c913-436e-9e2f-3d0cead6b0b8.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
