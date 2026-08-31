@@ -1711,8 +1711,8 @@ function renderAttendanceChart(subjectStats = null) {
   ctx.fillText('حضور', centerX, centerY + 28);
   
   // الأسطورة (دوائر على اليمين مع مسافة مناسبة)
-  const legendX = width 10; // على اليمين بالكامل
-  let legendY = 10; // ابدأ من تحت عنوان "نسبة الحضور"
+  const legendX = width 20; // على اليمين بالكامل
+  let legendY = 8; // ابدأ من تحت عنوان "نسبة الحضور"
   ctx.textAlign = 'right';
   labels.forEach((label, i) => {
     const pct = ((data[i]/total)*100);
