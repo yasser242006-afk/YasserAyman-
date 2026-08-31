@@ -437,6 +437,26 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   .top10-search-btn i{color:var(--primary);transition:var(--transition);}
 .top10-search-btn:hover{background:var(--primary);}
 .top10-search-btn:hover i{color:#fff;} 
+
+  .submenu-search-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 14px;border-radius:var(--radius-sm);
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff !important;border:none;font-family:var(--font-family);
+  font-weight:700;font-size:12px;cursor:pointer;transition:var(--transition);
+  margin-top:4px;
+}
+.submenu-search-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.3);}
+.submenu-search-btn i{color:#fff;}
+
+.mini-select-group{position:relative;margin-bottom:8px;}
+.mini-select-group i{position:absolute;top:50%;right:12px;transform:translateY(-50%);color:var(--primary);font-size:12px;pointer-events:none;}
+.mini-select{
+  width:100%;padding:9px 32px 9px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);
+  font-size:12px;font-family:var(--font-family);background:var(--bg);color:var(--text);
+  outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;transition:var(--transition);
+}
+.mini-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1);} 
 </style>
 </head>
 <body>
@@ -513,9 +533,17 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
       <div class="menu-item" onclick="switchView('grades', this)"><i class="fas fa-chart-simple"></i><span>درجات الامتحانات</span></div>
       <div class="menu-item" onclick="toggleQuestionsMenu(this)"><i class="fas fa-file-circle-question"></i><span>أسئلة الامتحانات</span><i class="fas fa-chevron-down" style="margin-right:auto;font-size:11px;" id="q-chevron"></i></div>
       <div class="menu-sub" id="questions-submenu">
-        <select class="mini-select" id="q-term-select" onchange="updateSubjectSelectByTerm('q-subject-select','q-term-select')"><option value="all">الكل</option><option value="1">الترم الأول</option><option value="2">الترم الثاني</option></select>
-        <select class="mini-select" id="q-subject-select"><option value="">اختر المادة</option></select>
-        <div class="menu-item" style="padding:8px 10px;font-size:12px;" onclick="switchView('questions', document.querySelector('.menu-item'))"><i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span></div>
+  <div class="mini-select-group">
+    <select class="mini-select" id="q-term-select" onchange="...">...</select>
+    <i class="fas fa-calendar-week"></i>
+  </div>
+  <div class="mini-select-group">
+    <select class="mini-select" id="q-subject-select">...</select>
+    <i class="fas fa-book"></i>
+  </div>
+  <button class="submenu-search-btn" style="width:100%;" onclick="switchView('questions', document.querySelector('.menu-item'))">
+    <i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span>
+  </button>
       </div>
       <div class="menu-item" onclick="switchView('schedule', this)"><i class="fas fa-calendar-days"></i><span>الجدول الدراسي</span></div>
       <div class="menu-item" onclick="switchView('lectures', this)"><i class="fas fa-chalkboard-user"></i><span>المحاضرات الكلية</span></div>
