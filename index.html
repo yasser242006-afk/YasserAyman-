@@ -548,10 +548,15 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
             <option value="1">الترم الأول</option>
             <option value="2">الترم الثاني</option>
           </select>
+          <select class="qselect" id="questions-exam-type">
+            <option value="quiz">كويز</option>
+            <option value="midterm">ميدترم</option>
+            <option value="final">فاينال</option>
+          </select>
+          <button class="icon-btn" onclick="loadExamQuestions()" title="عرض الأسئلة"><i class="fas fa-search" style="color:var(--primary);"></i></button>
         </div>
-        <div class="empty-state">
-          <i class="fas fa-folder-open"></i>
-          <p>هيتم إضافة أسماء المواد والأسئلة قريبًا</p>
+        <div id="exam-questions-container">
+          <div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة والترم ونوع الامتحان ثم اضغط بحث</p></div>
         </div>
       </div>
     </section>
@@ -1003,6 +1008,7 @@ function switchView(view, el){
     const qTerm = document.getElementById('questions-term');
     if(subjSelect && qSubj) qSubj.value = subjSelect.value;
     if(termSelect && qTerm) qTerm.value = termSelect.value;
+    loadExamQuestions(); // تحميل الأسئلة عند فتح الصفحة
   }
   if(view === 'schedule') loadSchedule();
   if(view === 'lectures') renderLectureSubjectTabs();
@@ -1773,13 +1779,375 @@ async function confirmYearSelection(){
     window._resolveYearSelection = null;
   }
 }
-                                                 </script>
+
+/* ============================================================
+   ========== نظام الأسئلة والامتحانات ==========
+   ============================================================ */
+
+let currentExamQuestions = [];
+let currentQuestionIndex = 0;
+let currentExamId = null;
+let examTimerInterval = null;
+let examTimeLimit = 0; // بالثواني
+let examEndTime = null; // تاريخ انتهاء الامتحان
+let studentAnswers = {}; // لتخزين إجابات الطالب أثناء الامتحان
+
+// تحميل الأسئلة بناءً على المادة والترم ونوع الامتحان
+async function loadExamQuestions() {
+  const subject = document.getElementById('questions-subject').value;
+  const term = document.getElementById('questions-term').value;
+  const examType = document.getElementById('questions-exam-type').value;
+
+  if (!subject || !term || term === 'all') {
+    showToast('يرجى اختيار المادة والترم (ليس الكل)', 'error');
+    return;
+  }
+
+  const container = document.getElementById('exam-questions-container');
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الأسئلة...</p></div>';
+
+  try {
+    // جلب الامتحان المناسب
+    const { data: exams, error: examError } = await _supabase
+      .from('exams')
+      .select('*')
+      .eq('subject_name', subject)
+      .eq('term', term)
+      .eq('exam_type', examType)
+      .eq('academic_year', currentProfile.academic_year)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (examError || !exams || exams.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا يوجد امتحان مسجل لهذه المادة والترم والنوع</p></div>`;
+      return;
+    }
+
+    const exam = exams[0];
+    currentExamId = exam.id;
+    examTimeLimit = exam.duration_seconds || 600; // الافتراضي 10 دقائق
+    examEndTime = exam.end_date ? new Date(exam.end_date) : null;
+
+    // جلب الأسئلة الخاصة بهذا الامتحان
+    const { data: questions, error: qError } = await _supabase
+      .from('questions')
+      .select('*')
+      .eq('exam_id', exam.id)
+      .order('order_index', { ascending: true });
+
+    if (qError || !questions || questions.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد أسئلة لهذا الامتحان</p></div>`;
+      return;
+    }
+
+    currentExamQuestions = questions;
+    currentQuestionIndex = 0;
+    studentAnswers = {};
+
+    // عرض أول سؤال
+    renderQuestion();
+    // بدء المؤقت
+    startExamTimer();
+
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في تحميل الأسئلة</p></div>`;
+  }
+}
+
+// عرض سؤال معين
+function renderQuestion() {
+  const container = document.getElementById('exam-questions-container');
+  if (!container) return;
+
+  if (currentExamQuestions.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد أسئلة</p></div>';
+    return;
+  }
+
+  const q = currentExamQuestions[currentQuestionIndex];
+  const total = currentExamQuestions.length;
+  const idx = currentQuestionIndex + 1;
+
+  // بناء خيارات الإجابة
+  let optionsHtml = '';
+  const options = [q.option1, q.option2, q.option3, q.option4].filter(o => o && o.trim() !== '');
+  options.forEach((opt, i) => {
+    const letter = String.fromCharCode(65 + i); // A, B, C, D
+    const checked = studentAnswers[q.id] === opt ? 'checked' : '';
+    optionsHtml += `
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0;">
+        <input type="radio" name="question_${q.id}" value="${escapeHtml(opt)}" id="opt_${q.id}_${i}" ${checked} onchange="studentAnswers['${q.id}']=this.value">
+        <label for="opt_${q.id}_${i}" style="font-size:14px;">${letter}. ${escapeHtml(opt)}</label>
+      </div>
+    `;
+  });
+
+  // عرض السؤال مع أزرار التنقل
+  container.innerHTML = `
+    <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:var(--text-secondary);">السؤال ${idx} من ${total}</span>
+      <span id="exam-timer" style="font-size:14px;font-weight:700;color:var(--danger);">⏱️ 00:00</span>
+    </div>
+    <div style="background:var(--bg);padding:14px;border-radius:var(--radius-md);margin-bottom:14px;">
+      <p style="font-size:15px;font-weight:600;">${escapeHtml(q.question_text)}</p>
+    </div>
+    <div style="padding:0 4px;">
+      ${optionsHtml}
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:16px;gap:10px;">
+      <button class="icon-btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''} style="background:var(--bg);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--text-secondary);">
+        <i class="fas fa-chevron-right"></i> السابق
+      </button>
+      <button class="icon-btn" onclick="nextQuestion()" ${currentQuestionIndex === total-1 ? 'disabled' : ''} style="background:var(--bg);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--text-secondary);">
+        التالي <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+    <div style="margin-top:16px;">
+      <button onclick="submitExam()" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;">
+        <i class="fas fa-paper-plane"></i> إنهاء وإرسال الامتحان
+      </button>
+    </div>
+  `;
+}
+
+function prevQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    renderQuestion();
+  }
+}
+
+function nextQuestion() {
+  if (currentQuestionIndex < currentExamQuestions.length - 1) {
+    currentQuestionIndex++;
+    renderQuestion();
+  }
+}
+
+// بدء المؤقت
+function startExamTimer() {
+  if (examTimerInterval) clearInterval(examTimerInterval);
+
+  // إذا كان هناك وقت انتهاء محدد، نحسب الوقت المتبقي
+  let timeLeft = examTimeLimit; // بالثواني
+  if (examEndTime) {
+    const now = new Date();
+    const diff = (examEndTime - now) / 1000;
+    if (diff > 0) timeLeft = Math.min(diff, examTimeLimit);
+    else {
+      showToast('انتهى وقت الامتحان', 'error');
+      submitExam();
+      return;
+    }
+  }
+
+  examTimerInterval = setInterval(() => {
+    timeLeft--;
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = Math.floor(timeLeft % 60);
+    const timerEl = document.getElementById('exam-timer');
+    if (timerEl) {
+      timerEl.innerText = `⏱️ ${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+    if (timeLeft <= 0) {
+      clearInterval(examTimerInterval);
+      showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error');
+      submitExam();
+    }
+  }, 1000);
+}
+
+// إرسال الامتحان
+async function submitExam() {
+  if (examTimerInterval) clearInterval(examTimerInterval);
+
+  // التأكد من أن الطالب قد أجاب على جميع الأسئلة
+  const total = currentExamQuestions.length;
+  const answered = Object.keys(studentAnswers).length;
+  if (answered < total) {
+    const confirmSubmit = confirm(`أنت لم تجب على ${total - answered} سؤال. هل تريد الإرسال على أي حال؟`);
+    if (!confirmSubmit) return;
+  }
+
+  // حساب النتيجة
+  let correct = 0;
+  currentExamQuestions.forEach(q => {
+    if (studentAnswers[q.id] && studentAnswers[q.id] === q.correct_answer) {
+      correct++;
+    }
+  });
+
+  const totalQuestions = currentExamQuestions.length;
+  const score = Math.round((correct / totalQuestions) * (currentExamType === 'quiz' ? 10 : currentExamType === 'midterm' ? 20 : 70));
+  const maxScore = currentExamType === 'quiz' ? 10 : currentExamType === 'midterm' ? 20 : 70;
+  const percent = Math.round((score / maxScore) * 100);
+  const info = gradeInfo(percent);
+
+  // عرض النتيجة في نافذة منبثقة
+  const resultHtml = `
+    <div style="text-align:center;padding:20px;">
+      <h2 style="font-size:24px;font-weight:800;color:var(--primary);">✅ تم الإرسال!</h2>
+      <p style="font-size:16px;margin:12px 0;">لقد أجبت على ${correct} من ${totalQuestions} إجابة صحيحة.</p>
+      <div style="font-size:32px;font-weight:800;color:var(--primary);">${score} / ${maxScore}</div>
+      <div style="font-size:18px;font-weight:700;margin:8px 0;color:${info.cls === 'excellent' ? 'var(--success)' : info.cls === 'weak' ? 'var(--danger)' : 'var(--warn)'};">${info.label}</div>
+      <div style="font-size:14px;color:var(--text-secondary);">النسبة: ${percent}%</div>
+      <button onclick="closeResultModal()" style="margin-top:16px;padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;cursor:pointer;">موافق</button>
+    </div>
+  `;
+
+  // عرض النتيجة في مودال
+  const modal = document.createElement('div');
+  modal.id = 'result-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `<div style="background:#fff;border-radius:24px;max-width:360px;width:90%;box-shadow:var(--shadow-lg);">${resultHtml}</div>`;
+  document.body.appendChild(modal);
+
+  // حفظ النتيجة في قاعدة البيانات
+  const gradeData = {
+    student_id: currentUser.id,
+    subject_name: document.getElementById('questions-subject').value,
+    term: parseInt(document.getElementById('questions-term').value),
+    exam_type: currentExamType,
+    score: score,
+    max_score: maxScore,
+    rank: null, // سيتم حسابه لاحقاً
+    exam_date: new Date().toISOString().split('T')[0],
+    result_date: new Date().toISOString().split('T')[0],
+    created_at: new Date().toISOString()
+  };
+
+  try {
+    const { error } = await _supabase.from('grades').insert([gradeData]);
+    if (error) {
+      console.error('Error saving grade:', error);
+      showToast('تم حساب النتيجة ولكن حدث خطأ في حفظها', 'error');
+    } else {
+      showToast('تم حفظ النتيجة بنجاح', 'success');
+      // التحقق من المركز والمكافأة
+      await checkReward(gradeData);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  // إعادة تحميل الدرجات عند إغلاق المودال
+  window._resultModalClosed = () => {
+    modal.remove();
+    loadGrades();
+  };
+}
+
+function closeResultModal() {
+  if (window._resultModalClosed) window._resultModalClosed();
+}
+
+// دالة للتحقق من المركز والمكافأة
+async function checkReward(gradeData) {
+  try {
+    // جلب جميع درجات نفس الامتحان (نفس المادة، الترم، النوع)
+    const { data: allGrades, error } = await _supabase
+      .from('grades')
+      .select('student_id, score')
+      .eq('subject_name', gradeData.subject_name)
+      .eq('term', gradeData.term)
+      .eq('exam_type', gradeData.exam_type)
+      .order('score', { ascending: false });
+
+    if (error || !allGrades) return;
+
+    // تحديد المركز (مع مراعاة التكرار)
+    let rank = 1;
+    let prevScore = null;
+    let rankMap = {};
+    allGrades.forEach((g, i) => {
+      if (i === 0) {
+        rankMap[g.student_id] = 1;
+        prevScore = g.score;
+      } else {
+        if (g.score < prevScore) {
+          rank = i + 1;
+        }
+        rankMap[g.student_id] = rank;
+        prevScore = g.score;
+      }
+    });
+
+    const studentRank = rankMap[currentUser.id];
+    // تحديث الرتبة في قاعدة البيانات
+    await _supabase.from('grades').update({ rank: studentRank }).eq('student_id', currentUser.id).eq('subject_name', gradeData.subject_name).eq('term', gradeData.term).eq('exam_type', gradeData.exam_type);
+
+    // المكافأة فقط للمراكز 1 و2 و3 (غير مكررة)
+    // نتحقق إذا كان هناك أكثر من طالب في نفس المركز
+    const rankCount = allGrades.filter(g => {
+      const r = rankMap[g.student_id];
+      return r === studentRank;
+    }).length;
+
+    if (studentRank <= 3 && rankCount === 1) {
+      // عرض صندوق إدخال رقم الكاش
+      showCashInput(studentRank, gradeData);
+    }
+
+  } catch (e) {
+    console.error('Reward check error:', e);
+  }
+}
+
+// عرض صندوق إدخال رقم الكاش للمكافأة
+function showCashInput(rank, gradeData) {
+  const modal = document.createElement('div');
+  modal.id = 'cash-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:24px;padding:24px;max-width:340px;width:90%;text-align:center;box-shadow:var(--shadow-lg);">
+      <i class="fas fa-trophy" style="font-size:40px;color:var(--warn);"></i>
+      <h3 style="font-size:18px;font-weight:800;margin:10px 0;">🎉 مكافأة المركز ${rank}</h3>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">لقد حصلت على مكافأة 50 جنيه. أدخل رقم فودافون كاش لاستلامها:</p>
+      <input type="text" id="cash-number" placeholder="رقم فودافون كاش" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-family);font-size:14px;margin-bottom:12px;">
+      <button onclick="submitCashNumber('${gradeData.subject_name}', ${gradeData.term}, '${gradeData.exam_type}')" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-weight:700;font-size:14px;cursor:pointer;">إرسال</button>
+      <button onclick="document.getElementById('cash-modal').remove()" style="margin-top:8px;background:none;border:none;color:var(--text-light);font-size:12px;cursor:pointer;">تجاهل</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function submitCashNumber(subject, term, examType) {
+  const cashNum = document.getElementById('cash-number').value.trim();
+  if (!cashNum) {
+    showToast('يرجى إدخال رقم صحيح', 'error');
+    return;
+  }
+  // حفظ رقم الكاش في جدول المكافآت (يمكن إضافته لاحقاً)
+  // هنا سنقوم بتسجيله في جدول rewards مع حالة "pending"
+  try {
+    const { error } = await _supabase.from('rewards').insert({
+      student_id: currentUser.id,
+      subject_name: subject,
+      term: term,
+      exam_type: examType,
+      cash_number: cashNum,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    });
+    if (error) throw error;
+    showToast('تم إرسال رقم الكاش بنجاح، سيتم صرف المكافأة خلال 24 ساعة', 'success');
+  } catch (e) {
+    showToast('حدث خطأ في إرسال الرقم، حاول مرة أخرى', 'error');
+  }
+  document.getElementById('cash-modal')?.remove();
+}
+
+// ================== تهيئة الجداول (ملاحظة: يجب إنشاؤها في Supabase) ==================
+/*
+جداول مطلوبة:
+1. exams: id, subject_name, term (int), exam_type (text), academic_year (text), duration_seconds (int), end_date (timestamp), created_at
+2. questions: id, exam_id (references exams.id), question_text, option1, option2, option3, option4, correct_answer, order_index
+3. rewards: id, student_id, subject_name, term, exam_type, cash_number, status (pending/approved/rejected), created_at
+4. grades: موجود بالفعل، لكن سيتم إضافة حقل rank (int) و exam_type (text), subject_name, term, score, max_score, exam_date, result_date
+*/
+
+</script>
   
-
-
-    
-
-                                                    
-
 </body>
 </html>
