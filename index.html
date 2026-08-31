@@ -2272,7 +2272,169 @@ async function submitCashNumber(subject, term, examType) {
 6. grades: موجودة بالفعل، أضف عمود academic_year (text)
 */
 
+function openGroupModal() {
+  document.getElementById('group-modal').classList.add('open');
+}
+function closeGroupModal() {
+  document.getElementById('group-modal').classList.remove('open');
+}
+function redirectToGroup() {
+  // استبدل الرابط برابط الجروب الحقيقي
+  window.open('https://chat.whatsapp.com/your-group-link', '_blank');
+  closeGroupModal();
+}
 
+
+
+
+
+
+
+
+
+
+
+  // ========== تغيير اللون الأساسي ==========
+function changePrimaryColor(color, btn) {
+  document.querySelectorAll('.color-option').forEach(b => b.style.borderColor = 'transparent');
+  btn.style.borderColor = '#fff';
+  document.documentElement.style.setProperty('--primary', color);
+  // حفظ اللون في localStorage
+  localStorage.setItem('app-primary-color', color);
+  showToast('تم تغيير اللون الأساسي', 'success');
+}
+
+// تحميل اللون المحفوظ عند بدء التطبيق
+(function loadSavedColor() {
+  const saved = localStorage.getItem('app-primary-color');
+  if (saved) {
+    document.documentElement.style.setProperty('--primary', saved);
+    // تحديث زر الاختيار المطابق
+    document.querySelectorAll('.color-option').forEach(b => {
+      if (b.dataset.color === saved) {
+        b.style.borderColor = '#fff';
+      }
+    });
+  }
+})();
+
+// ========== الوضع الداكن / الفاتح ==========
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  if (isDark) {
+    icon.innerHTML = '<i class="fas fa-moon"></i>';
+    label.innerText = 'داكن';
+    document.body.style.setProperty('--bg', '#0f172a');
+    document.body.style.setProperty('--bg-card', '#1e293b');
+    document.body.style.setProperty('--text', '#f8fafc');
+    document.body.style.setProperty('--text-secondary', '#94a3b8');
+    document.body.style.setProperty('--border', '#334155');
+    document.body.style.setProperty('--shadow-sm', '0 2px 10px rgba(0,0,0,0.3)');
+    document.body.style.setProperty('--shadow-lg', '0 10px 40px rgba(0,0,0,0.5)');
+    localStorage.setItem('theme', 'dark');
+  } else {
+    icon.innerHTML = '<i class="fas fa-sun"></i>';
+    label.innerText = 'فاتح';
+    document.body.style.setProperty('--bg', '#f8fafc');
+    document.body.style.setProperty('--bg-card', '#ffffff');
+    document.body.style.setProperty('--text', '#0f172a');
+    document.body.style.setProperty('--text-secondary', '#64748b');
+    document.body.style.setProperty('--border', '#e2e8f0');
+    document.body.style.setProperty('--shadow-sm', '0 2px 10px rgba(0,0,0,0.06)');
+    document.body.style.setProperty('--shadow-lg', '0 10px 40px rgba(0,0,0,0.12)');
+    localStorage.setItem('theme', 'light');
+  }
+}
+
+// تحميل الوضع المحفوظ
+(function loadSavedTheme() {
+  const theme = localStorage.getItem('theme');
+  if (theme === 'dark') {
+    document.body.classList.add('dark');
+    // تطبيق متغيرات الداكن مباشرة
+    document.body.style.setProperty('--bg', '#0f172a');
+    document.body.style.setProperty('--bg-card', '#1e293b');
+    document.body.style.setProperty('--text', '#f8fafc');
+    document.body.style.setProperty('--text-secondary', '#94a3b8');
+    document.body.style.setProperty('--border', '#334155');
+    document.body.style.setProperty('--shadow-sm', '0 2px 10px rgba(0,0,0,0.3)');
+    document.body.style.setProperty('--shadow-lg', '0 10px 40px rgba(0,0,0,0.5)');
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.innerHTML = '<i class="fas fa-moon"></i>';
+    if (label) label.innerText = 'داكن';
+  }
+})();
+
+// ========== مسح البيانات المحلية ==========
+function clearAllLocalData() {
+  if (confirm('هل أنت متأكد من مسح جميع البيانات المخزنة محلياً؟')) {
+    localStorage.clear();
+    sessionStorage.clear();
+    showToast('تم مسح جميع البيانات', 'success');
+    // إعادة تحميل الصفحة لتطبيق الإعدادات الافتراضية
+    setTimeout(() => location.reload(), 1000);
+  }
+}
+
+// ========== تثبيت التطبيق (PWA) ==========
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // إظهار أزرار التثبيت
+  document.querySelectorAll('#install-app-btn, #install-app-btn-extra').forEach(btn => btn.style.display = 'inline-flex');
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') {
+        showToast('تم تثبيت التطبيق بنجاح 🎉', 'success');
+      } else {
+        showToast('تم إلغاء التثبيت', 'info');
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    // في حال لم يظهر الـ prompt (مثلاً على سطح المكتب) نوجه المستخدم إلى تعليمات
+    showToast('يمكنك تثبيت التطبيق من قائمة المتصفح (إضافة إلى الشاشة الرئيسية)', 'info');
+  }
+}
+
+// إخفاء أزرار التثبيت إذا لم يكن الـ PWA مدعوماً (افتراضياً مخفية)
+document.querySelectorAll('#install-app-btn, #install-app-btn-extra').forEach(btn => btn.style.display = 'none');
+
+// ========== عن التطبيق ==========
+function showAppInfo() {
+  alert(
+    `📱 بوابة الطلاب - الإصدار 2.0.1\n\n` +
+    `• تم التطوير بواسطة فريق معهد نظم معلومات السلاب\n` +
+    `• يدعم الوضع الداكن والفاتح\n` +
+    `• خاصية تثبيت التطبيق (PWA)\n` +
+    `• متوافق مع جميع الأجهزة\n\n` +
+    `للتواصل: support@sis.com`
+  );
+}
+
+// ========== تسجيل الخروج ==========
+async function logoutUser() {
+  if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+    try {
+      await _supabase.auth.signOut();
+      localStorage.removeItem('app-primary-color');
+      localStorage.removeItem('theme');
+      // تنظيف أي بيانات أخرى
+      sessionStorage.clear();
+      window.location.href = 'login.html';
+    } catch (e) {
+      showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
+    }
+  }
+}
 
 
 
