@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- QRCode libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -457,6 +458,45 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;transition:var(--transition);
 }
 .mini-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1);} 
+
+
+/* تحسينات الوضع الداكن */
+body.dark {
+  background: var(--bg);
+  color: var(--text);
+}
+body.dark .topbar,
+body.dark .post-card,
+body.dark .grade-card,
+body.dark .lecture-card,
+body.dark .attendance-session-card,
+body.dark .qbox,
+body.dark .chart-card,
+body.dark .sidebar-head,
+body.dark .sidebar-profile,
+body.dark .menu-item:hover,
+body.dark .comment-bubble,
+body.dark .modal-sheet,
+body.dark .modal-content {
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+}
+body.dark .icon-btn:hover {
+  background: rgba(255,255,255,0.05);
+}
+body.dark .grade-badge.excellent {
+  background: #065f46;
+  color: #6ee7b7;
+}
+body.dark .grade-badge.vgood {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+/* ... وهكذا لباقي العناصر */
+
+
+
+  
 </style>
 </head>
 <body>
@@ -855,7 +895,18 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
   </div>
 
 
-
+<!-- Modal الانضمام إلى الجروب -->
+<div id="group-modal" class="custom-modal">
+  <div class="modal-content" style="max-width:420px;">
+    <div class="modal-header"><h3><i class="fas fa-users"></i> انضم إلى جروبنا</h3><button class="close-btn" onclick="closeGroupModal()">&times;</button></div>
+    <div style="padding:24px 20px;text-align:center;">
+      <i class="fas fa-rocket" style="font-size:48px;color:var(--primary);margin-bottom:12px;"></i>
+      <h2 style="font-size:18px;font-weight:800;">🚀 انضم إلى مجتمعنا</h2>
+      <p style="font-size:14px;color:var(--text-secondary);margin:12px 0;">كن جزءاً من جروب الطلاب على واتساب/فيسبوك، واحصل على آخر الأخبار والمناقشات.</p>
+      <button onclick="redirectToGroup()" style="padding:12px 30px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;">اضغط هنا للانضمام</button>
+    </div>
+  </div>
+</div>
   
 <script>
 /* ================== إعداد Supabase ================== */
@@ -2221,6 +2272,19 @@ async function submitCashNumber(subject, term, examType) {
 6. grades: موجودة بالفعل، أضف عمود academic_year (text)
 */
 
+
+
+
+
+
+
+
+
+
+
+
+
+  
 </script>
 </body>
 </html>
