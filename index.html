@@ -1697,6 +1697,51 @@ document.addEventListener('click', (e)=>{
     dd.classList.remove('open');
   }
 });
+
+
+
+
+
+
+
+
+    /* ================== اختيار الفرقة (مرة واحدة فقط) ================== */
+let pendingYearChoice = null;
+
+function ensureAcademicYearSelected(){
+  return new Promise((resolve) => {
+    if(currentProfile?.academic_year){ resolve(); return; }
+    const overlay = document.getElementById('year-select-overlay');
+    if(!overlay){ resolve(); return; }
+    overlay.classList.add('show');
+    window._resolveYearSelection = resolve;
+  });
+}
+
+function pickYearOption(year, el){
+  pendingYearChoice = year;
+  document.querySelectorAll('.year-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn = document.getElementById('year-confirm-btn');
+  if(btn) btn.disabled = false;
+}
+
+async function confirmYearSelection(){
+  if(!pendingYearChoice) return;
+  const btn = document.getElementById('year-confirm-btn');
+  if(btn){ btn.disabled = true; btn.innerText = 'جاري الحفظ...'; }
+
+  await _supabase.from('yasser_ayman').update({ academic_year: pendingYearChoice }).eq('id', currentUser.id);
+  currentProfile.academic_year = pendingYearChoice;
+
+  document.getElementById('year-select-overlay')?.classList.remove('show');
+  if(btn){ btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; }
+
+  if(window._resolveYearSelection){
+    window._resolveYearSelection();
+    window._resolveYearSelection = null;
+  }
+}
   </script>
 
 
