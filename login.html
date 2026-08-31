@@ -419,27 +419,13 @@ input[type="checkbox"]:checked {
                     </div>
                 </div>
                 <div class="form-group">
-    <label>السنة الدراسية</label>
-    <div class="year-cards-grid" id="year-cards-container">
-        <div class="year-card" data-year="1" onclick="selectYear('1', this)">
-            <i class="fas fa-1"></i>
-            <span>السنة الأولى</span>
-        </div>
-        <div class="year-card" data-year="2" onclick="selectYear('2', this)">
-            <i class="fas fa-2"></i>
-            <span>السنة الثانية</span>
-        </div>
-        <div class="year-card" data-year="3" onclick="selectYear('3', this)">
-            <i class="fas fa-3"></i>
-            <span>السنة الثالثة</span>
-        </div>
-        <div class="year-card" data-year="4" onclick="selectYear('4', this)">
-            <i class="fas fa-4"></i>
-            <span>السنة الرابعة</span>
-        </div>
-    </div>
-    <input type="hidden" id="signup-year" value="1">
-    <p id="year-selected-label" class="text-xs text-[var(--text-secondary)] mt-1">السنة المختارة: <span id="selected-year-name">السنة الأولى</span></p>
+                    <label>السنة الدراسية</label>
+                    <select id="signup-year" class="form-input">
+                        <option value="1">السنة الأولى</option>
+                        <option value="2">السنة الثانية</option>
+                        <option value="3">السنة الثالثة</option>
+                        <option value="4">السنة الرابعة</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>كلمة المرور</label>
@@ -645,6 +631,7 @@ input[type="checkbox"]:checked {
         const fullName = document.getElementById('signup-name').value;
         const phone = document.getElementById('signup-phone').value;
         const year = document.getElementById('signup-year').value;
+
         if (!email || !password || !fullName) {
             showToast('برجاء ملء جميع الحقول المطلوبة', 'error');
             return;
@@ -814,20 +801,6 @@ input[type="checkbox"]:checked {
             window.location.href = 'index.html';
         }
     });
-                         
-    // ===== اختيار السنة في نموذج إنشاء الحساب =====
-function selectYear(year, element) {
-    // إزالة التحديد من جميع البطاقات
-    document.querySelectorAll('.year-card').forEach(card => card.classList.remove('selected'));
-    // تحديد البطاقة المختارة
-    element.classList.add('selected');
-    // تحديث الحقل المخفي
-    document.getElementById('signup-year').value = year;
-    // تحديث النص المعروض
-    const nameMap = { '1': 'السنة الأولى', '2': 'السنة الثانية', '3': 'السنة الثالثة', '4': 'السنة الرابعة' };
-    document.getElementById('selected-year-name').innerText = nameMap[year] || 'السنة الأولى';
-}
-    
-    </script>
+                                                             </script>
 </body>
 </html>
