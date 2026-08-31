@@ -770,15 +770,20 @@ function getDefaultAvatar(){
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
 }
 
-/* ================== إنشاء بروفايل جديد ================== */
+/* ================== إنشاء بروفايل جديد مع الصورة من Google ================== */
 async function createNewProfile() {
+  // جلب صورة المستخدم من metadata (في حالة تسجيل الدخول عبر Google)
+  const avatarFromProvider = currentUser?.user_metadata?.avatar_url || 
+                            currentUser?.user_metadata?.picture || 
+                            null;
+
   const newProfile = {
     id: currentUser.id,
     email: currentUser.email,
     full_name: currentUser.user_metadata?.full_name || currentUser.email,
-    avatar_url: null,
-    academic_year: null,          // فارغة → ستظهر شاشة اختيار الفرقة
-    first_login_shown: false,     // false → ستظهر رسالة الترحيب
+    avatar_url: avatarFromProvider,   // حفظ الصورة من المزود
+    academic_year: null,
+    first_login_shown: false,
     last_notification_check: new Date().toISOString(),
   };
   const { error } = await _supabase.from('yasser_ayman').insert([newProfile]);
@@ -813,15 +818,29 @@ async function init(){
     let profileResult = await loadProfile();
 
     if (profileResult === 'not_found') {
-      // البروفايل غير موجود → ننشئ واحداً جديداً
+      // البروفايل غير موجود → ننشئ واحداً جديداً (مع الصورة من Google إن وجدت)
       await createNewProfile();
       // نعيد تحميل البروفايل لتعيين currentProfile
       await loadProfile();
-      // بعد الإنشاء، سيظهر اختيار الفرقة ورسالة الترحيب تلقائياً
     } else if (profileResult === 'error') {
       showToast('حدث خطأ أثناء تحميل بياناتك، حاول مرة أخرى', 'error');
-      // يمكنك هنا إما عرض رسالة أو إعادة التوجيه إلى login
-      // لكننا سنكتفي بالرسالة ونستمر
+    }
+
+    // بعد تحميل البروفايل، نتحقق إذا كانت الصورة غير موجودة ولكن user_metadata تحتوي على صورة
+    // نقوم بتحديثها في قاعدة البيانات
+    if (currentProfile && !currentProfile.avatar_url) {
+      const avatarFromProvider = currentUser?.user_metadata?.avatar_url || 
+                                currentUser?.user_metadata?.picture;
+      if (avatarFromProvider) {
+        // تحديث الصورة في قاعدة البيانات
+        const { error: updateError } = await _supabase
+          .from('yasser_ayman')
+          .update({ avatar_url: avatarFromProvider })
+          .eq('id', currentUser.id);
+        if (!updateError) {
+          currentProfile.avatar_url = avatarFromProvider;
+        }
+      }
     }
 
     // التأكد من اختيار الفرقة (إذا كانت فارغة)
