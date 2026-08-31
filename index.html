@@ -1221,25 +1221,57 @@ async function toggleNotifications(){
   }
 }
 
-async function refreshNotifications(){
+
+
+
+
+ async function refreshNotifications(){
   const lastCheck = currentProfile?.last_notification_check || new Date(0).toISOString();
   const year = currentProfile?.academic_year || '1';
-  const { data, error } = await _supabase.from('posts').select('*')
-    .or(`academic_year.eq.all,academic_year.eq.${year}`)
-    .gt('created_at', lastCheck)
-    .order('created_at', { ascending:false });
+
+  const [postsRes, sessionsRes] = await Promise.all([
+    _supabase.from('posts').select('*')
+      .or(`academic_year.eq.all,academic_year.eq.${year}`)
+      .gt('created_at', lastCheck)
+      .order('created_at', { ascending:false }),
+    _supabase.from('attendance_sessions').select('*')
+      .eq('academic_year', year)
+      .gt('created_at', lastCheck)
+      .order('created_at', { ascending:false })
+  ]);
+
+  const posts = postsRes.data || [];
+  const sessions = sessionsRes.data || [];
+
+  const items = [
+    ...posts.map(p => ({ type:'post', date:p.created_at, text: (p.content||'').slice(0,60) })),
+    ...sessions.map(s => ({ type:'attendance', date:s.created_at, text: `جلسة حضور جديدة: ${s.subject_name}` }))
+  ].sort((a,b) => new Date(b.date) - new Date(a.date));
+
   const list = document.getElementById('notif-list');
   const badge = document.getElementById('notif-badge');
-  if(error || !data || data.length === 0){
+
+  if(items.length === 0){
     list.innerHTML = '<div class="notif-empty">لا يوجد إشعارات جديدة</div>';
     badge.style.display = 'none';
     return;
   }
-  badge.innerText = data.length;
-  badge.style.display = 'flex';
-  list.innerHTML = data.map(p => `<div class="notif-item"><div class="notif-dot"></div><div><b style="font-weight:700">منشور جديد</b><br><span style="color:var(--text-secondary)">${escapeHtml((p.content||'').slice(0,60))}</span></div></div>`).join('');
-}
 
+  badge.innerText = items.length;
+  badge.style.display = 'flex';
+  list.innerHTML = items.map(item => `
+    <div class="notif-item">
+      <div class="notif-dot" style="background:${item.type==='attendance' ? 'var(--success)' : 'var(--primary)'}"></div>
+      <div>
+        <b style="font-weight:700">${item.type==='attendance' ? 'جلسة حضور جديدة' : 'منشور جديد'}</b><br>
+        <span style="color:var(--text-secondary)">${escapeHtml(item.text)}</span>
+      </div>
+    </div>
+  `).join('');
+ }
+
+
+  
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
