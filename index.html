@@ -1369,6 +1369,12 @@ const LECTURE_SUBJECTS = {
   }
 };
 
+// ===== قائمة لغات البرمجة المطلوبة =====
+const PROGRAMMING_LANGUAGES = [
+  'HTML', 'CSS', 'JavaScript', 'Java', 'PHP',
+  'Python', 'C#', 'C++', 'TypeScript', 'SQL'
+];
+
 /* ================== Toast ================== */
 function showToast(message, type='info'){
   const container = document.getElementById('toast-container');
@@ -1588,7 +1594,16 @@ function switchView(view, el){
     loadExamQuestions();
   }
   if(view === 'schedule') loadSchedule();
-  if(view === 'lectures') renderLectureSubjectTabs();
+  if(view === 'lectures') {
+    // إعادة عرض تبويبات المواد حسب الفئة الحالية
+    renderLectureSubjectTabs();
+    // تحميل المحاضرات حسب الفئة والمواد
+    if (currentLectureCategory === 'programming') {
+      loadLectures();
+    } else {
+      resetLecturesContainer();
+    }
+  }
   if(view === 'attendance') { loadAttendanceSessions(); loadAttendanceRecords(); }
   if(view === 'top10') loadTop10();
 }
@@ -1866,58 +1881,154 @@ async function downloadSchedule(url){ try{ const res=await fetch(url); const blo
 /* ================== المحاضرات الكلية ================== */
 function setLecturesTerm(term, el){
   currentLecturesTerm = term;
-  currentLectureSubject = '';
+  // إذا كانت الفئة الحالية هي programming، لا نغير المادة المختارة
+  if (currentLectureCategory !== 'programming') {
+    currentLectureSubject = '';
+  }
   document.querySelectorAll('#view-lectures .term-toggle button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
-  if(currentLectureCategory !== 'programming') renderLectureSubjectTabs();
-  resetLecturesContainer();
+  // إذا كانت الفئة ليست programming، نعرض تبويبات المواد
+  if (currentLectureCategory !== 'programming') {
+    renderLectureSubjectTabs();
+    resetLecturesContainer();
+  } else {
+    // في حالة programming، نعيد تحميل المحاضرات مع نفس اللغة المختارة
+    loadLectures();
+  }
 }
+
 function setLectureCategory(cat, el){
   currentLectureCategory = cat;
   currentLectureSubject = '';
   document.querySelectorAll('#lecture-category-tabs button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
+
   const subjTabs = document.getElementById('lectures-subject-tabs');
-  if(cat === 'programming'){ subjTabs.style.display = 'none'; loadLectures(); }
-  else { subjTabs.style.display = 'flex'; renderLectureSubjectTabs(); resetLecturesContainer(); }
+  if (cat === 'programming') {
+    subjTabs.style.display = 'flex';
+    renderLectureSubjectTabs(); // تعرض اللغات
+    loadLectures(); // تحميل المحاضرات (بدون فلتر مادة في البداية)
+  } else {
+    subjTabs.style.display = 'flex';
+    renderLectureSubjectTabs(); // تعرض مواد الترم
+    resetLecturesContainer();
+  }
 }
-function resetLecturesContainer(){ document.getElementById('lectures-container').innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحتوى</p></div>'; }
-function renderLectureSubjectTabs(){
+
+function resetLecturesContainer(){ 
+  document.getElementById('lectures-container').innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحتوى</p></div>'; 
+}
+
+function renderLectureSubjectTabs() {
   const year = currentProfile?.academic_year || '1';
-  const subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
+  let subjects = [];
+
+  // إذا كان التبويب الحالي هو "كورسات برمجة"، نعرض اللغات
+  if (currentLectureCategory === 'programming') {
+    subjects = PROGRAMMING_LANGUAGES;
+  } else {
+    // وإلا نعرض مواد الترم حسب السنة والترم المختار
+    subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
+  }
+
   const tabsEl = document.getElementById('lectures-subject-tabs');
-  if(subjects.length === 0){ tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);padding:6px;">سيتم إضافة أسماء المواد قريبًا</span>'; return; }
-  tabsEl.innerHTML = subjects.map(s => `<button onclick="setLectureSubject('${escapeHtml(s)}', this)">${escapeHtml(s)}</button>`).join('');
+  if (!subjects || subjects.length === 0) {
+    tabsEl.innerHTML = '<span style="font-size:12px;color:var(--text-light);padding:6px;">لا توجد مواد متاحة</span>';
+    return;
+  }
+
+  tabsEl.innerHTML = subjects.map(s =>
+    `<button onclick="setLectureSubject('${escapeHtml(s)}', this)">${escapeHtml(s)}</button>`
+  ).join('');
 }
+
 function setLectureSubject(subject, el){
   currentLectureSubject = subject;
   document.querySelectorAll('#lectures-subject-tabs button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
   loadLectures();
 }
+
 async function loadLectures(){
   const container = document.getElementById('lectures-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
   const year = currentProfile?.academic_year || '1';
+
   try {
     let query = _supabase.from('lectures').select('*');
-    if(currentLectureCategory === 'programming'){ query = query.eq('category', 'programming'); }
-    else { query = query.eq('academic_year', year).eq('term', currentLecturesTerm).eq('subject_name', currentLectureSubject).eq('category', currentLectureCategory); }
+
+    // فلترة حسب الفئة (programming أو lecture أو section أو course)
+    query = query.eq('category', currentLectureCategory);
+
+    // إذا كانت الفئة هي programming، نفلتر حسب اللغة إذا تم اختيارها
+    if (currentLectureCategory === 'programming') {
+      if (currentLectureSubject) {
+        query = query.eq('subject_name', currentLectureSubject);
+      }
+      // لا نستخدم الترم أو السنة في فلترة كورسات البرمجة
+    } else {
+      // بالنسبة للفئات الأخرى، نفلتر حسب السنة والترم والمادة
+      query = query
+        .eq('academic_year', year)
+        .eq('term', currentLecturesTerm);
+      if (currentLectureSubject) {
+        query = query.eq('subject_name', currentLectureSubject);
+      }
+    }
+
     const { data, error } = await query.order('created_at', { ascending: false });
-    if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات</p></div>'; return; }
-    if(!data || data.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>'; return; }
+
+    if (error) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل البيانات</p></div>';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا يتوفر محتوى حالياً في هذا القسم</p></div>';
+      return;
+    }
+
     container.innerHTML = data.map(l => {
       const titleEscaped = escapeHtml(l.lecture_title || 'محاضرة');
       const pdfUrl = l.pdf_url ? escapeHtml(l.pdf_url) : '';
       const videoUrl = l.video_url ? escapeHtml(l.video_url) : '';
-      return `<div class="lecture-card"><div class="lecture-title">${titleEscaped}</div><div class="lecture-tags">${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}</div>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
-          ${pdfUrl ? `<div style="display:flex; gap:8px;"><button onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;"><i class="fas fa-file-pdf"></i> قراءة الـ PDF</button><a href="${pdfUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-download"></i> تحميل</a></div>` : ''}
-          ${videoUrl ? `<div style="display:flex; gap:8px;"><button onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;"><i class="fas fa-play-circle"></i> مشاهدة الفيديو</button><a href="${videoUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-download"></i> تحميل</a></div>` : ''}
-        </div></div>`;
+      return `
+        <div class="lecture-card">
+          <div class="lecture-title">${titleEscaped}</div>
+          <div class="lecture-tags">
+            ${l.category ? `<span class="lecture-tag"><i class="fas fa-tag"></i> ${getCategoryName(l.category)}</span>` : ''}
+            ${l.subject_name ? `<span class="lecture-tag"><i class="fas fa-book"></i> ${escapeHtml(l.subject_name)}</span>` : ''}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+            ${pdfUrl ? `
+              <div style="display:flex; gap:8px;">
+                <button onclick="openPdfModal('${pdfUrl}', '${titleEscaped}')" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
+                  <i class="fas fa-file-pdf"></i> قراءة الـ PDF
+                </button>
+                <a href="${pdfUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+                  <i class="fas fa-download"></i> تحميل
+                </a>
+              </div>
+            ` : ''}
+            ${videoUrl ? `
+              <div style="display:flex; gap:8px;">
+                <button onclick="openVideoModal('${videoUrl}', '${titleEscaped}')" style="flex:1; background:#0ea5e9; color:#fff; border:none; padding:10px; border-radius:8px; cursor:pointer; font-family:var(--font-family); font-weight:700; font-size:13px;">
+                  <i class="fas fa-play-circle"></i> مشاهدة الفيديو
+                </button>
+                <a href="${videoUrl}" download target="_blank" style="background:#f3f4f6; color:#333; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:4px;">
+                  <i class="fas fa-download"></i> تحميل
+                </a>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
     }).join('');
-  } catch(e) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات</p></div>'; }
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات</p></div>';
+  }
 }
+
 function getCategoryName(cat){ const map = { lecture:'محاضرة', section:'سكشن', course:'كورس', programming:'كورس برمجة' }; return map[cat] || cat; }
 
 /* ================== تعبئة قائمة مواد صفحة أسئلة الامتحانات ================== */
