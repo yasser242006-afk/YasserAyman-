@@ -658,6 +658,38 @@ body.dark .grade-badge.vgood {
 .id-upload-box i{font-size:32px;color:var(--primary);margin-bottom:8px;}
 .id-upload-box p{font-size:12px;color:var(--text-secondary);}
 .id-upload-preview{width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius-sm);margin-bottom:14px;display:none;}
+
+
+
+
+
+
+
+
+/* ===== Support Chat ===== */
+.support-chat-body{padding:16px;max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.chat-bubble{max-width:85%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.7;}
+.chat-bubble.bot{background:var(--bg);border:1px solid var(--border);align-self:flex-start;border-bottom-right-radius:4px;}
+.chat-bubble.user{background:var(--primary);color:#fff;align-self:flex-end;border-bottom-left-radius:4px;}
+.chat-quick-replies{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.chat-quick-btn{
+  padding:10px 14px;border:2px solid var(--border);border-radius:20px;background:var(--bg-card);
+  color:var(--text);font-family:var(--font-family);font-size:12px;font-weight:600;cursor:pointer;
+  text-align:right;transition:var(--transition);
+}
+.chat-quick-btn:hover{border-color:var(--primary);color:var(--primary);}
+.chat-quick-btn.contact-btn{border-color:var(--primary);color:var(--primary);font-weight:700;}
+.support-contact-card{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;
+  display:flex;flex-direction:column;gap:10px;margin-top:4px;
+}
+.support-contact-card a{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);
+  text-decoration:none;font-family:var(--font-family);font-weight:700;font-size:13px;color:#fff;
+}
+.support-contact-card a.call{background:var(--primary);}
+.support-contact-card a.whatsapp{background:#25D366;}
+  
 </style>
 </head>
 <body>
@@ -3311,6 +3343,120 @@ async function submitYearChangeRequest(){
     showToast('حدث خطأ أثناء إرسال الطلب: '+err.message, 'error');
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ================== شات الدعم ================== */
+const FAQ_ANSWERS = {
+  grades: 'تقدر تشوف درجاتك من القائمة الجانبية → "درجات الامتحانات"، واختار الترم ونوع الامتحان اللي عايزه.',
+  attendance: 'من صفحة "الحضور والغياب" هتلاقي جلسات الحضور النشطة مع QR كود، اضغط على أيقونة الكاميرا وامسح الكود اللي هيديهولك الدكتور.',
+  changeyear: 'تقدر تطلب تغيير فرقتك من "الإعدادات" → "تعديل البيانات" → "تغيير الفرقة الدراسية"، وهيتم مراجعة طلبك من الإدارة.',
+  lectures: 'لو المحاضرات مش ظاهرة، جرب تتأكد إنك مختار الترم والمادة الصح، ولو المشكلة استمرت تواصل مع فريق الدعم.',
+  login: 'لو عندك مشكلة في تسجيل الدخول، تأكد من صحة البريد الإلكتروني وكلمة المرور، وتقدر تغيّر كلمة المرور من "الإعدادات" → "تعديل البيانات".'
+};
+
+const FAQ_QUESTIONS = [
+  { key: 'grades', label: 'إزاي أعرف درجاتي؟' },
+  { key: 'attendance', label: 'إزاي أسجل حضوري؟' },
+  { key: 'changeyear', label: 'إزاي أغيّر الفرقة الدراسية؟' },
+  { key: 'lectures', label: 'المحاضرات مش ظاهرة' },
+  { key: 'login', label: 'مشكلة في تسجيل الدخول' }
+];
+
+function openSupportChat(){
+  const sidebar = document.getElementById('sidebar');
+  if(sidebar.classList.contains('open')) toggleSidebar();
+  const body = document.getElementById('support-chat-body');
+  body.innerHTML = '';
+  addBotMessage('أهلاً بيك 👋 أنا مساعد بوابة الطلاب، اختار سؤالك من تحت وهساعدك:');
+  addQuickReplies();
+  document.getElementById('support-chat-modal').classList.add('open');
+}
+function closeSupportChat(){ document.getElementById('support-chat-modal').classList.remove('open'); }
+
+function addBotMessage(text){
+  const body = document.getElementById('support-chat-body');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble bot';
+  bubble.innerText = text;
+  body.appendChild(bubble);
+  body.scrollTop = body.scrollHeight;
+}
+function addUserMessage(text){
+  const body = document.getElementById('support-chat-body');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble user';
+  bubble.innerText = text;
+  body.appendChild(bubble);
+  body.scrollTop = body.scrollHeight;
+}
+
+function addQuickReplies(){
+  const body = document.getElementById('support-chat-body');
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-quick-replies';
+  wrap.id = 'quick-replies-wrap';
+  FAQ_QUESTIONS.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'chat-quick-btn';
+    btn.innerText = q.label;
+    btn.onclick = () => askFaq(q.key, q.label);
+    wrap.appendChild(btn);
+  });
+  const contactBtn = document.createElement('button');
+  contactBtn.className = 'chat-quick-btn contact-btn';
+  contactBtn.innerHTML = '<i class="fas fa-user-headset"></i> مش لاقي اللي أنا عايزه - تواصل مع فريق الدعم';
+  contactBtn.onclick = showSupportContactCard;
+  wrap.appendChild(contactBtn);
+  body.appendChild(wrap);
+  body.scrollTop = body.scrollHeight;
+}
+
+function askFaq(key, label){
+  document.getElementById('quick-replies-wrap')?.remove();
+  addUserMessage(label);
+  setTimeout(()=>{
+    addBotMessage(FAQ_ANSWERS[key]);
+    addQuickReplies();
+  }, 400);
+}
+
+function showSupportContactCard(){
+  document.getElementById('quick-replies-wrap')?.remove();
+  addUserMessage('مش لاقي اللي أنا عايزه');
+  setTimeout(()=>{
+    addBotMessage('تقدر تتواصل مع فريق الدعم مباشرة من هنا:');
+    const body = document.getElementById('support-chat-body');
+    const card = document.createElement('div');
+    card.className = 'support-contact-card';
+    card.innerHTML = `
+      <a href="tel:+201000000000" class="call"><i class="fas fa-phone"></i> اتصل بنا</a>
+      <a href="https://wa.me/201000000000" target="_blank" class="whatsapp"><i class="fab fa-whatsapp"></i> راسلنا على واتساب</a>
+    `;
+    body.appendChild(card);
+    body.scrollTop = body.scrollHeight;
+  }, 400);
+    }
 </script>
 </body>
 </html>
