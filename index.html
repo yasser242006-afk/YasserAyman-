@@ -2379,43 +2379,45 @@ async function loadAttendanceSessions() {
         // سننشئه بعد عرض الصفحة
         setTimeout(() => {
   const qrDiv = document.getElementById(qrContainerId);
-  if (qrDiv) {
-    new QRCode(qrDiv, {
-      text: session.code,
-      width: 128,
-      height: 128,
-      colorDark: "#4f46e5",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
-    });
+  // ===== كود إنشاء الباركود مع دعم الوضع الداكن =====
+const qrDiv = document.getElementById(qrContainerId);
+if (qrDiv) {
+  // نحدد إذا كان الوضع داكن ولا لأ
+  const isDark = document.body.classList.contains('dark');
+  
+  // نختار ألوان مناسبة حسب الثيم
+  const bgColor = isDark ? '#1e293b' : '#ffffff';  // خلفية الباركود (تتغير)
+  const fgColor = isDark ? '#e2e8f0' : '#4f46e5'; // لون النقوش (أبيض في الداكن، بنفسجي في الفاتح)
 
-    // ===== تعديل: توسيط الباركود كامل وإضافة الشعار في منتصفه =====
-qrDiv.style.position = 'relative';
-qrDiv.style.display = 'flex';
-qrDiv.style.justifyContent = 'center';
-qrDiv.style.alignItems = 'center';
-qrDiv.style.margin = '0 auto'; // هذه السطر هو الأهم ليتوسط في الصفحة
-qrDiv.style.width = '128px';   // تحديد عرض ثابت حتى لا يتمدد
-qrDiv.style.height = '128px';  // تحديد ارتفاع ثابت
+  // إنشاء الباركود
+  new QRCode(qrDiv, {
+    text: session.code,
+    width: 128,
+    height: 128,
+    colorDark: fgColor,   // لون النقوش
+    colorLight: bgColor,  // لون الخلفية (بقى ديناميكي)
+    correctLevel: QRCode.CorrectLevel.H
+  });
 
-const logoOverlay = document.createElement('div');
-logoOverlay.style.position = 'absolute';
-logoOverlay.style.top = '50%';
-logoOverlay.style.left = '50%';
-logoOverlay.style.transform = 'translate(-50%, -50%)';
-logoOverlay.style.width = '32px'; 
-logoOverlay.style.height = '32px';
-logoOverlay.style.backgroundColor = '#ffffff'; 
-logoOverlay.style.borderRadius = '50%'; 
-logoOverlay.style.boxShadow = '0 0 0 3px #ffffff'; 
-logoOverlay.style.display = 'flex';
-logoOverlay.style.alignItems = 'center';
-logoOverlay.style.justifyContent = 'center';
-logoOverlay.style.zIndex = '10';
-logoOverlay.innerHTML = '<i class="fas fa-graduation-cap" style="color:#4f46e5; font-size:20px;"></i>';
-
-qrDiv.appendChild(logoOverlay);
-  }
+  // ===== الشعار اللي في نص الباركود =====
+  const logoOverlay = document.createElement('div');
+  logoOverlay.style.position = 'absolute';
+  logoOverlay.style.top = '50%';
+  logoOverlay.style.left = '50%';
+  logoOverlay.style.transform = 'translate(-50%, -50%)';
+  logoOverlay.style.width = '32px';
+  logoOverlay.style.height = '32px';
+  logoOverlay.style.backgroundColor = bgColor; // نفس خلفية الباركود
+  logoOverlay.style.borderRadius = '50%';
+  logoOverlay.style.boxShadow = `0 0 0 3px ${bgColor}`; // نفس اللون برضه
+  logoOverlay.style.display = 'flex';
+  logoOverlay.style.alignItems = 'center';
+  logoOverlay.style.justifyContent = 'center';
+  logoOverlay.style.zIndex = '10';
+  logoOverlay.innerHTML = `<i class="fas fa-graduation-cap" style="color:${fgColor}; font-size:20px;"></i>`;
+  
+  qrDiv.appendChild(logoOverlay);
+}
 }, 100);
         // إضافة زر مسح QR (يستخدم الكاميرا)
         const scanBtnId = `scan-btn-${session.id}`;
