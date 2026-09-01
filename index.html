@@ -666,77 +666,6 @@ body.dark .grade-badge.vgood {
 
 
 
-/* ===== Support Chat ===== */
-.support-chat-body{padding:16px;max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
-.chat-bubble{max-width:85%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.7;}
-.chat-bubble.bot{background:var(--bg);border:1px solid var(--border);align-self:flex-start;border-bottom-right-radius:4px;}
-.chat-bubble.user{background:var(--primary);color:#fff;align-self:flex-end;border-bottom-left-radius:4px;}
-.chat-quick-replies{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
-.chat-quick-btn{
-  padding:10px 14px;border:2px solid var(--border);border-radius:20px;background:var(--bg-card);
-  color:var(--text);font-family:var(--font-family);font-size:12px;font-weight:600;cursor:pointer;
-  text-align:right;transition:var(--transition);
-}
-.chat-quick-btn:hover{border-color:var(--primary);color:var(--primary);}
-.chat-quick-btn.contact-btn{border-color:var(--primary);color:var(--primary);font-weight:700;}
-.support-contact-card{
-  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;
-  display:flex;flex-direction:column;gap:10px;margin-top:4px;
-}
-.support-contact-card a{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);
-  text-decoration:none;font-family:var(--font-family);font-weight:700;font-size:13px;color:#fff;
-}
-.support-contact-card a.call{background:var(--primary);}
-.support-contact-card a.whatsapp{background:#25D366;}
-
-
-
-
-
-
-
-  /* ===== Support Chat Page - Grid & Input ===== */
-.support-faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.support-faq-btn{
-  padding:14px 10px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--bg-card);
-  color:var(--text);font-family:var(--font-family);font-size:12.5px;font-weight:600;cursor:pointer;
-  text-align:center;line-height:1.5;transition:var(--transition);
-}
-.support-faq-btn:hover{border-color:var(--primary);color:var(--primary);}
-.support-faq-toggle-btn{
-  grid-column:1/3;padding:12px;border:2px dashed var(--primary);border-radius:var(--radius-md);
-  background:none;color:var(--primary);font-family:var(--font-family);font-weight:700;font-size:13px;cursor:pointer;
-}
-.support-contact-btn-full{
-  width:100%;padding:13px;border-radius:var(--radius-sm);border:none;margin-bottom:16px;
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
-  font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.support-contact-card{
-  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;
-  display:flex;flex-direction:column;gap:10px;max-width:85%;
-}
-.support-contact-card a{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);
-  text-decoration:none;font-family:var(--font-family);font-weight:700;font-size:13px;color:#fff;
-}
-.support-contact-card a.call{background:var(--primary);}
-.support-contact-card a.whatsapp{background:#25D366;}
-
-.support-input-row{
-  position:sticky;bottom:0;display:flex;gap:8px;padding:10px;background:var(--bg-card);
-  border:1px solid var(--border);border-radius:var(--radius-lg);margin-top:16px;box-shadow:var(--shadow-sm);
-}
-.support-input-row input{
-  flex:1;padding:11px 14px;border:none;background:none;font-family:var(--font-family);
-  font-size:13px;color:var(--text);outline:none;
-}
-.support-input-row button{
-  width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;border:none;
-  cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;
-  }
 </style>
 </head>
 <body>
@@ -3533,10 +3462,9 @@ function showSupportContactCard(){
       <a href="https://wa.me/201000000000" target="_blank" class="whatsapp"><i class="fab fa-whatsapp"></i> راسلنا على واتساب</a>
     `;
     chatArea.appendChild(card);
+    chatArea.scrollTop = chatArea.scrollHeight;
   }, 400);
 }
-
-
 
 
 
