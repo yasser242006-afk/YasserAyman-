@@ -1326,9 +1326,10 @@ async function toggleNotifications(){
 
 
 
+ let allNotifItems = [];
+let notifExpanded = false;
 
-
- async function refreshNotifications(){
+async function refreshNotifications(){
   const lastCheck = currentProfile?.last_notification_check || new Date(0).toISOString();
   const year = currentProfile?.academic_year || '1';
 
@@ -1346,23 +1347,30 @@ async function toggleNotifications(){
   const posts = postsRes.data || [];
   const sessions = sessionsRes.data || [];
 
-  const items = [
+  allNotifItems = [
     ...posts.map(p => ({ type:'post', date:p.created_at, text: (p.content||'').slice(0,60) })),
     ...sessions.map(s => ({ type:'attendance', date:s.created_at, text: `جلسة حضور جديدة: ${s.subject_name}` }))
   ].sort((a,b) => new Date(b.date) - new Date(a.date));
 
-  const list = document.getElementById('notif-list');
   const badge = document.getElementById('notif-badge');
-
-  if(items.length === 0){
-    list.innerHTML = '<div class="notif-empty">لا يوجد إشعارات جديدة</div>';
+  if(allNotifItems.length === 0){
     badge.style.display = 'none';
+  } else {
+    badge.innerText = allNotifItems.length;
+    badge.style.display = 'flex';
+  }
+  notifExpanded = false;
+  renderNotifList();
+}
+
+function renderNotifList(){
+  const list = document.getElementById('notif-list');
+  if(allNotifItems.length === 0){
+    list.innerHTML = '<div class="notif-empty">لا يوجد إشعارات جديدة</div>';
     return;
   }
-
-  badge.innerText = items.length;
-  badge.style.display = 'flex';
-  list.innerHTML = items.map(item => `
+  const itemsToShow = notifExpanded ? allNotifItems : allNotifItems.slice(0, 5);
+  let html = itemsToShow.map(item => `
     <div class="notif-item">
       <div class="notif-dot" style="background:${item.type==='attendance' ? 'var(--success)' : 'var(--primary)'}"></div>
       <div>
@@ -1371,9 +1379,16 @@ async function toggleNotifications(){
       </div>
     </div>
   `).join('');
- }
+  if(allNotifItems.length > 5){
+    html += `<button class="notif-toggle-btn" onclick="toggleNotifExpand()">${notifExpanded ? 'عرض أقل' : 'عرض المزيد'}</button>`;
+  }
+  list.innerHTML = html;
+}
 
-
+function toggleNotifExpand(){
+  notifExpanded = !notifExpanded;
+  renderNotifList();
+  }
   
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
