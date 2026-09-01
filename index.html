@@ -792,8 +792,8 @@ body.dark .grade-badge.vgood {
       <!-- ===== قسم الإعدادات ===== -->
 <div class="label" style="margin-top:12px;">الإعدادات</div>
 <div class="menu-item" onclick="switchView('settings', this)"><i class="fas fa-gear"></i><span>صفحة الإعدادات</span></div>
-  <div class="menu-item" onclick="openSupportChat()"><i class="fas fa-headset"></i><span>تواصل مع الدعم</span></div>    
-<div class="menu-item" onclick="installPWA()"><i class="fas fa-download"></i><span>تثبيت التطبيق</span></div>
+      <div class="menu-item" onclick="switchView('support', this)"><i class="fas fa-headset"></i><span>تواصل مع الدعم</span></div>
+  <div class="menu-item" onclick="installPWA()"><i class="fas fa-download"></i><span>تثبيت التطبيق</span></div>
 <div class="menu-item" onclick="openGroupModal()"><i class="fas fa-users"></i><span>انضم لجروبنا</span></div>
 <div class="menu-item" onclick="logoutUser()" style="color:var(--danger);"><i class="fas fa-right-from-bracket"></i><span>تسجيل خروج</span></div>
     </nav>
@@ -1280,13 +1280,15 @@ body.dark .grade-badge.vgood {
 
 
 
-<!-- Support Chat Modal -->
-<div id="support-chat-modal" class="custom-modal">
-  <div class="modal-content" style="max-width:420px;">
-    <div class="modal-header"><h3><i class="fas fa-headset"></i> مساعد الدعم</h3><button class="close-btn" onclick="closeSupportChat()">&times;</button></div>
-    <div class="support-chat-body" id="support-chat-body"></div>
-  </div>
-</div>
+<!-- SUPPORT -->
+<section class="view" id="view-support">
+  <div class="page-title"><i class="fas fa-headset"></i> مساعد الدعم</div>
+  <div class="support-chat-page" id="support-chat-page"></div>
+  <div class="support-faq-grid" id="support-faq-grid"></div>
+  <button class="support-contact-btn-full" onclick="showSupportContactCard()"><i class="fas fa-user-headset"></i> تواصل مع فريق الدعم</button>
+</section> 
+
+
   
 <script>
 /* ================== إعداد Supabase ================== */
@@ -3392,97 +3394,7 @@ async function submitYearChangeRequest(){
 
 
 
-/* ================== شات الدعم ================== */
-const FAQ_ANSWERS = {
-  grades: 'تقدر تشوف درجاتك من القائمة الجانبية → "درجات الامتحانات"، واختار الترم ونوع الامتحان اللي عايزه.',
-  attendance: 'من صفحة "الحضور والغياب" هتلاقي جلسات الحضور النشطة مع QR كود، اضغط على أيقونة الكاميرا وامسح الكود اللي هيديهولك الدكتور.',
-  changeyear: 'تقدر تطلب تغيير فرقتك من "الإعدادات" → "تعديل البيانات" → "تغيير الفرقة الدراسية"، وهيتم مراجعة طلبك من الإدارة.',
-  lectures: 'لو المحاضرات مش ظاهرة، جرب تتأكد إنك مختار الترم والمادة الصح، ولو المشكلة استمرت تواصل مع فريق الدعم.',
-  login: 'لو عندك مشكلة في تسجيل الدخول، تأكد من صحة البريد الإلكتروني وكلمة المرور، وتقدر تغيّر كلمة المرور من "الإعدادات" → "تعديل البيانات".'
-};
-
-const FAQ_QUESTIONS = [
-  { key: 'grades', label: 'إزاي أعرف درجاتي؟' },
-  { key: 'attendance', label: 'إزاي أسجل حضوري؟' },
-  { key: 'changeyear', label: 'إزاي أغيّر الفرقة الدراسية؟' },
-  { key: 'lectures', label: 'المحاضرات مش ظاهرة' },
-  { key: 'login', label: 'مشكلة في تسجيل الدخول' }
-];
-
-function openSupportChat(){
-  const sidebar = document.getElementById('sidebar');
-  if(sidebar.classList.contains('open')) toggleSidebar();
-  const body = document.getElementById('support-chat-body');
-  body.innerHTML = '';
-  addBotMessage('أهلاً بيك 👋 أنا مساعد بوابة الطلاب، اختار سؤالك من تحت وهساعدك:');
-  addQuickReplies();
-  document.getElementById('support-chat-modal').classList.add('open');
-}
-function closeSupportChat(){ document.getElementById('support-chat-modal').classList.remove('open'); }
-
-function addBotMessage(text){
-  const body = document.getElementById('support-chat-body');
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-bubble bot';
-  bubble.innerText = text;
-  body.appendChild(bubble);
-  body.scrollTop = body.scrollHeight;
-}
-function addUserMessage(text){
-  const body = document.getElementById('support-chat-body');
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-bubble user';
-  bubble.innerText = text;
-  body.appendChild(bubble);
-  body.scrollTop = body.scrollHeight;
-}
-
-function addQuickReplies(){
-  const body = document.getElementById('support-chat-body');
-  const wrap = document.createElement('div');
-  wrap.className = 'chat-quick-replies';
-  wrap.id = 'quick-replies-wrap';
-  FAQ_QUESTIONS.forEach(q => {
-    const btn = document.createElement('button');
-    btn.className = 'chat-quick-btn';
-    btn.innerText = q.label;
-    btn.onclick = () => askFaq(q.key, q.label);
-    wrap.appendChild(btn);
-  });
-  const contactBtn = document.createElement('button');
-  contactBtn.className = 'chat-quick-btn contact-btn';
-  contactBtn.innerHTML = '<i class="fas fa-user-headset"></i> مش لاقي اللي أنا عايزه - تواصل مع فريق الدعم';
-  contactBtn.onclick = showSupportContactCard;
-  wrap.appendChild(contactBtn);
-  body.appendChild(wrap);
-  body.scrollTop = body.scrollHeight;
-}
-
-function askFaq(key, label){
-  document.getElementById('quick-replies-wrap')?.remove();
-  addUserMessage(label);
-  setTimeout(()=>{
-    addBotMessage(FAQ_ANSWERS[key]);
-    addQuickReplies();
-  }, 400);
-}
-
-function showSupportContactCard(){
-  document.getElementById('quick-replies-wrap')?.remove();
-  addUserMessage('مش لاقي اللي أنا عايزه');
-  setTimeout(()=>{
-    addBotMessage('تقدر تتواصل مع فريق الدعم مباشرة من هنا:');
-    const body = document.getElementById('support-chat-body');
-    const card = document.createElement('div');
-    card.className = 'support-contact-card';
-    card.innerHTML = `
-      <a href="tel:+201000000000" class="call"><i class="fas fa-phone"></i> اتصل بنا</a>
-      <a href="https://wa.me/201000000000" target="_blank" class="whatsapp"><i class="fab fa-whatsapp"></i> راسلنا على واتساب</a>
-    `;
-    body.appendChild(card);
-    body.scrollTop = body.scrollHeight;
-  }, 400);
-    }
+  
 </script>
 </body>
 </html>
