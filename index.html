@@ -930,19 +930,15 @@ body.dark .grade-badge.vgood {
     </button>
   </div>
 
-  <!-- زر انضم إلى جروبنا -->
-  <div style="margin-top:16px;text-align:center;">
-    <button onclick="openGroupModal()" style="padding:12px 30px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-      <i class="fas fa-users"></i> انضم إلى جروبنا
-    </button>
-  </div>
-
-  <!-- زر تسجيل خروج -->
-  <div style="margin-top:20px;text-align:center;">
-    <button onclick="logoutUser()" style="padding:12px 30px;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-      <i class="fas fa-right-from-bracket"></i> تسجيل خروج
-    </button>
-  </div>
+  <!-- انضم إلى جروبنا + تسجيل خروج -->
+<div style="margin-top:16px;display:flex;gap:10px;">
+  <button onclick="openGroupModal()" style="flex:1;padding:12px 10px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+    <i class="fas fa-users"></i> انضم لجروبنا
+  </button>
+  <button onclick="logoutUser()" style="flex:1;padding:12px 10px;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+    <i class="fas fa-right-from-bracket"></i> تسجيل خروج
+  </button>
+</div>
 </section>
     
   </main>
