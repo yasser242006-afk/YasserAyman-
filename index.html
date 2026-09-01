@@ -941,7 +941,17 @@ body.dark .grade-badge.vgood {
 
 
 
-
+body.support-view-active,
+body.support-view-active html {
+  overflow: hidden !important;
+  height: 100vh;
+}
+body.support-view-active #main-content {
+  overflow: hidden !important;
+  height: calc(100vh - 61px);
+  padding: 0 !important;
+  max-width: 100%;
+  }
 
 
 
@@ -1834,7 +1844,14 @@ function switchView(view, el){
   if(el) { const item = el.closest('.menu-item') || el; item.classList.add('active'); }
   const sidebar = document.getElementById('sidebar');
   if(sidebar.classList.contains('open')) toggleSidebar();
-  
+
+  // ===== تثبيت صفحة الدعم بدون سكرول =====
+  if(view === 'support'){
+    document.body.classList.add('support-view-active');
+  } else {
+    document.body.classList.remove('support-view-active');
+  }
+
   if(view === 'grades') loadGrades();
   if(view === 'questions'){ 
     const subjSelect = document.getElementById('q-subject-select');
@@ -1850,13 +1867,12 @@ function switchView(view, el){
   if(view === 'top10') loadTop10();
   if(view === 'support') initSupportChat();
   
-  // ===== هنا مكان الإضافة الجديد =====
   if (view === 'settings') {
-    // مش محتاج تعمل حاجة دلوقتي، لأن الألوان والثيم بيتم تحميلهم تلقائياً من localStorage
-    // بس لو حبيت تضيف حاجة خاصة بتحميل الإعدادات، حطها هنا
-    // مثال: loadSavedSettings();
+    // مش محتاج تعمل حاجة دلوقتي
   }
-  }
+  }   
+  
+
 
 /* ================== الصورة الشخصية ================== */
 function openImageMenu(e, type){
