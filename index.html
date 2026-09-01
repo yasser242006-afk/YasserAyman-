@@ -1326,31 +1326,24 @@ async function toggleNotifications(){
 
 
 
- let allNotifItems = [];
+
+ /* ================== نظام الإشعارات (من جدول notifications) ================== */
+let allNotifItems = [];
 let notifExpanded = false;
 
+async function toggleNotifications(){
+  const dd = document.getElementById('notif-dropdown');
+  dd.classList.toggle('open');
+}
+
 async function refreshNotifications(){
-  const lastCheck = currentProfile?.last_notification_check || new Date(0).toISOString();
   const year = currentProfile?.academic_year || '1';
 
-  const [postsRes, sessionsRes] = await Promise.all([
-    _supabase.from('posts').select('*')
-      .or(`academic_year.eq.all,academic_year.eq.${year}`)
-      .gt('created_at', lastCheck)
-      .order('created_at', { ascending:false }),
-    _supabase.from('attendance_sessions').select('*')
-      .eq('academic_year', year)
-      .gt('created_at', lastCheck)
-      .order('created_at', { ascending:false })
-  ]);
+  const { data, error } = await _supabase.from('notifications').select('*')
+    .or(`academic_year.eq.all,academic_year.eq.${year}`)
+    .order('created_at', { ascending:false });
 
-  const posts = postsRes.data || [];
-  const sessions = sessionsRes.data || [];
-
-  allNotifItems = [
-    ...posts.map(p => ({ type:'post', date:p.created_at, text: (p.content||'').slice(0,60) })),
-    ...sessions.map(s => ({ type:'attendance', date:s.created_at, text: `جلسة حضور جديدة: ${s.subject_name}` }))
-  ].sort((a,b) => new Date(b.date) - new Date(a.date));
+  allNotifItems = (data || []).map(n => ({ title: n.title, message: n.message, date: n.created_at }));
 
   const badge = document.getElementById('notif-badge');
   if(allNotifItems.length === 0){
@@ -1372,10 +1365,11 @@ function renderNotifList(){
   const itemsToShow = notifExpanded ? allNotifItems : allNotifItems.slice(0, 5);
   let html = itemsToShow.map(item => `
     <div class="notif-item">
-      <div class="notif-dot" style="background:${item.type==='attendance' ? 'var(--success)' : 'var(--primary)'}"></div>
+      <div class="notif-dot"></div>
       <div>
-        <b style="font-weight:700">${item.type==='attendance' ? 'جلسة حضور جديدة' : 'منشور جديد'}</b><br>
-        <span style="color:var(--text-secondary)">${escapeHtml(item.text)}</span>
+        <b style="font-weight:700">${escapeHtml(item.title)}</b><br>
+        <span style="color:var(--text-secondary)">${escapeHtml(item.message)}</span><br>
+        <span style="color:var(--text-light);font-size:11px;">${timeAgo(item.date)}</span>
       </div>
     </div>
   `).join('');
@@ -1388,7 +1382,24 @@ function renderNotifList(){
 function toggleNotifExpand(){
   notifExpanded = !notifExpanded;
   renderNotifList();
-  }
+}
+
+function timeAgo(iso){
+  try{
+    const diffMs = new Date() - new Date(iso);
+    const mins = Math.floor(diffMs / 60000);
+    if(mins < 1) return 'الآن';
+    if(mins < 60) return `منذ ${mins} دقيقة`;
+    const hours = Math.floor(mins / 60);
+    if(hours < 24) return `منذ ${hours} ساعة`;
+    const days = Math.floor(hours / 24);
+    if(days < 30) return `منذ ${days} يوم`;
+    return new Date(iso).toLocaleDateString('ar-EG');
+  }catch(e){ return ''; }
+}
+
+  
+ 
   
 function switchView(view, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
