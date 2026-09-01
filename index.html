@@ -667,23 +667,21 @@ body.dark .grade-badge.vgood {
 
 
 
-    /* ===== شات الدعم - نسخة كاملة الشاشة ===== */
+    /* ===== شات الدعم - نسخة صفحة كاملة (مش صندوق) ===== */
 .support-chat-wrapper {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px); /* ← هيمتد لآخر الصفحة */
-  min-height: 480px;
+  height: 100%;
+  width: 100%;
   background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  /* تم إزالة border, border-radius, box-shadow نهائياً */
 }
 
 /* رأس الشات */
 .support-chat-header {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  padding: 12px 18px;
+  padding: 14px 18px;
   flex-shrink: 0;
 }
 .support-chat-header-content {
@@ -692,22 +690,11 @@ body.dark .grade-badge.vgood {
   gap: 12px;
   color: #fff;
 }
-.support-chat-header-content i {
-  font-size: 24px;
-}
-.support-chat-header-content h3 {
-  font-size: 15px;
-  font-weight: 800;
-  margin: 0;
-}
-.support-chat-header-content p {
-  font-size: 12px;
-  opacity: 0.9;
-  margin: 0;
-  line-height: 1.3;
-}
+.support-chat-header-content i { font-size: 24px; }
+.support-chat-header-content h3 { font-size: 15px; font-weight: 800; margin: 0; }
+.support-chat-header-content p { font-size: 12px; opacity: 0.9; margin: 0; line-height: 1.3; }
 
-/* منطقة الرسائل (تملأ المساحة المتبقية) */
+/* منطقة الرسائل */
 .support-chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -716,10 +703,10 @@ body.dark .grade-badge.vgood {
   flex-direction: column;
   gap: 6px;
   background: var(--bg);
-  min-height: 0; /* مهم عشان الـ flex يشتغل صح */
+  min-height: 0;
 }
 
-/* فقاعات الرسائل - زي واتساب */
+/* فقاعات الرسائل */
 .chat-bubble {
   max-width: 75%;
   padding: 9px 14px;
@@ -744,7 +731,7 @@ body.dark .grade-badge.vgood {
   border-bottom-right-radius: 4px;
 }
 
-/* منطقة الأسئلة (فوق الإدخال) */
+/* منطقة الأسئلة - ثابتة فوق شريط الكتابة، مش بتعمل سكرول */
 .support-faq-wrapper {
   flex-shrink: 0;
   padding: 8px 12px 6px 12px;
@@ -789,9 +776,7 @@ body.dark .grade-badge.vgood {
   transition: var(--transition);
   text-align: center;
 }
-.support-faq-toggle-btn:hover {
-  background: rgba(79,70,229,0.06);
-}
+.support-faq-toggle-btn:hover { background: rgba(79,70,229,0.06); }
 .support-contact-btn-inline {
   grid-column: 2 / 3;
   padding: 5px 10px;
@@ -814,7 +799,7 @@ body.dark .grade-badge.vgood {
   box-shadow: 0 2px 10px rgba(79,70,229,0.3);
 }
 
-/* بطاقة التواصل (اتصل بنا + واتساب) */
+/* بطاقة التواصل */
 .support-contact-card {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -840,53 +825,48 @@ body.dark .grade-badge.vgood {
   color: #fff;
   transition: var(--transition);
 }
-.support-contact-card a.call {
-  background: var(--primary);
-}
-.support-contact-card a.whatsapp {
-  background: #25D366;
-}
-.support-contact-card a:hover {
-  transform: scale(1.02);
-  opacity: 0.92;
-}
+.support-contact-card a.call { background: var(--primary); }
+.support-contact-card a.whatsapp { background: #25D366; }
+.support-contact-card a:hover { transform: scale(1.02); opacity: 0.92; }
 
-/* شريط الإدخال الثابت في الأسفل */
+/* ===== شريط الإدخال - نفس تصميم واتساب بالظبط ===== */
 .support-input-wrapper {
   flex-shrink: 0;
-  padding: 6px 12px 10px 12px;
+  padding: 6px 8px;
   background: var(--bg-card);
   border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
 }
 .support-input-row {
   display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 4px 6px;
+  padding: 6px 8px;
   background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 24px;
+  border: none;
+  border-radius: 26px;
+  width: 100%;
+  box-shadow: inset 0 0 0 1px var(--border);
   transition: var(--transition);
 }
 .support-input-row:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+  box-shadow: inset 0 0 0 1.5px var(--primary);
 }
 .support-input-row input {
   flex: 1;
-  padding: 9px 14px;
+  padding: 10px 12px;
   border: none;
   background: transparent;
   font-family: var(--font-family);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
   outline: none;
 }
-.support-input-row input::placeholder {
-  color: var(--text-light);
-}
+.support-input-row input::placeholder { color: var(--text-light); }
 .support-input-row button {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--primary);
   color: #fff;
@@ -896,63 +876,20 @@ body.dark .grade-badge.vgood {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 15px;
   transition: var(--transition);
 }
 .support-input-row button:hover {
-  transform: scale(1.04);
+  transform: scale(1.05);
   box-shadow: 0 2px 12px rgba(79,70,229,0.3);
 }
 
-/* استجابة للشاشات المختلفة */
+/* استجابة للشاشات */
 @media (max-width: 420px) {
-  .support-chat-wrapper {
-    height: calc(100vh - 110px); /* مسافة أقل عشان الشاشات الصغيرة */
-    min-height: 380px;
-  }
-  .chat-bubble {
-    max-width: 82%;
-    font-size: 12px;
-    padding: 7px 12px;
-  }
-  .support-faq-btn {
-    font-size: 10.5px;
-    padding: 6px 4px;
-  }
-  .support-contact-btn-inline,
-  .support-faq-toggle-btn {
-    font-size: 10px;
-    padding: 4px 6px;
-  }
+  .chat-bubble { max-width: 82%; font-size: 12px; padding: 7px 12px; }
+  .support-faq-btn { font-size: 10.5px; padding: 6px 4px; }
+  .support-contact-btn-inline, .support-faq-toggle-btn { font-size: 10px; padding: 4px 6px; }
 }
-
-@media (min-width: 900px) {
-  .support-chat-wrapper {
-    max-width: 640px;
-    margin: 0 auto;
-    height: calc(100vh - 130px); /* زيادة بسيطة للشاشات الكبيرة */
-  }
-}
-  
-
-
-
-
-
-
-
-body.support-view-active,
-body.support-view-active html {
-  overflow: hidden !important;
-  height: 100vh;
-}
-body.support-view-active #main-content {
-  overflow: hidden !important;
-  height: calc(100vh - 61px);
-  padding: 0 !important;
-  max-width: 100%;
-  }
-
 
 
 
