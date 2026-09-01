@@ -2377,8 +2377,7 @@ async function loadAttendanceSessions() {
         qrHtml = `<div id="${qrContainerId}" class="qr-container"></div>`;
         // بعد إضافة العنصر، سنقوم بإنشاء QR code
         // سننشئه بعد عرض الصفحة
-        setTimeout(() => {
-  const qrDiv = document.getElementById(qrContainerId);
+        setTimeout(() =>{
   // ===== كود إنشاء الباركود مع دعم الوضع الداكن =====
 const qrDiv = document.getElementById(qrContainerId);
 if (qrDiv) {
