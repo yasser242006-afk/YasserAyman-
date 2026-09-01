@@ -1558,6 +1558,7 @@ function switchView(view, el){
   if(view === 'lectures') renderLectureSubjectTabs();
   if(view === 'attendance') { loadAttendanceSessions(); loadAttendanceRecords(); }
   if(view === 'top10') loadTop10();
+  if(view === 'support') initSupportChat();
   
   // ===== هنا مكان الإضافة الجديد =====
   if (view === 'settings') {
