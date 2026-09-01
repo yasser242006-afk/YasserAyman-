@@ -3384,7 +3384,102 @@ async function submitYearChangeRequest(){
 
 
 
+/* ================== شات الدعم ================== */
+const FAQ_ANSWERS = {
+  grades: 'تقدر تشوف درجاتك من القائمة الجانبية → "درجات الامتحانات"، واختار الترم ونوع الامتحان اللي عايزه.',
+  attendance: 'من صفحة "الحضور والغياب" هتلاقي جلسات الحضور النشطة مع QR كود، اضغط على أيقونة الكاميرا وامسح الكود اللي هيديهولك الدكتور.',
+  changeyear: 'تقدر تطلب تغيير فرقتك من "الإعدادات" → "تعديل البيانات" → "تغيير الفرقة الدراسية"، وهيتم مراجعة طلبك من الإدارة.',
+  lectures: 'لو المحاضرات مش ظاهرة، جرب تتأكد إنك مختار الترم والمادة الصح، ولو المشكلة استمرت تواصل مع فريق الدعم.',
+  login: 'لو عندك مشكلة في تسجيل الدخول، تأكد من صحة البريد الإلكتروني وكلمة المرور، وتقدر تغيّر كلمة المرور من "الإعدادات" → "تعديل البيانات".',
+  password: 'تقدر تغيّر كلمة المرور من "الإعدادات" → "تعديل البيانات" → "تغيير كلمة المرور".',
+  photo: 'تقدر تغيّر صورتك الشخصية بالضغط على أيقونة القلم اللي على صورتك في القائمة الجانبية أو من "تعديل البيانات".',
+  schedule: 'تقدر تشوف جدولك الدراسي من القائمة الجانبية → "الجدول الدراسي"، واختار الترم اللي عايزه.'
+};
 
+const FAQ_QUESTIONS = [
+  { key: 'grades', label: 'إزاي أعرف درجاتي؟' },
+  { key: 'attendance', label: 'إزاي أسجل حضوري؟' },
+  { key: 'changeyear', label: 'إزاي أغيّر الفرقة الدراسية؟' },
+  { key: 'lectures', label: 'المحاضرات مش ظاهرة' },
+  { key: 'login', label: 'مشكلة في تسجيل الدخول' },
+  { key: 'password', label: 'إزاي أغيّر كلمة المرور؟' },
+  { key: 'photo', label: 'إزاي أغيّر صورتي الشخصية؟' },
+  { key: 'schedule', label: 'إزاي أشوف الجدول الدراسي؟' }
+];
+
+let faqPage = 0;
+
+function initSupportChat(){
+  const chatArea = document.getElementById('support-chat-page');
+  chatArea.innerHTML = '';
+  addBotMessage('أهلاً بيك 👋 أنا مساعد بوابة الطلاب، اختار سؤالك من تحت وهساعدك:');
+  faqPage = 0;
+  renderFaqGrid();
+}
+
+function addBotMessage(text){
+  const chatArea = document.getElementById('support-chat-page');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble bot';
+  bubble.innerText = text;
+  chatArea.appendChild(bubble);
+}
+function addUserMessage(text){
+  const chatArea = document.getElementById('support-chat-page');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble user';
+  bubble.innerText = text;
+  chatArea.appendChild(bubble);
+}
+
+function renderFaqGrid(){
+  const grid = document.getElementById('support-faq-grid');
+  grid.innerHTML = '';
+  const totalPages = Math.ceil(FAQ_QUESTIONS.length / 4);
+  const start = faqPage * 4;
+  const items = FAQ_QUESTIONS.slice(start, start + 4);
+
+  items.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'support-faq-btn';
+    btn.innerText = q.label;
+    btn.onclick = () => askFaq(q.key, q.label);
+    grid.appendChild(btn);
+  });
+
+  if(totalPages > 1){
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'support-faq-toggle-btn';
+    if(faqPage < totalPages - 1){
+      toggleBtn.innerText = 'عرض المزيد';
+      toggleBtn.onclick = () => { faqPage++; renderFaqGrid(); };
+    } else {
+      toggleBtn.innerText = 'رجوع';
+      toggleBtn.onclick = () => { faqPage = 0; renderFaqGrid(); };
+    }
+    grid.appendChild(toggleBtn);
+  }
+}
+
+function askFaq(key, label){
+  addUserMessage(label);
+  setTimeout(()=>{ addBotMessage(FAQ_ANSWERS[key]); }, 400);
+}
+
+function showSupportContactCard(){
+  addUserMessage('تواصل مع فريق الدعم');
+  setTimeout(()=>{
+    addBotMessage('تقدر تتواصل مع فريق الدعم مباشرة من هنا:');
+    const chatArea = document.getElementById('support-chat-page');
+    const card = document.createElement('div');
+    card.className = 'support-contact-card';
+    card.innerHTML = `
+      <a href="tel:+201000000000" class="call"><i class="fas fa-phone"></i> اتصل بنا</a>
+      <a href="https://wa.me/201000000000" target="_blank" class="whatsapp"><i class="fab fa-whatsapp"></i> راسلنا على واتساب</a>
+    `;
+    chatArea.appendChild(card);
+  }, 400);
+}
 
 
 
