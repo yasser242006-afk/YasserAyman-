@@ -865,6 +865,16 @@ body.dark .grade-badge.vgood {
 <section class="view" id="view-settings">
   <div class="page-title"><i class="fas fa-gear"></i> الإعدادات</div>
 
+
+<!-- 0. بيانات الحساب -->
+<div style="background:var(--bg-card);border-radius:var(--radius-md);padding:16px;margin-bottom:16px;border:1px solid var(--border);">
+  <h4 style="font-weight:700;margin-bottom:10px;"><i class="fas fa-user-pen"></i> بيانات الحساب</h4>
+  <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">عدّل صورتك، رقم هاتفك، أو كلمة المرور</p>
+  <button onclick="openAccountModal()" style="padding:8px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+    <i class="fas fa-user-pen"></i> تعديل البيانات
+  </button>
+</div>
+  
   <!-- 1. تغيير ألوان الأزرار -->
   <div style="background:var(--bg-card);border-radius:var(--radius-md);padding:16px;margin-bottom:16px;border:1px solid var(--border);">
     <h4 style="font-weight:700;margin-bottom:10px;"><i class="fas fa-palette"></i> تغيير لون الأزرار</h4>
@@ -1089,7 +1099,54 @@ body.dark .grade-badge.vgood {
 
 
 
-  
+  <!-- Account Edit Modal -->
+<div id="account-modal" class="custom-modal">
+  <div class="modal-content" style="max-width:420px;">
+    <div class="modal-header"><h3><i class="fas fa-user-pen"></i> تعديل البيانات</h3><button class="close-btn" onclick="closeAccountModal()">&times;</button></div>
+    <div style="padding:22px 20px;">
+      <div class="account-modal-avatar">
+        <img id="account-modal-avatar-img" src="" alt="">
+        <div class="avatar-edit-btn" onclick="openImageMenu(event,'avatar')"><i class="fas fa-pen"></i></div>
+      </div>
+      <div class="acc-field-group">
+        <label>الاسم</label>
+        <input type="text" id="acc-name-input" disabled>
+      </div>
+      <div class="acc-field-group">
+        <label>البريد الإلكتروني</label>
+        <input type="text" id="acc-email-input" disabled>
+      </div>
+      <div class="acc-field-group">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="acc-phone-input" placeholder="مثال: 01012345678">
+      </div>
+      <button class="acc-save-btn" onclick="saveAccountChanges()"><i class="fas fa-check"></i> حفظ التغييرات</button>
+      <button class="acc-change-pass-link" onclick="openChangePasswordModal()"><i class="fas fa-lock"></i> تغيير كلمة المرور</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="change-password-modal" class="custom-modal">
+  <div class="modal-content" style="max-width:380px;">
+    <div class="modal-header"><h3><i class="fas fa-lock"></i> تغيير كلمة المرور</h3><button class="close-btn" onclick="closeChangePasswordModal()">&times;</button></div>
+    <div style="padding:22px 20px;">
+      <div class="acc-field-group">
+        <label>كلمة المرور القديمة</label>
+        <input type="password" id="pass-old-input" placeholder="••••••••">
+      </div>
+      <div class="acc-field-group">
+        <label>كلمة المرور الجديدة</label>
+        <input type="password" id="pass-new-input" placeholder="••••••••">
+      </div>
+      <div class="acc-field-group">
+        <label>تأكيد كلمة المرور الجديدة</label>
+        <input type="password" id="pass-confirm-input" placeholder="••••••••">
+      </div>
+      <button class="acc-save-btn" onclick="submitPasswordChange()"><i class="fas fa-check"></i> تأكيد التغيير</button>
+    </div>
+  </div>
+</div>
 
   
 <script>
@@ -3005,7 +3062,55 @@ function closeInstallInstructions() {
 
 
 
+/* ================== تعديل بيانات الحساب ================== */
+function openAccountModal(){
+  document.getElementById('account-modal-avatar-img').src = currentProfile?.avatar_url || getDefaultAvatar();
+  document.getElementById('acc-name-input').value = currentProfile?.full_name || '';
+  document.getElementById('acc-email-input').value = currentUser?.email || '';
+  document.getElementById('acc-phone-input').value = currentProfile?.phone_number || '';
+  document.getElementById('account-modal').classList.add('open');
+}
+function closeAccountModal(){ document.getElementById('account-modal').classList.remove('open'); }
 
+async function saveAccountChanges(){
+  const phone = document.getElementById('acc-phone-input').value.trim();
+  const { error } = await _supabase.from('yasser_ayman').update({ phone_number: phone }).eq('id', currentUser.id);
+  if(error){ showToast('حدث خطأ أثناء حفظ البيانات', 'error'); return; }
+  currentProfile.phone_number = phone;
+  showToast('تم حفظ البيانات بنجاح', 'success');
+  closeAccountModal();
+}
+
+function openChangePasswordModal(){
+  closeAccountModal();
+  document.getElementById('pass-old-input').value = '';
+  document.getElementById('pass-new-input').value = '';
+  document.getElementById('pass-confirm-input').value = '';
+  document.getElementById('change-password-modal').classList.add('open');
+}
+function closeChangePasswordModal(){ document.getElementById('change-password-modal').classList.remove('open'); }
+
+async function submitPasswordChange(){
+  const oldPass = document.getElementById('pass-old-input').value;
+  const newPass = document.getElementById('pass-new-input').value;
+  const confirmPass = document.getElementById('pass-confirm-input').value;
+
+  if(!oldPass || !newPass || !confirmPass){ showToast('يرجى ملء جميع الحقول', 'error'); return; }
+  if(newPass !== confirmPass){ showToast('كلمة المرور الجديدة غير متطابقة', 'error'); return; }
+  if(newPass.length < 6){ showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+
+  const { error: checkError } = await _supabase.auth.signInWithPassword({
+    email: currentUser.email,
+    password: oldPass
+  });
+  if(checkError){ showToast('كلمة المرور القديمة غير صحيحة', 'error'); return; }
+
+  const { error: updateError } = await _supabase.auth.updateUser({ password: newPass });
+  if(updateError){ showToast('حدث خطأ أثناء تغيير كلمة المرور', 'error'); return; }
+
+  showToast('تم تغيير كلمة المرور بنجاح', 'success');
+  closeChangePasswordModal();
+}
   
   
 </script>
