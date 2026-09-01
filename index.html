@@ -640,7 +640,24 @@ body.dark .grade-badge.vgood {
   display:none;max-height:70vh;overflow:auto;}
 
   
-  
+
+
+  /* ===== Year Change Request ===== */
+.acc-change-year-btn{
+  width:100%;padding:11px;background:none;border:2px solid var(--border);color:var(--text);
+  border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;transition:var(--transition);
+}
+.acc-change-year-btn:hover{border-color:var(--primary);color:var(--primary);}
+
+.id-upload-box{
+  border:2px dashed var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;
+  cursor:pointer;transition:var(--transition);margin-bottom:14px;
+}
+.id-upload-box:hover{border-color:var(--primary);background:rgba(79,70,229,.04);}
+.id-upload-box i{font-size:32px;color:var(--primary);margin-bottom:8px;}
+.id-upload-box p{font-size:12px;color:var(--text-secondary);}
+.id-upload-preview{width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius-sm);margin-bottom:14px;display:none;}
 </style>
 </head>
 <body>
@@ -1159,7 +1176,59 @@ body.dark .grade-badge.vgood {
   </div>
 </div>
 
-  
+
+  <!-- Change Year - pick new year -->
+<div id="change-year-modal" class="custom-modal">
+  <div class="modal-content" style="max-width:400px;">
+    <div class="modal-header"><h3><i class="fas fa-arrows-rotate"></i> تغيير الفرقة</h3><button class="close-btn" onclick="closeChangeYearModal()">&times;</button></div>
+    <div style="padding:24px 20px;">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;text-align:center;">اختر الفرقة الجديدة التي تريد الانتقال إليها</p>
+      <div class="year-cards-grid">
+        <div class="year-card" onclick="pickNewYearOption('1', this)"><i class="fas fa-1"></i><span>الفرقة الأولى</span></div>
+        <div class="year-card" onclick="pickNewYearOption('2', this)"><i class="fas fa-2"></i><span>الفرقة الثانية</span></div>
+        <div class="year-card" onclick="pickNewYearOption('3', this)"><i class="fas fa-3"></i><span>الفرقة الثالثة</span></div>
+        <div class="year-card" onclick="pickNewYearOption('4', this)"><i class="fas fa-4"></i><span>الفرقة الرابعة</span></div>
+      </div>
+      <button id="new-year-confirm-btn" class="year-confirm-btn" disabled onclick="proceedToIdentityVerify()">التالي</button>
+    </div>
+  </div>
+</div>
+
+<!-- Identity Verification for Year Change -->
+<div id="identity-verify-modal" class="custom-modal">
+  <div class="modal-content" style="max-width:420px;">
+    <div class="modal-header"><h3><i class="fas fa-id-card"></i> إثبات الهوية</h3><button class="close-btn" onclick="closeIdentityVerifyModal()">&times;</button></div>
+    <div style="padding:22px 20px;max-height:75vh;overflow-y:auto;">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">ارفع صورة كارنيه الكلية وأدخل بياناتك للتحقق من طلب تغيير الفرقة</p>
+
+      <div class="id-upload-box" onclick="document.getElementById('id-card-file-input').click()">
+        <i class="fas fa-camera"></i>
+        <p id="id-upload-label">اضغط لرفع صورة الكارنيه</p>
+      </div>
+      <img id="id-upload-preview" class="id-upload-preview">
+      <input type="file" id="id-card-file-input" accept="image/*" style="display:none">
+
+      <div class="acc-field-group">
+        <label>الاسم الثلاثي</label>
+        <input type="text" id="verify-name-input">
+      </div>
+      <div class="acc-field-group">
+        <label>البريد الإلكتروني</label>
+        <input type="text" id="verify-email-input" disabled>
+      </div>
+      <div class="acc-field-group">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="verify-phone-input">
+      </div>
+      <div class="acc-field-group">
+        <label>رقم الـ ID الموجود على الكارنيه</label>
+        <input type="text" id="verify-idnum-input" placeholder="مثال: 23080">
+      </div>
+
+      <button class="acc-save-btn" onclick="submitYearChangeRequest()"><i class="fas fa-paper-plane"></i> إرسال الطلب</button>
+    </div>
+  </div>
+</div>
 <script>
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
@@ -3149,7 +3218,92 @@ async function submitPasswordChange(){
   closeChangePasswordModal();
 }
   
-  
+
+
+
+
+
+
+
+
+  /* ================== تغيير الفرقة الدراسية ================== */
+let pendingNewYear = null;
+let idCardFile = null;
+
+function openChangeYearModal(){
+  closeAccountModal();
+  pendingNewYear = null;
+  document.querySelectorAll('#change-year-modal .year-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('new-year-confirm-btn').disabled = true;
+  document.getElementById('change-year-modal').classList.add('open');
+}
+function closeChangeYearModal(){ document.getElementById('change-year-modal').classList.remove('open'); }
+
+function pickNewYearOption(year, el){
+  pendingNewYear = year;
+  document.querySelectorAll('#change-year-modal .year-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('new-year-confirm-btn').disabled = false;
+}
+
+function proceedToIdentityVerify(){
+  if(!pendingNewYear) return;
+  closeChangeYearModal();
+  idCardFile = null;
+  document.getElementById('id-upload-preview').style.display = 'none';
+  document.getElementById('id-upload-label').innerText = 'اضغط لرفع صورة الكارنيه';
+  document.getElementById('verify-name-input').value = currentProfile?.full_name || '';
+  document.getElementById('verify-email-input').value = currentUser?.email || '';
+  document.getElementById('verify-phone-input').value = currentProfile?.phone_number || '';
+  document.getElementById('verify-idnum-input').value = '';
+  document.getElementById('identity-verify-modal').classList.add('open');
+}
+function closeIdentityVerifyModal(){ document.getElementById('identity-verify-modal').classList.remove('open'); }
+
+document.getElementById('id-card-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  idCardFile = file;
+  const preview = document.getElementById('id-upload-preview');
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+  document.getElementById('id-upload-label').innerText = 'تم اختيار الصورة، اضغط لتغييرها';
+});
+
+async function submitYearChangeRequest(){
+  const name = document.getElementById('verify-name-input').value.trim();
+  const phone = document.getElementById('verify-phone-input').value.trim();
+  const idNum = document.getElementById('verify-idnum-input').value.trim();
+
+  if(!idCardFile){ showToast('يرجى رفع صورة الكارنيه', 'error'); return; }
+  if(!name){ showToast('يرجى إدخال الاسم الثلاثي', 'error'); return; }
+  if(!idNum){ showToast('يرجى إدخال رقم الـ ID', 'error'); return; }
+
+  try{
+    const ext = idCardFile.name.split('.').pop();
+    const path = `${currentUser.id}/idcard_${Date.now()}.${ext}`;
+    const { error: upErr } = await _supabase.storage.from('id-cards').upload(path, idCardFile, { upsert:true });
+    if(upErr) throw upErr;
+    const { data: urlData } = _supabase.storage.from('id-cards').getPublicUrl(path);
+
+    const { error } = await _supabase.from('year_change_requests').insert({
+      student_id: currentUser.id,
+      full_name: name,
+      email: currentUser.email,
+      phone_number: phone,
+      requested_year: pendingNewYear,
+      student_id_number: idNum,
+      card_image_url: urlData.publicUrl,
+      status: 'pending'
+    });
+    if(error) throw error;
+
+    showToast('تم إرسال طلبك، في انتظار موافقة الإدارة', 'success');
+    closeIdentityVerifyModal();
+  }catch(err){
+    showToast('حدث خطأ أثناء إرسال الطلب: '+err.message, 'error');
+  }
+}
 </script>
 </body>
 </html>
