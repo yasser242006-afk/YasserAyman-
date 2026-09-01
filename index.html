@@ -2453,7 +2453,7 @@ function startQRScanner(sessionId, expectedCode) {
   scannerContainer.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;';
   scannerContainer.innerHTML = `
     <div style="background:#fff;border-radius:24px;padding:16px;max-width:360px;width:90%;">
-      <h3 style="font-size:16px;font-weight:800;text-align:center;margin-bottom:8px;">امسح رمز QR للحضور</h3>
+      <h3 style="font-size:16px;font-weight:800;text-align:center;margin-bottom:8px;color:#0f172a;">امسح رمز QR للحضور</h3>
       <div id="reader" style="width:100%;"></div>
       <button onclick="stopQRScanner()" style="margin-top:10px;width:100%;padding:8px;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-sm);font-weight:700;cursor:pointer;">إلغاء</button>
     </div>
