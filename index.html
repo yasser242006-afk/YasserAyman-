@@ -593,6 +593,38 @@ body.dark .grade-badge.vgood {
 .confirm-box .buttons .btn-confirm.primary:hover {
     box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
   }
+
+
+
+
+
+
+/* ===== Account Edit Modal ===== */
+.account-modal-avatar{position:relative;width:90px;height:90px;margin:0 auto 16px;}
+.account-modal-avatar img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--bg);box-shadow:0 0 0 3px var(--primary-light);}
+.account-modal-avatar .avatar-edit-btn{position:absolute;bottom:-2px;left:-2px;}
+.acc-field-group{margin-bottom:14px;text-align:right;}
+.acc-field-group label{display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;}
+.acc-field-group input{
+  width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);
+  font-family:var(--font-family);font-size:14px;background:var(--bg);color:var(--text);outline:none;transition:var(--transition);
+}
+.acc-field-group input:focus{border-color:var(--primary);}
+.acc-field-group input:disabled{background:var(--border);color:var(--text-light);cursor:not-allowed;opacity:.7;}
+.acc-save-btn{
+  width:100%;padding:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;
+  border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--transition);margin-top:6px;
+}
+.acc-save-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.3);}
+.acc-change-pass-link{
+  width:100%;padding:11px;background:none;border:2px solid var(--border);color:var(--text);
+  border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;transition:var(--transition);
+}
+.acc-change-pass-link:hover{border-color:var(--primary);color:var(--primary);}
+
+
   
 </style>
 </head>
@@ -1055,6 +1087,9 @@ body.dark .grade-badge.vgood {
 
 
 
+
+
+  
 
   
 <script>
@@ -2962,6 +2997,16 @@ function closeInstallInstructions() {
 
 
 
+
+
+
+
+
+
+
+
+
+  
   
 </script>
 </body>
