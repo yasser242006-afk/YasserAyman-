@@ -2378,47 +2378,28 @@ async function loadAttendanceSessions() {
         // بعد إضافة العنصر، سنقوم بإنشاء QR code
         // سننشئه بعد عرض الصفحة
         setTimeout(() =>{
-  // ===== كود إنشاء الباركود مع دعم الوضع الداكن =====
+// ===== كود إنشاء الباركود من غير شعار =====
 const qrDiv = document.getElementById(qrContainerId);
 if (qrDiv) {
   // نحدد إذا كان الوضع داكن ولا لأ
   const isDark = document.body.classList.contains('dark');
   
   // نختار ألوان مناسبة حسب الثيم
-  const bgColor = isDark ? '#1e293b' : '#ffffff';  // خلفية الباركود (تتغير)
-  const fgColor = isDark ? '#e2e8f0' : '#4f46e5'; // لون النقوش (أبيض في الداكن، بنفسجي في الفاتح)
+  const bgColor = isDark ? '#1e293b' : '#ffffff';
+  const fgColor = isDark ? '#e2e8f0' : '#4f46e5';
 
-  // إنشاء الباركود
+  // إنشاء الباركود فقط (من غير أي إضافات)
   new QRCode(qrDiv, {
     text: session.code,
     width: 128,
     height: 128,
-    colorDark: fgColor,   // لون النقوش
-    colorLight: bgColor,  // لون الخلفية (بقى ديناميكي)
+    colorDark: fgColor,
+    colorLight: bgColor,
     correctLevel: QRCode.CorrectLevel.H
   });
 
-  // ===== الشعار اللي في نص الباركود =====
-  const logoOverlay = document.createElement('div');
-  logoOverlay.style.position = 'absolute';
-  logoOverlay.style.top = '50%';
-  logoOverlay.style.left = '50%';
-  logoOverlay.style.transform = 'translate(-50%, -50%)';
-  logoOverlay.style.width = '32px';
-  logoOverlay.style.height = '32px';
-  logoOverlay.style.backgroundColor = bgColor; // نفس خلفية الباركود
-  logoOverlay.style.borderRadius = '50%';
-  logoOverlay.style.boxShadow = `0 0 0 3px ${bgColor}`; // نفس اللون برضه
-  logoOverlay.style.display = 'flex';
-  logoOverlay.style.alignItems = 'center';
-  logoOverlay.style.justifyContent = 'center';
-  logoOverlay.style.zIndex = '10';
-  logoOverlay.innerHTML = `<i class="fas fa-graduation-cap" style="color:${fgColor}; font-size:20px;"></i>`;
-  
-  qrDiv.appendChild(logoOverlay);
-}
-}, 100);
-        // إضافة زر مسح QR (يستخدم الكاميرا)
+  // ===== تم حذف الـ logoOverlay بالكامل =====
+}        // إضافة زر مسح QR (يستخدم الكاميرا)
         const scanBtnId = `scan-btn-${session.id}`;
         qrHtml += `<button id="${scanBtnId}" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(79,70,229,0.35);transition:all 0.2s ease;hover:transform:scale(1.05);hover:box-shadow:0 6px 20px rgba(79,70,229,0.45);" onclick="startQRScanner('${session.id}', '${session.code}')" title="مسح الحضور"><i class="fas fa-camera"></i></button>`;
       }
