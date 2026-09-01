@@ -3510,13 +3510,17 @@ function renderFaqGrid(){
     }
     grid.appendChild(toggleBtn);
   }
-}
 
-function askFaq(key, label){
-  addUserMessage(label);
-  setTimeout(()=>{ addBotMessage(FAQ_ANSWERS[key]); }, 400);
-}
+  const contactBtn = document.createElement('button');
+  contactBtn.className = 'support-contact-btn-inline';
+  contactBtn.innerHTML = '<i class="fas fa-user-headset"></i> تواصل مع فريق الدعم';
+  contactBtn.onclick = showSupportContactCard;
+  grid.appendChild(contactBtn);
+  }
 
+
+
+  
 function showSupportContactCard(){
   addUserMessage('تواصل مع فريق الدعم');
   setTimeout(()=>{
