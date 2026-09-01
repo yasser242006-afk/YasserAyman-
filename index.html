@@ -667,7 +667,21 @@ body.dark .grade-badge.vgood {
 
 
 
-    /* ===== شات الدعم - نسخة صفحة كاملة (مش صندوق) ===== */
+
+
+
+/* ===== تصميم صفحة الدعم زي الواتساب بالضبط ===== */
+#view-support {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* خليها تاخد كل الشاشة */
+  max-height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  padding: 0; /* إزالة أي padding */
+  margin: 0;
+}
+
 .support-chat-wrapper {
   display: flex;
   flex-direction: column;
@@ -675,26 +689,18 @@ body.dark .grade-badge.vgood {
   width: 100%;
   background: var(--bg-card);
   overflow: hidden;
-  /* تم إزالة border, border-radius, box-shadow نهائياً */
+  /* إزالة أي border أو box-shadow عشان تكون صفحة كاملة */
 }
 
-/* رأس الشات */
+/* رأس الشات ثابت */
 .support-chat-header {
+  flex-shrink: 0; /* ما يتقلش */
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   padding: 14px 18px;
-  flex-shrink: 0;
+  z-index: 10;
 }
-.support-chat-header-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #fff;
-}
-.support-chat-header-content i { font-size: 24px; }
-.support-chat-header-content h3 { font-size: 15px; font-weight: 800; margin: 0; }
-.support-chat-header-content p { font-size: 12px; opacity: 0.9; margin: 0; line-height: 1.3; }
 
-/* منطقة الرسائل */
+/* منطقة الرسائل تملأ المساحة المتبقية وتتمرر */
 .support-chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -703,10 +709,82 @@ body.dark .grade-badge.vgood {
   flex-direction: column;
   gap: 6px;
   background: var(--bg);
-  min-height: 0;
+  min-height: 0; /* مهم عشان flex */
 }
 
-/* فقاعات الرسائل */
+/* منطقة الأسئلة + شريط الإدخال ثابتين في الأسفل */
+.support-faq-wrapper {
+  flex-shrink: 0;
+  padding: 8px 12px 4px 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  /* عشان يفضلوا ثابتين عند فتح الكيبورد */
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
+
+.support-input-wrapper {
+  flex-shrink: 0;
+  padding: 6px 8px 10px 8px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
+
+/* باقي التنسيقات زي ما هي */
+.support-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: none;
+  border-radius: 26px;
+  width: 100%;
+  box-shadow: inset 0 0 0 1px var(--border);
+  transition: var(--transition);
+}
+
+.support-input-row:focus-within {
+  box-shadow: inset 0 0 0 1.5px var(--primary);
+}
+
+.support-input-row input {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+}
+
+.support-input-row button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: var(--transition);
+}
+
+.support-input-row button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 12px rgba(79,70,229,0.3);
+}
+
+/* فقاعات الرسائل زي ما هي */
 .chat-bubble {
   max-width: 75%;
   padding: 9px 14px;
@@ -731,13 +809,7 @@ body.dark .grade-badge.vgood {
   border-bottom-right-radius: 4px;
 }
 
-/* منطقة الأسئلة - ثابتة فوق شريط الكتابة، مش بتعمل سكرول */
-.support-faq-wrapper {
-  flex-shrink: 0;
-  padding: 8px 12px 6px 12px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
-}
+/* شبكة الأسئلة */
 .support-faq-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -828,74 +900,6 @@ body.dark .grade-badge.vgood {
 .support-contact-card a.call { background: var(--primary); }
 .support-contact-card a.whatsapp { background: #25D366; }
 .support-contact-card a:hover { transform: scale(1.02); opacity: 0.92; }
-
-/* ===== شريط الإدخال - نفس تصميم واتساب بالظبط ===== */
-.support-input-wrapper {
-  flex-shrink: 0;
-  padding: 6px 8px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-}
-.support-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  background: var(--bg);
-  border: none;
-  border-radius: 26px;
-  width: 100%;
-  box-shadow: inset 0 0 0 1px var(--border);
-  transition: var(--transition);
-}
-.support-input-row:focus-within {
-  box-shadow: inset 0 0 0 1.5px var(--primary);
-}
-.support-input-row input {
-  flex: 1;
-  padding: 10px 12px;
-  border: none;
-  background: transparent;
-  font-family: var(--font-family);
-  font-size: 14px;
-  color: var(--text);
-  outline: none;
-}
-.support-input-row input::placeholder { color: var(--text-light); }
-.support-input-row button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  transition: var(--transition);
-}
-.support-input-row button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 12px rgba(79,70,229,0.3);
-}
-
-/* استجابة للشاشات */
-@media (max-width: 420px) {
-  .chat-bubble { max-width: 82%; font-size: 12px; padding: 7px 12px; }
-  .support-faq-btn { font-size: 10.5px; padding: 6px 4px; }
-  .support-contact-btn-inline, .support-faq-toggle-btn { font-size: 10px; padding: 4px 6px; }
-}
-
-
-
-
-
-
 
 
   
@@ -1490,11 +1494,10 @@ body.dark .grade-badge.vgood {
 
 
 
-<!-- SUPPORT -->
-<!-- ===== شات الدعم (المصمم الجديد) ===== -->
+<!-- ===== صفحة الدعم (زي الواتساب) ===== -->
 <section class="view" id="view-support">
   <div class="support-chat-wrapper">
-    
+
     <!-- رأس الشات -->
     <div class="support-chat-header">
       <div class="support-chat-header-content">
@@ -1506,17 +1509,17 @@ body.dark .grade-badge.vgood {
       </div>
     </div>
 
-    <!-- منطقة الرسائل -->
+    <!-- منطقة الرسائل (قابلة للتمرير) -->
     <div class="support-chat-messages" id="support-chat-page">
-      <!-- الرسائل تظهر هنا ديناميكياً -->
+      <!-- تظهر الرسائل هنا ديناميكياً -->
     </div>
 
-    <!-- منطقة الأسئلة (فوق الإدخال) -->
+    <!-- منطقة الأسئلة (ثابتة فوق شريط الإدخال) -->
     <div class="support-faq-wrapper">
       <div class="support-faq-grid" id="support-faq-grid"></div>
     </div>
 
-    <!-- شريط الإدخال الثابت في الأسفل -->
+    <!-- شريط الإدخال (ثابت في الأسفل) -->
     <div class="support-input-wrapper">
       <div class="support-input-row">
         <input type="text" id="support-text-input" placeholder="اكتب سؤالك هنا...">
