@@ -2184,7 +2184,7 @@ async function confirmYearSelection(){
 }
 
 /* ============================================================
-   ========== نظام الحضور والغياب ==========
+   ========== نظام الحضور والغياب (بعد التعديلات) ==========
    ============================================================ */
 
 async function loadAttendanceSessions() {
@@ -2192,21 +2192,32 @@ async function loadAttendanceSessions() {
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
   const year = currentProfile?.academic_year || '1';
   const now = new Date().toISOString();
+
   try {
+    // 1. جلب الجلسات النشطة مرتبة تنازلياً حسب start_time (الأحدث أولاً)
     const { data: sessions, error } = await _supabase
       .from('attendance_sessions')
       .select('*')
       .eq('academic_year', year)
       .gt('end_time', now)
-      .order('start_time', { ascending: true });
+      .order('start_time', { ascending: false });
 
-    if (error) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في التحميل</p></div>'; return; }
+    if (error) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في التحميل</p></div>';
+      return;
+    }
+
     if (!sessions || sessions.length === 0) {
       container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لا توجد جلسات حضور نشطة حالياً</p></div>';
       return;
     }
 
+    // 2. تحديد الجلسة الأحدث (أول عنصر بعد الترتيب التنازلي)
+    const latestSession = sessions[0];
+
+    // 3. عرض الجلسات، ولكن نعرض الباركود فقط للجلسة الأحدث (إذا لم يسجل الطالب فيها)
     container.innerHTML = '';
+
     for (const session of sessions) {
       const { data: record, error: recErr } = await _supabase
         .from('attendance_records')
@@ -2217,32 +2228,44 @@ async function loadAttendanceSessions() {
 
       let statusHtml = '';
       let qrHtml = '';
+
+      // نعرض الباركود فقط للجلسة الأحدث، بشرط ألا يكون مسجلاً فيها
+      const isLatest = (session.id === latestSession.id);
       if (record) {
+        // حالته موجودة => نعرض الحالة (لجميع الجلسات)
         const statusText = record.status === 'present' ? '✅ حاضر' : record.status === 'late' ? '⏰ متأخر' : '❌ غائب';
         const statusClass = record.status === 'present' ? 'present' : record.status === 'late' ? 'late' : 'absent';
         statusHtml = `<div style="margin-top:8px;"><span class="attendance-status-badge ${statusClass}">${statusText}</span></div>`;
+        // لا نعرض باركود لأن الحضور مسجل بالفعل
         qrHtml = '';
       } else {
-        const qrContainerId = `qr-${session.id}`;
-        qrHtml = `<div id="${qrContainerId}" class="qr-container"></div>`;
-        setTimeout(() =>{
-          const qrDiv = document.getElementById(qrContainerId);
-          if (qrDiv) {
-            const isDark = document.body.classList.contains('dark');
-            const bgColor = isDark ? '#1e293b' : '#ffffff';
-            const fgColor = isDark ? '#e2e8f0' : '#4f46e5';
-            new QRCode(qrDiv, {
-              text: session.code,
-              width: 128,
-              height: 128,
-              colorDark: fgColor,
-              colorLight: bgColor,
-              correctLevel: QRCode.CorrectLevel.H
-            });
-          }
-        },100);
-        const scanBtnId = `scan-btn-${session.id}`;
-        qrHtml += `<button id="${scanBtnId}" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(79,70,229,0.35);transition:all 0.2s ease;hover:transform:scale(1.05);hover:box-shadow:0 6px 20px rgba(79,70,229,0.45);" onclick="startQRScanner('${session.id}', '${session.code}')" title="مسح الحضور"><i class="fas fa-camera"></i></button>`;
+        // لم يسجل بعد
+        if (isLatest) {
+          // الجلسة الأحدث => نعرض باركود
+          const qrContainerId = `qr-${session.id}`;
+          qrHtml = `<div id="${qrContainerId}" class="qr-container"></div>`;
+          setTimeout(() => {
+            const qrDiv = document.getElementById(qrContainerId);
+            if (qrDiv) {
+              const isDark = document.body.classList.contains('dark');
+              const bgColor = isDark ? '#1e293b' : '#ffffff';
+              const fgColor = isDark ? '#e2e8f0' : '#4f46e5';
+              new QRCode(qrDiv, {
+                text: session.code,
+                width: 128,
+                height: 128,
+                colorDark: fgColor,
+                colorLight: bgColor,
+                correctLevel: QRCode.CorrectLevel.H
+              });
+            }
+          }, 100);
+          const scanBtnId = `scan-btn-${session.id}`;
+          qrHtml += `<button id="${scanBtnId}" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(79,70,229,0.35);transition:all 0.2s ease;hover:transform:scale(1.05);hover:box-shadow:0 6px 20px rgba(79,70,229,0.45);" onclick="startQRScanner('${session.id}', '${session.code}')" title="مسح الحضور"><i class="fas fa-camera"></i></button>`;
+        } else {
+          // جلسات أقدم لا نعرض لها باركود (نعرض فقط معلوماتها)
+          qrHtml = '<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">الغياب غير متاح لهذه الجلسة</div>';
+        }
       }
 
       const card = document.createElement('div');
@@ -2261,8 +2284,13 @@ async function loadAttendanceSessions() {
       `;
       container.appendChild(card);
     }
+
+    // 4. إشعار نجاح التحميل (التعديل الأول)
+    showToast('تم تحميل جلسات الحضور بنجاح', 'success');
+
   } catch (e) {
     container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في التحميل</p></div>';
+    console.error(e);
   }
 }
 
@@ -2291,7 +2319,8 @@ function startQRScanner(sessionId, expectedCode) {
           stopQRScanner();
           markAttendance(sessionId, 'present');
         } else {
-          showToast('رمز غير صحيح، حاول مرة أخرى', 'error');
+          // تعديل رسالة الخطأ إلى "لا يوجد غياب" (التعديل الثالث)
+          showToast('لا يوجد غياب أو الرمز غير صحيح', 'error');
           stopQRScanner();
         }
       },
@@ -2360,6 +2389,7 @@ async function loadAttendanceRecords() {
       return;
     }
 
+    // تجميع الإحصائيات لكل مادة
     let subjectStats = {};
     records.forEach(r => {
       const subj = r.attendance_sessions?.subject_name || 'غير معروف';
@@ -2370,25 +2400,65 @@ async function loadAttendanceRecords() {
       else subjectStats[subj].absent++;
     });
 
-    let tableHtml = `<table class="top10-table"><thead><tr><th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>`;
+    // --- إنشاء جدول واحد موحد (التعديل الثاني) ---
+    let tableHtml = `<table class="top10-table"><thead><tr>
+      <th>المادة</th>
+      <th>إجمالي المحاضرات</th>
+      <th>حاضر</th>
+      <th>متأخر</th>
+      <th>غائب</th>
+      <th>نسبة الغياب</th>
+    </tr></thead><tbody>`;
+
+    for (const [subj, stats] of Object.entries(subjectStats)) {
+      const absenceRate = ((stats.absent / stats.total) * 100).toFixed(1);
+      tableHtml += `<tr>
+        <td>${escapeHtml(subj)}</td>
+        <td>${stats.total}</td>
+        <td>${stats.present}</td>
+        <td>${stats.late}</td>
+        <td>${stats.absent}</td>
+        <td>${absenceRate}%</td>
+      </tr>`;
+    }
+    tableHtml += '</tbody></table>';
+
+    // --- إضافة تفاصيل الحضور (سجل الحضور الفعلي) أسفل الجدول ---
+    tableHtml += `<div style="margin-top:16px;overflow-x:auto;"><table class="top10-table"><thead><tr>
+      <th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th>
+    </tr></thead><tbody>`;
+
     records.forEach(r => {
-      const statusText = r.status === 'present' ? '✅ حاضر' : r.status === 'late' ? '⏰ متأخر' : '❌ غائب';
-      const statusClass = r.status === 'present' ? 'present' : r.status === 'late' ? 'late' : 'absent';
       const subject = r.attendance_sessions?.subject_name || 'غير معروف';
       const doctor = r.attendance_sessions?.doctor_name || '-';
       const date = r.attendance_sessions?.start_time ? new Date(r.attendance_sessions.start_time).toLocaleDateString('ar-EG') : '-';
-      tableHtml += `<tr><td>${escapeHtml(subject)}</td><td>${escapeHtml(doctor)}</td><td>${date}</td><td><span class="attendance-status-badge ${statusClass}">${statusText}</span></td></tr>`;
+
+      // استخدام أيقونات بدلاً من علامة ✅ (التعديل الثاني)
+      let statusIcon = '';
+      let statusText = '';
+      if (r.status === 'present') {
+        statusIcon = '<i class="fas fa-check-circle" style="color:#10b981;"></i>';
+        statusText = ' حاضر';
+      } else if (r.status === 'late') {
+        statusIcon = '<i class="fas fa-clock" style="color:#f59e0b;"></i>';
+        statusText = ' متأخر';
+      } else {
+        statusIcon = '<i class="fas fa-times-circle" style="color:#ef4444;"></i>';
+        statusText = ' غائب';
+      }
+
+      tableHtml += `<tr>
+        <td>${escapeHtml(subject)}</td>
+        <td>${escapeHtml(doctor)}</td>
+        <td>${date}</td>
+        <td>${statusIcon} ${statusText}</td>
+      </tr>`;
     });
-    tableHtml += '</tbody></table>';
 
-    let statsHtml = '<div style="margin-top:12px;overflow-x:auto;"><table class="top10-table"><thead><tr><th>المادة</th><th>إجمالي المحاضرات</th><th>حاضر</th><th>متأخر</th><th>غائب</th><th>نسبة الغياب</th></tr></thead><tbody>';
-    for (const [subj, stats] of Object.entries(subjectStats)) {
-      const absenceRate = ((stats.absent / stats.total) * 100).toFixed(1);
-      statsHtml += `<tr><td>${escapeHtml(subj)}</td><td>${stats.total}</td><td>${stats.present}</td><td>${stats.late}</td><td>${stats.absent}</td><td>${absenceRate}%</td></tr>`;
-    }
-    statsHtml += '</tbody></table></div>';
+    tableHtml += '</tbody></table></div>';
+    container.innerHTML = tableHtml;
 
-    container.innerHTML = tableHtml + statsHtml;
+    // رسم المخطط الدائري (مع ألوان محسنة)
     renderAttendanceChart(subjectStats);
 
   } catch (e) {
@@ -2428,9 +2498,14 @@ function renderAttendanceChart(subjectStats = null) {
   const late = subjects.reduce((sum, s) => sum + subjectStats[s].late, 0);
   const absent = subjects.reduce((sum, s) => sum + subjectStats[s].absent, 0);
   
+  // تحسين الألوان للوضع الداكن (التعديل الثاني)
+  const isDark = document.body.classList.contains('dark');
+  const colors = isDark
+    ? ['#34d399', '#fbbf24', '#f87171']   // ألوان فاتحة للخلفية الداكنة
+    : ['#10b981', '#f59e0b', '#ef4444'];   // الألوان الأصلية للوضع الفاتح
+
   const data = [present, late, absent];
   const labels = ['حاضر', 'متأخر', 'غائب'];
-  const colors = ['#10b981', '#f59e0b', '#ef4444'];
   
   const width = canvas.width;
   const height = canvas.height;
@@ -2457,27 +2532,29 @@ function renderAttendanceChart(subjectStats = null) {
     ctx.closePath();
     ctx.fillStyle = colors[i];
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = isDark ? '#1e293b' : '#ffffff';
     ctx.lineWidth = 3;
     ctx.stroke();
     startAngle += sliceAngle;
   });
   
+  // مركز الدائرة (نسبة الحضور)
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius * 0.45, 0, 2 * Math.PI);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = isDark ? '#1e293b' : '#ffffff';
   ctx.fill();
   
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
   ctx.font = 'bold 36px Cairo';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const percent = ((present / total) * 100);
   ctx.fillText(`${Math.round(percent)}%`, centerX, centerY - 10);
   ctx.font = '18px Cairo';
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
   ctx.fillText('حضور', centerX, centerY + 28);
   
+  // الأسطورة (Legend)
   const legendX = width - 1;
   let legendY = 5;
   ctx.textAlign = 'right';
@@ -2487,14 +2564,14 @@ function renderAttendanceChart(subjectStats = null) {
     ctx.arc(legendX - 16, legendY + 12, 12, 0, 2 * Math.PI);
     ctx.fillStyle = colors[i];
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = isDark ? '#1e293b' : '#ffffff';
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
     ctx.font = 'bold 18px Cairo';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, legendX - 30, legendY + 12);
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
     ctx.font = '14px Cairo';
     ctx.fillText(`${Math.round(pct)}%`, legendX - 30, legendY + 38);
     legendY += 60;
@@ -2828,6 +2905,10 @@ function toggleTheme() {
     document.body.style.setProperty('--shadow-sm', '0 2px 10px rgba(0,0,0,0.06)');
     document.body.style.setProperty('--shadow-lg', '0 10px 40px rgba(0,0,0,0.12)');
     localStorage.setItem('theme', 'light');
+  }
+  // إعادة رسم المخطط الدائري بألوان جديدة
+  if (document.getElementById('view-attendance').classList.contains('active')) {
+    loadAttendanceRecords();
   }
 }
 
