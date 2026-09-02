@@ -97,6 +97,30 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .view{display:none;}
 .view.active{display:block;}
 
+/* === تعديل 4: استجابة الموقع لكل أحجام الشاشات (تابلت / لابتوب / كمبيوتر) === */
+@media (min-width:600px){
+  #main-content{max-width:680px;padding:20px 16px 60px;}
+  .post-image{max-height:420px;}
+  .modal-sheet{max-width:560px;}
+}
+@media (min-width:900px){
+  #main-content{max-width:840px;}
+  .year-cards-grid{grid-template-columns:repeat(4,1fr);}
+  .exam-type-tabs{flex-wrap:wrap;}
+  .grade-grid{grid-template-columns:1fr 1fr 1fr;}
+  .support-faq-grid{grid-template-columns:repeat(4,1fr);}
+}
+@media (min-width:1200px){
+  #main-content{max-width:1000px;padding:28px 20px 70px;}
+  .topbar{padding:14px 32px;}
+  #sidebar{width:320px;}
+  .top10-table{font-size:14px;}
+}
+@media (min-width:1600px){
+  #main-content{max-width:1140px;}
+}
+/* === نهاية تعديل 4 === */
+
 #welcome-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
   background:rgba(15,23,42,.45);backdrop-filter:blur(2px);}
 #welcome-overlay.show{display:flex;animation:fadeSlide .3s ease;}
@@ -332,14 +356,16 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .attendance-status-badge.absent{background:#fee2e2;color:#b91c1c;}
 .attendance-status-badge.late{background:#fef9c3;color:#a16207;}
 
+/* === تعديل 2: خطوط جدول حقيقي (بوردر كامل على كل الخلايا) === */
 .top10-table{width:100%;border-collapse:collapse;font-size:13px;}
-.top10-table th{background:var(--primary);color:#fff;padding:10px;text-align:center;}
-.top10-table td{padding:8px;border-bottom:1px solid var(--border);text-align:center;}
+.top10-table th{background:var(--primary);color:#fff;padding:10px;text-align:center;border:1px solid var(--primary-dark);}
+.top10-table td{padding:8px;text-align:center;border:1px solid var(--border);}
 .top10-table tr:nth-child(odd){background:var(--bg);}
 .top10-rank{font-weight:800;color:var(--primary);}
 .rank-1{color:#f59e0b;font-size:18px;}
 .rank-2{color:#94a3b8;font-size:17px;}
 .rank-3{color:#d97706;font-size:16px;}
+/* === نهاية تعديل 2 (الجزء الأول) === */
 
 .qselect-group{position:relative;}
 .qselect-group i{position:absolute;top:50%;right:14px;transform:translateY(-50%);color:var(--primary);font-size:14px;pointer-events:none;}
@@ -2233,32 +2259,32 @@ async function loadAttendanceSessions() {
       .eq('student_id', currentUser.id)
       .maybeSingle();
 
-    let statusHtml = '';
-    let qrHtml = '';
+    /* === تعديل 1: لما الطالب ياخد حضوره، اختفاء الكارت بالكامل بدل ما تظهر علامة صح مكان الباركود === */
     if (record) {
-      statusHtml = `<div style="margin-top:8px;">${getStatusBadge(record.status)}</div>`;
-      qrHtml = '';
-    } else {
-      const qrContainerId = `qr-${session.id}`;
-      qrHtml = `<div id="${qrContainerId}" class="qr-container"></div>`;
-      setTimeout(() =>{
-        const qrDiv = document.getElementById(qrContainerId);
-        if (qrDiv) {
-          const isDark = document.body.classList.contains('dark');
-          const bgColor = isDark ? '#1e293b' : '#ffffff';
-          const fgColor = isDark ? '#e2e8f0' : '#4f46e5';
-          new QRCode(qrDiv, {
-            text: session.code,
-            width: 128,
-            height: 128,
-            colorDark: fgColor,
-            colorLight: bgColor,
-            correctLevel: QRCode.CorrectLevel.H
-          });
-        }
-      },100);
-      qrHtml += `<button style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(79,70,229,0.35);transition:all 0.2s ease;" onclick="startQRScanner('${session.id}', '${session.code}')" title="مسح الحضور"><i class="fas fa-camera"></i></button>`;
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>لا يوجد غياب حالياً</p></div>';
+      return;
     }
+
+    const qrContainerId = `qr-${session.id}`;
+    let qrHtml = `<div id="${qrContainerId}" class="qr-container"></div>`;
+    setTimeout(() =>{
+      const qrDiv = document.getElementById(qrContainerId);
+      if (qrDiv) {
+        const isDark = document.body.classList.contains('dark');
+        const bgColor = isDark ? '#1e293b' : '#ffffff';
+        const fgColor = isDark ? '#e2e8f0' : '#4f46e5';
+        new QRCode(qrDiv, {
+          text: session.code,
+          width: 128,
+          height: 128,
+          colorDark: fgColor,
+          colorLight: bgColor,
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
+    },100);
+    qrHtml += `<button style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(79,70,229,0.35);transition:all 0.2s ease;" onclick="startQRScanner('${session.id}', '${session.code}')" title="مسح الحضور"><i class="fas fa-camera"></i></button>`;
+    /* === نهاية تعديل 1 === */
 
     container.innerHTML = `
       <div class="attendance-session-card">
@@ -2271,7 +2297,6 @@ async function loadAttendanceSessions() {
           <span> ${new Date(session.start_time).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})} - ${new Date(session.end_time).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}</span>
         </div>
         ${qrHtml}
-        ${statusHtml}
       </div>
     `;
   } catch (e) {
@@ -2374,7 +2399,7 @@ async function loadAttendanceRecords() {
       return;
     }
 
-    // نحسب الإحصائيات لكل مادة عشان نغذي بيها الرسم البياني فقط (بدون جدول تاني منفصل)
+    // نحسب الإحصائيات لكل مادة عشان نغذي بيها الرسم البياني وأعمدة النسبة في الجدول
     let subjectStats = {};
     records.forEach(r => {
       const subj = r.attendance_sessions?.subject_name || 'غير معروف';
@@ -2385,15 +2410,26 @@ async function loadAttendanceRecords() {
       else subjectStats[subj].absent++;
     });
 
-    // جدول واحد بس، بتصميم واقعي وحالة بأيقونة ملونة بدل الرموز التعبيرية
-    let tableHtml = `<table class="top10-table"><thead><tr><th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>`;
+    /* === تعديل 2: إضافة عمود "نسبة الحضور" و"نسبة الغياب" لكل صف === */
+    let tableHtml = `<table class="top10-table"><thead><tr><th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th><th>نسبة الحضور</th><th>نسبة الغياب</th></tr></thead><tbody>`;
     records.forEach(r => {
       const subject = r.attendance_sessions?.subject_name || 'غير معروف';
       const doctor = r.attendance_sessions?.doctor_name || '-';
       const date = r.attendance_sessions?.start_time ? new Date(r.attendance_sessions.start_time).toLocaleDateString('ar-EG') : '-';
-      tableHtml += `<tr><td>${escapeHtml(subject)}</td><td>${escapeHtml(doctor)}</td><td>${date}</td><td>${getStatusBadge(r.status)}</td></tr>`;
+      const stats = subjectStats[subject] || { total: 0, present: 0, absent: 0, late: 0 };
+      const presentPct = stats.total ? Math.round((stats.present / stats.total) * 100) : 0;
+      const absentPct = stats.total ? Math.round((stats.absent / stats.total) * 100) : 0;
+      tableHtml += `<tr>
+        <td>${escapeHtml(subject)}</td>
+        <td>${escapeHtml(doctor)}</td>
+        <td>${date}</td>
+        <td>${getStatusBadge(r.status)}</td>
+        <td style="color:var(--success);font-weight:800;">${presentPct}%</td>
+        <td style="color:var(--danger);font-weight:800;">${absentPct}%</td>
+      </tr>`;
     });
     tableHtml += '</tbody></table>';
+    /* === نهاية تعديل 2 === */
 
     container.innerHTML = tableHtml;
     window._lastAttendanceStats = subjectStats;
@@ -2420,6 +2456,10 @@ function renderAttendanceChart(subjectStats = null) {
   const legendTextColor = isDark ? '#f8fafc' : '#0f172a';
   const legendSubTextColor = isDark ? '#cbd5e1' : '#64748b';
   const emptyTextColor = isDark ? '#94a3b8' : '#94a3b8';
+  /* === تعديل 3: لون الدايرة الوسطى (hole) وحدود الشرائح يتلائموا مع الوضع الداكن/الفاتح === */
+  const holeColor = isDark ? '#1e293b' : '#ffffff';
+  const sliceStrokeColor = isDark ? '#0f172a' : '#ffffff';
+  /* === نهاية تعديل 3 (الجزء الأول) === */
 
   if (!subjectStats) {
     loadAttendanceRecords();
@@ -2470,48 +2510,55 @@ function renderAttendanceChart(subjectStats = null) {
     ctx.closePath();
     ctx.fillStyle = colors[i];
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = sliceStrokeColor; /* === تعديل 3: بدل '#ffffff' الثابت === */
     ctx.lineWidth = 3;
     ctx.stroke();
     startAngle += sliceAngle;
   });
   
+  /* === تعديل 3: تصغير الدايرة الوسطى شوية (من 0.45 إلى 0.4) ولون يتماشى مع الوضع === */
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius * 0.45, 0, 2 * Math.PI);
-  ctx.fillStyle = '#ffffff';
+  ctx.arc(centerX, centerY, radius * 0.4, 0, 2 * Math.PI);
+  ctx.fillStyle = holeColor;
   ctx.fill();
   
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = legendTextColor;
   ctx.font = 'bold 36px Cairo';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const percent = ((present / total) * 100);
   ctx.fillText(`${Math.round(percent)}%`, centerX, centerY - 10);
   ctx.font = '18px Cairo';
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = legendSubTextColor;
   ctx.fillText('حضور', centerX, centerY + 28);
-  
+  /* === نهاية تعديل 3 (الجزء الخاص بالدايرة الوسطى) === */
+
+  /* === تعديل 3: تكبير الدواير الصغيرة (12 → 16) وتبعيدها عن النص جنبها === */
   const legendX = width - 1;
-  let legendY = 5;
+  let legendY = 10;
   ctx.textAlign = 'right';
   labels.forEach((label, i) => {
     const pct = ((data[i]/total)*100);
+    const dotRadius = 16;
+    const dotCenterX = legendX - 22;
     ctx.beginPath();
-    ctx.arc(legendX - 16, legendY + 12, 12, 0, 2 * Math.PI);
+    ctx.arc(dotCenterX, legendY + 14, dotRadius, 0, 2 * Math.PI);
     ctx.fillStyle = colors[i];
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = sliceStrokeColor;
     ctx.lineWidth = 2;
     ctx.stroke();
+    const textX = dotCenterX - dotRadius - 18;
     ctx.fillStyle = legendTextColor;
     ctx.font = 'bold 18px Cairo';
     ctx.textBaseline = 'middle';
-    ctx.fillText(label, legendX - 30, legendY + 12);
+    ctx.fillText(label, textX, legendY + 10);
     ctx.fillStyle = legendSubTextColor;
     ctx.font = '14px Cairo';
-    ctx.fillText(`${Math.round(pct)}%`, legendX - 30, legendY + 38);
-    legendY += 60;
+    ctx.fillText(`${Math.round(pct)}%`, textX, legendY + 38);
+    legendY += 66;
   });
+  /* === نهاية تعديل 3 === */
 }
 
 
