@@ -2323,11 +2323,29 @@ async function loadAttendanceRecords() {
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
   const year = currentProfile?.academic_year || '1';
   try {
+    /* === تعديل: نجيب الأول كل الجلسات (sessions) الخاصة بفرقة الطالب الحالية === */
+    const { data: yearSessions, error: sessionsError } = await _supabase
+      .from('attendance_sessions')
+      .select('id')
+      .eq('academic_year', year);
+
+    if (sessionsError) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
+
+    const sessionIds = (yearSessions || []).map(s => s.id);
+
+    if (sessionIds.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد سجلات حضور</p></div>';
+      window._lastAttendanceStats = {};
+      renderAttendanceChart({});
+      return;
+    }
+
+    /* === تعديل: نفلتر السجلات بس على الجلسات اللي جبناها فوق (بتاعة فرقة الطالب الحالية) === */
     const { data: records, error } = await _supabase
       .from('attendance_records')
-      .select('*, attendance_sessions!inner(subject_name, doctor_name, start_time, academic_year)')
+      .select('*, attendance_sessions(subject_name, doctor_name, start_time)')
       .eq('student_id', currentUser.id)
-      .eq('attendance_sessions.academic_year', year)
+      .in('session_id', sessionIds)
       .order('scan_time', { ascending: false });
 
     if (error) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
@@ -2374,8 +2392,7 @@ async function loadAttendanceRecords() {
   } catch (e) {
     container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>';
   }
-}
-
+  }
 
 
 
