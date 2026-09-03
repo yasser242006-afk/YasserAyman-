@@ -2243,6 +2243,8 @@ async function confirmYearSelection(){
    ============================================================ */
 
 /* دالة موحّدة لعرض حالة الحضور بأيقونة ملوّنة بدل الرموز التعبيرية */
+
+/* دالة موحّدة لعرض حالة الحضور بأيقونة ملوّنة بدل الرموز التعبيرية */
 function getStatusBadge(status){
   if(status === 'present'){
     return `<span class="attendance-status-badge present"><i class="fas fa-circle-check"></i> حاضر</span>`;
@@ -2252,9 +2254,6 @@ function getStatusBadge(status){
   }
   return `<span class="attendance-status-badge absent"><i class="fas fa-circle-xmark"></i> غائب</span>`;
 }
-
-
-
 
 async function loadAttendanceRecords() {
   const container = document.getElementById('attendance-records-container');
