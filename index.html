@@ -2253,20 +2253,17 @@ function getStatusBadge(status){
   return `<span class="attendance-status-badge absent"><i class="fas fa-circle-xmark"></i> غائب</span>`;
 }
 
-async function loadAttendanceSessions() {
-  const container = document.getElementById('attendance-active-container');
+async function loadAttendanceRecords() {
+  const container = document.getElementById('attendance-records-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
-  const year = currentProfile?.academic_year || '1';
-  const now = new Date().toISOString();
+  const year = currentProfile?.academic_year || '1'; /* === تعديل: جلب فرقة الطالب الحالية === */
   try {
-    // نجيب فقط آخر جلسة حضور نشطة (الأحدث) حتى ميظهرش أكتر من باركود في نفس الوقت.
-    // أول ما يتم رفع جلسة غياب جديدة، هي اللي هتظهر وحدها والقديمة هتختفي تلقائياً.
-    const { data: sessions, error } = await _supabase
-      .from('attendance_sessions')
-      .select('*')
-      .eq('academic_year', year)
-      .gt('end_time', now)
-      .order('created_at', { ascending: false })
+    const { data: records, error } = await _supabase
+      .from('attendance_records')
+      .select('*, attendance_sessions!inner(subject_name, doctor_name, start_time, academic_year)')
+      .eq('student_id', currentUser.id)
+      .eq('attendance_sessions.academic_year', year) /* === تعديل: فلترة السجل حسب فرقة الطالب الحالية عن طريق attendance_sessions === */
+      .order('scan_time', { ascending: false });
       .limit(1);
 
     if (error) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في التحميل</p></div>'; return; }
