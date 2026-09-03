@@ -180,7 +180,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .term-toggle{display:flex;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;margin-bottom:16px;gap:4px;}
 .term-toggle button{flex:1;padding:9px;border:none;background:none;border-radius:6px;font-family:var(--font-family);font-size:13px;font-weight:700;color:var(--text-secondary);cursor:pointer;}
 .term-toggle button.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
-.exam-type-tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
+.exam-type-tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;-ms-overflow-style:none;}
+.exam-type-tabs::-webkit-scrollbar{display:none;height:0;} 
 .exam-type-tabs button{padding:8px 16px;border-radius:20px;border:2px solid var(--border);background:var(--bg-card);
   font-family:var(--font-family);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;color:var(--text-secondary);}
 .exam-type-tabs button.active{border-color:var(--primary);color:var(--primary);background:rgba(79,70,229,.06);}
