@@ -1421,16 +1421,18 @@ const PROGRAMMING_LANGUAGES = [
   'Python', 'C#', 'C++', 'TypeScript', 'SQL'
 ];
 
-/* ================== Toast ================== */
 function showToast(message, type='info'){
   const container = document.getElementById('toast-container');
   if(!container) return;
+  /* === تعديل: مسح أي رسالة قديمة قبل عرض الجديدة عشان ميبقاش فيه تكرار === */
+  container.innerHTML = '';
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerText = message;
   container.appendChild(toast);
   setTimeout(()=>toast.remove(), 3500);
-}
+  /* === نهاية التعديل === */
+  }
 
 function getDefaultAvatar(){
   const name = currentProfile?.full_name || currentUser?.email || 'Student';
