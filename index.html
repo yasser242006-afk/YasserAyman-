@@ -1822,8 +1822,7 @@ async function submitComment(){
   const input = document.getElementById('comment-input');
   const text = input.value.trim();
   if(!text) return;
-  const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, content: text });
-  if(error){ showToast('تعذر إرسال التعليق', 'error'); return; }
+  const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, content: text, author_name: currentProfile?.full_name || currentUser.email }); /* === تعديل: حفظ اسم صاحب التعليق === */
   input.value = '';
   await renderComments();
   await loadPosts();
@@ -1832,8 +1831,7 @@ async function submitReply(parentId){
   const input = document.getElementById('reply-input-'+parentId);
   const text = input.value.trim();
   if(!text) return;
-  const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, parent_id: parentId, content: text });
-  if(error){ showToast('تعذر إرسال الرد', 'error'); return; }
+  const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, parent_id: parentId, content: text, author_name: currentProfile?.full_name || currentUser.email }); /* === تعديل: حفظ اسم صاحب الرد === */  if(error){ showToast('تعذر إرسال الرد', 'error'); return; }
   input.value = '';
   await renderComments();
   await loadPosts();
