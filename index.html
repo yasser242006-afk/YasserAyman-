@@ -132,7 +132,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .welcome-box p{margin-top:8px;font-size:13px;color:var(--text-secondary);}
 
 /* === تعديل: عرض المنشورات كسلايدر أفقي (بوست واحد بالمرة) بدل ما تكون تحت بعض === */
-#posts-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:0;scrollbar-width:none;-ms-overflow-style:none;}
+#posts-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:16px;scrollbar-width:none;-ms-overflow-style:none;}
 #posts-container::-webkit-scrollbar{display:none;height:0;}
 .post-card{background:var(--bg-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border);
   margin-bottom:16px;overflow:hidden;flex:0 0 100%;scroll-snap-align:start;}
@@ -172,8 +172,13 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .comment-foot button{background:none;border:none;font-size:11px;font-weight:700;color:var(--text-light);cursor:pointer;}
 .comment-foot button.liked{color:var(--danger);}
 .comment-replies{margin-right:28px;margin-top:10px;border-right:2px solid var(--border);padding-right:12px;}
-.reply-box{display:none;margin-top:8px;gap:6px;}
+/* === تعديل: تصميم أنضف لصندوق الرد بدل الأبيض القديم === */
+.reply-box{display:none;margin-top:8px;gap:8px;align-items:center;}
 .reply-box.open{display:flex;}
+.reply-box input{flex:1;padding:8px 14px;border:2px solid var(--border);border-radius:20px;font-family:var(--font-family);font-size:12px;outline:none;background:var(--bg);color:var(--text);transition:var(--transition);}
+.reply-box input:focus{border-color:var(--primary);}
+.reply-box button{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
+/* === نهاية تعديل === */
 .comment-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);}
 .comment-input-row input{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:20px;font-family:var(--font-family);font-size:13px;outline:none;background:var(--bg);}
 .comment-input-row input:focus{border-color:var(--primary);}
@@ -1789,21 +1794,29 @@ async function renderComments(){
   if(comments.length === 0){ list.innerHTML = '<div class="notif-empty">لا توجد تعليقات بعد، كن أول من يعلق</div>'; return; }
   const { data: myLikes } = await _supabase.from('comment_likes').select('comment_id').eq('user_id', currentUser.id);
   const myLikedSet = new Set((myLikes||[]).map(l=>l.comment_id));
+  /* === تعديل: جلب عدد الإعجابات لكل تعليق === */
+  const commentIds = comments.map(c=>c.id);
+  const { data: allCommentLikes } = await _supabase.from('comment_likes').select('comment_id').in('comment_id', commentIds);
+  const likeCountMap = {};
+  (allCommentLikes||[]).forEach(l=>{ likeCountMap[l.comment_id] = (likeCountMap[l.comment_id]||0) + 1; });
+  /* === نهاية تعديل === */
   const byParent = {};
   comments.forEach(c=>{ const key = c.parent_id || 'root'; byParent[key] = byParent[key] || []; byParent[key].push(c); });
   function renderNode(c){
     const liked = myLikedSet.has(c.id);
     const replies = byParent[c.id] || [];
+    /* === تعديل: عرض اسم صاحب التعليق الحقيقي بدل كلمة "طالب" === */
+    const authorLabel = c.author_name ? escapeHtml(c.author_name) : (c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب');
     return `<div class="comment-item">
-      <div class="comment-bubble"><div class="comment-author">${c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب'}</div><div class="comment-text">${escapeHtml(c.content||'')}</div></div>
-      <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب</button><button onclick="toggleReplyBox('${c.id}')"><i class="far fa-comment-dots"></i> رد</button></div>
-      <div class="reply-box" id="reply-box-${c.id}"><input type="text" id="reply-input-${c.id}" placeholder="اكتب ردك..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:16px;font-size:12px;font-family:var(--font-family);outline:none;"><button onclick="submitReply('${c.id}')" style="background:var(--primary);color:#fff;border:none;border-radius:16px;padding:0 14px;font-size:11px;cursor:pointer;">إرسال</button></div>
+      <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${escapeHtml(c.content||'')}</div></div>
+      <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="toggleReplyBox('${c.id}')"><i class="far fa-comment-dots"></i> رد</button></div>
+      <div class="reply-box" id="reply-box-${c.id}"><input type="text" id="reply-input-${c.id}" placeholder="اكتب ردك..."><button onclick="submitReply('${c.id}')"><i class="fas fa-paper-plane"></i></button></div>
       ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
     </div>`;
   }
   const roots = byParent['root'] || [];
   list.innerHTML = roots.map(renderNode).join('');
-}
+     }
 function toggleReplyBox(commentId){ document.getElementById('reply-box-'+commentId).classList.toggle('open'); }
 async function submitComment(){
   const input = document.getElementById('comment-input');
