@@ -1726,7 +1726,7 @@ async function buildPostCard(post){
   const [{ count: likeCount }, { data: myLike }, { count: commentCount }, { count: viewCount }, { count: shareCount }] = await Promise.all([
     _supabase.from('post_likes').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_likes').select('id').eq('post_id', post.id).eq('user_id', currentUser.id).maybeSingle(),
-    _supabase.from('post_comments').select('*', { count:'exact', head:true }).) ('post_id', post.id),
+    _supabase.from('post_comments').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_views').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_shares').select('*', { count:'exact', head:true }).eq('post_id', post.id), /* === تعديل: عداد المشاركة === */
   ]);
