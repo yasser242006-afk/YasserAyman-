@@ -1775,10 +1775,29 @@ async function toggleLike(postId, btn){
 }
 
 let currentSharePostId = null; /* === تعديل: تتبع المنشور الحالي عند فتح شيت المشاركة === */
-function sharePost(postId){
+
+/* ================== اختصار الرابط ================== */
+async function shortenUrl(longUrl){
+  try{
+    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+    if(!res.ok) throw new Error('shorten failed');
+    const shortUrl = (await res.text()).trim();
+    if(shortUrl && shortUrl.startsWith('http')) return shortUrl;
+    return longUrl; /* لو الرد مش رابط صحيح، استخدم الأصلي */
+  }catch(e){
+    return longUrl; /* لو فشل الاختصار لأي سبب، استخدم الرابط الأصلي بدل ما يقف الكود */
+  }
+}
+
+async function sharePost(postId){
   const url = window.location.origin + window.location.pathname + '?post=' + postId;
   currentSharePostId = postId;
   openShareSheet(url, 'شاهد هذا المنشور في بوابة الطلاب');
+  const linkInput = document.getElementById('share-link-input');
+  if(linkInput) linkInput.value = 'جاري تجهيز الرابط...';
+  const shortUrl = await shortenUrl(url);
+  shareTargetUrl = shortUrl;
+  if(linkInput) linkInput.value = shortUrl;
   }
 
 /* ================== التعليقات ================== */
