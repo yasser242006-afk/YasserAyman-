@@ -1726,7 +1726,7 @@ async function buildPostCard(post){
   const [{ count: likeCount }, { data: myLike }, { count: commentCount }, { count: viewCount }, { count: shareCount }] = await Promise.all([
     _supabase.from('post_likes').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_likes').select('id').eq('post_id', post.id).eq('user_id', currentUser.id).maybeSingle(),
-    _supabase.from('post_comments').select('*', { count:'exact', head:true }).eq('post_id', post.id),
+    _supabase.from('post_comments').select('*', { count:'exact', head:true }).) ('post_id', post.id),
     _supabase.from('post_views').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_shares').select('*', { count:'exact', head:true }).eq('post_id', post.id), /* === تعديل: عداد المشاركة === */
   ]);
@@ -1746,8 +1746,8 @@ async function buildPostCard(post){
       <div class="left-group">
         <button class="act-btn ${myLike?'liked':''}" onclick="toggleLike('${post.id}', this)"><i class="fa-heart ${myLike?'fas':'far'}"></i> <span class="like-count">${likeCount||0}</span></button>
         <button class="act-btn" onclick="openComments('${post.id}')"><i class="far fa-comment"></i> <span>${commentCount||0}</span></button>
-        <button class="act-btn" onclick="sharePost('${post.id}')"><i class="fas fa-share-nodes"></i> مشاركة</button>
-      </div>
+                <button class="act-btn" onclick="sharePost('${post.id}')"><i class="fas fa-share-nodes"></i> <span>${shareCount||0}</span></button>  
+                </div>
       <div class="views-count"><i class="far fa-eye"></i> ${viewCount||0}</div>
     </div>
   `;
