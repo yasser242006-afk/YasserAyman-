@@ -1723,12 +1723,16 @@ async function loadPosts(){
 }
 
 async function buildPostCard(post){
-  const [{ count: likeCount }, { data: myLike }, { count: commentCount }, { count: viewCount }] = await Promise.all([
+  const [{ count: likeCount }, { data: myLike }, { count: commentCount }, { count: viewCount }, { count: shareCount }] = await Promise.all([
     _supabase.from('post_likes').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_likes').select('id').eq('post_id', post.id).eq('user_id', currentUser.id).maybeSingle(),
     _supabase.from('post_comments').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_views').select('*', { count:'exact', head:true }).eq('post_id', post.id),
+    _supabase.from('post_shares').select('*', { count:'exact', head:true }).eq('post_id', post.id), /* === تعديل: عداد المشاركة === */
   ]);
+
+
+  
   _supabase.from('post_views').insert({ post_id: post.id, user_id: currentUser.id }).then(()=>{});
   const div = document.createElement('div');
   div.className = 'post-card';
@@ -1770,10 +1774,12 @@ async function toggleLike(postId, btn){
   }
 }
 
+let currentSharePostId = null; /* === تعديل: تتبع المنشور الحالي عند فتح شيت المشاركة === */
 function sharePost(postId){
   const url = window.location.origin + window.location.pathname + '?post=' + postId;
+  currentSharePostId = postId;
   openShareSheet(url, 'شاهد هذا المنشور في بوابة الطلاب');
-}
+  }
 
 /* ================== التعليقات ================== */
 async function openComments(postId){
@@ -2184,6 +2190,10 @@ function openShareSheet(url, text){
 function closeShareSheet(){ document.getElementById('share-overlay').classList.remove('open'); }
 function copyShareLink(){ navigator.clipboard.writeText(shareTargetUrl); showToast('تم نسخ الرابط', 'success'); }
 function shareVia(platform){
+  /* === تعديل: تسجيل عملية المشاركة في عداد المنشور === */
+  if(currentSharePostId){
+    _supabase.from('post_shares').insert({ post_id: currentSharePostId, user_id: currentUser.id }).then(()=>{});
+  }
   const url = encodeURIComponent(shareTargetUrl);
   const text = encodeURIComponent(document.getElementById('share-overlay').dataset.text || 'بوابة الطلاب');
   let link = '';
