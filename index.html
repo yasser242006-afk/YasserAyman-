@@ -3258,6 +3258,7 @@ async function logoutUser() {
         const theme = localStorage.getItem('theme');
         const color = localStorage.getItem('app-primary-color');
         
+        await _supabase.from('login_events').insert({ student_id: currentUser.id, action: 'logout' }); /* === تعديل: تسجيل عملية الخروج === */
         await _supabase.auth.signOut();
         sessionStorage.clear();
         
@@ -3275,6 +3276,7 @@ async function quickLogout(){
     const theme = localStorage.getItem('theme');
     const color = localStorage.getItem('app-primary-color');
 
+    await _supabase.from('login_events').insert({ student_id: currentUser.id, action: 'logout' }); /* === تعديل: تسجيل عملية الخروج === */
     await _supabase.auth.signOut();
     sessionStorage.clear();
 
