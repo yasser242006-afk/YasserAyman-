@@ -1451,11 +1451,11 @@ async function createNewProfile() {
     academic_year: null,
     first_login_shown: false,
     last_notification_check: new Date().toISOString(),
+    signup_provider: currentUser?.app_metadata?.provider || 'email', /* === تعديل: تسجيل طريقة التسجيل === */
   };
   const { error } = await _supabase.from('yasser_ayman').insert([newProfile]);
   if (error) throw error;
-}
-
+  }
 /* ================== تهيئة الصفحة ================== */
 window.addEventListener('DOMContentLoaded', init);
 
