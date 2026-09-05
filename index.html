@@ -145,7 +145,11 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .post-meta .adm-icon{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));
   display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;overflow:hidden;flex-shrink:0;}
 /* === تعديل: الاسم والتاريخ في سطر واحد بجانب بعض === */
-.post-meta .name-date-wrap{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+/* === تعديل: تثبيت مكان التاريخ بحيث ميتحركش مع طول الاسم === */
+.post-meta{justify-content:space-between;}
+.post-meta .name-date-wrap{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.post-meta .adm-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* === نهاية تعديل === */
 .post-meta .adm-name{font-size:13px;font-weight:700;}
 .post-meta .post-date{font-size:11px;color:var(--text-light);}
 /* === نهاية تعديل === */ 
@@ -154,8 +158,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .post-actions{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--border);}
 .post-actions .left-group{display:flex;align-items:center;gap:6px;}
 .act-btn{display:flex;align-items:center;gap:6px;background:none;border:none;padding:8px 10px;border-radius:var(--radius-sm);
-  font-family:var(--font-family);font-size:12px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:var(--transition);}
-.act-btn:hover{background:var(--bg);}
+  font-family:var(--font-family);font-size:12px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:var(--transition);
+  -webkit-tap-highlight-color:transparent;outline:none;} /* === تعديل: شيل التظليل الأسود عند الضغط === */.act-btn:hover{background:var(--bg);}
 .act-btn.liked{color:var(--danger);}
 .act-btn.liked i{font-weight:900;}
 .views-count{font-size:12px;color:var(--text-light);display:flex;align-items:center;gap:5px;}
