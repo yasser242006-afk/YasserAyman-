@@ -1597,9 +1597,11 @@ let notifExpanded = false;
 
 async function refreshNotifications(){
   const year = currentProfile?.academic_year || '1';
+  /* === تعديل: جلب إشعارات الفرقة العامة + الإشعارات الشخصية (رد/لايك) === */
   const { data, error } = await _supabase.from('notifications').select('*')
-    .or(`academic_year.eq.all,academic_year.eq.${year}`)
+    .or(`academic_year.eq.all,academic_year.eq.${year},target_user_id.eq.${currentUser.id}`)
     .order('created_at', { ascending:false });
+  /* === نهاية تعديل === */
   allNotifItems = (data || []).map(n => ({ title: n.title, message: n.message, date: n.created_at }));
   const badge = document.getElementById('notif-badge');
   if(allNotifItems.length === 0){
@@ -1931,10 +1933,23 @@ async function submitComment(){
 /* === نهاية تعديل === */
 async function toggleCommentLike(commentId, btn){
   const liked = btn.classList.contains('liked');
-  if(liked){ await _supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', currentUser.id); }
-  else { await _supabase.from('comment_likes').insert({ comment_id: commentId, user_id: currentUser.id }); }
+  const ownerId = btn.closest('.comment-item')?.dataset.ownerId;
+  if(liked){
+    await _supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', currentUser.id);
+  } else {
+    await _supabase.from('comment_likes').insert({ comment_id: commentId, user_id: currentUser.id });
+    /* === تعديل: إشعار صاحب التعليق بالإعجاب === */
+    if(ownerId && ownerId !== currentUser.id){
+      await _supabase.from('notifications').insert({
+        title: 'إعجاب جديد',
+        message: `${currentProfile?.full_name || 'طالب'} أعجب بتعليقك`,
+        target_user_id: ownerId
+      });
+    }
+    /* === نهاية تعديل === */
+  }
   await renderComments();
-}
+  }
 
 /* ================== الدرجات ================== */
 function setTerm(term, el){
