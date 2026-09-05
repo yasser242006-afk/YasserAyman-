@@ -1747,23 +1747,32 @@ async function loadPosts(){
   }
 }
 
+
 async function buildPostCard(post){
   const [{ count: likeCount }, { data: myLike }, { count: commentCount }, { count: viewCount }, { count: shareCount }] = await Promise.all([
     _supabase.from('post_likes').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_likes').select('id').eq('post_id', post.id).eq('user_id', currentUser.id).maybeSingle(),
     _supabase.from('post_comments').select('*', { count:'exact', head:true }).eq('post_id', post.id),
     _supabase.from('post_views').select('*', { count:'exact', head:true }).eq('post_id', post.id),
-    _supabase.from('post_shares').select('*', { count:'exact', head:true }).eq('post_id', post.id), /* === تعديل: عداد المشاركة === */
+    _supabase.from('post_shares').select('*', { count:'exact', head:true }).eq('post_id', post.id),
   ]);
 
-
-  
   _supabase.from('post_views').insert({ post_id: post.id, user_id: currentUser.id }).then(()=>{});
   const div = document.createElement('div');
   div.className = 'post-card';
+  /* === تعديل: أيقونة الأدمن الحقيقية (لو موجودة) بدل أيقونة الميكروفون، والاسم والتاريخ بجانب بعض === */
+  const adminIconHtml = post.admin_avatar_url
+    ? `<img src="${escapeHtml(post.admin_avatar_url)}" style="width:100%;height:100%;object-fit:cover;">`
+    : `<i class="fas fa-bullhorn"></i>`;
   div.innerHTML = `
     <div class="post-body">
-      <div class="post-meta"><div class="adm-icon"><i class="fas fa-bullhorn"></i></div><div><div class="adm-name">إدارة الكلية</div><div class="post-date">${formatDate(post.created_at)}</div></div></div>
+      <div class="post-meta">
+        <div class="adm-icon">${adminIconHtml}</div>
+        <div class="name-date-wrap">
+          <span class="adm-name">${escapeHtml(post.admin_name || 'إدارة الكلية')}</span>
+          <span class="post-date">${formatDate(post.created_at)}</span>
+        </div>
+      </div>
       <div class="post-content">${escapeHtml(post.content||'')}</div>
     </div>
     ${post.image_url ? `<img class="post-image" src="${escapeHtml(post.image_url)}" alt="">` : ''}
@@ -1771,14 +1780,17 @@ async function buildPostCard(post){
       <div class="left-group">
         <button class="act-btn ${myLike?'liked':''}" onclick="toggleLike('${post.id}', this)"><i class="fa-heart ${myLike?'fas':'far'}"></i> <span class="like-count">${likeCount||0}</span></button>
         <button class="act-btn" onclick="openComments('${post.id}')"><i class="far fa-comment"></i> <span>${commentCount||0}</span></button>
-                <button class="act-btn" onclick="sharePost('${post.id}')"><i class="fas fa-share-nodes"></i> <span>${shareCount||0}</span></button>  
-                </div>
+        <button class="act-btn" onclick="sharePost('${post.id}')"><i class="fas fa-share-nodes"></i> <span>${shareCount||0}</span></button>
+      </div>
       <div class="views-count"><i class="far fa-eye"></i> ${viewCount||0}</div>
     </div>
   `;
+  /* === نهاية تعديل === */
   return div;
 }
 
+
+  
 async function toggleLike(postId, btn){
   const isLiked = btn.classList.contains('liked');
   const countSpan = btn.querySelector('.like-count');
@@ -1855,37 +1867,68 @@ async function renderComments(){
   function renderNode(c){
     const liked = myLikedSet.has(c.id);
     const replies = byParent[c.id] || [];
-    /* === تعديل: عرض اسم صاحب التعليق الحقيقي بدل كلمة "طالب" === */
     const authorLabel = c.author_name ? escapeHtml(c.author_name) : (c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب');
-    return `<div class="comment-item">
-      <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${escapeHtml(c.content||'')}</div></div>
-      <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="toggleReplyBox('${c.id}')"><i class="far fa-comment-dots"></i> رد</button></div>
-      <div class="reply-box" id="reply-box-${c.id}"><input type="text" id="reply-input-${c.id}" placeholder="اكتب ردك..."><button onclick="submitReply('${c.id}')"><i class="fas fa-paper-plane"></i></button></div>
-      ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
+    /* === تعديل: صورة صاحب التعليق جنب اسمه === */
+    const avatarUrl = c.author_avatar || getAvatarForName(c.author_name || authorLabel);
+    return `<div class="comment-item" data-comment-id="${c.id}" data-owner-id="${c.user_id}">
+      <img class="comment-avatar" src="${escapeHtml(avatarUrl)}" alt="">
+      <div class="comment-body">
+        <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${escapeHtml(c.content||'')}</div></div>
+        <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="startReply('${c.id}', '${c.user_id}', '${authorLabel.replace(/'/g,"\\'")}')"><i class="far fa-comment-dots"></i> رد</button></div>
+        ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
+      </div>
     </div>`;
+    /* === نهاية تعديل === */
   }
   const roots = byParent['root'] || [];
   list.innerHTML = roots.map(renderNode).join('');
-     }
-function toggleReplyBox(commentId){ document.getElementById('reply-box-'+commentId).classList.toggle('open'); }
+  }
+/* === تعديل: نظام المنشن للرد بدل صندوق رد منفصل لكل تعليق === */
+let replyingTo = null;
+
+function startReply(commentId, ownerId, authorName){
+  replyingTo = { id: commentId, ownerId, name: authorName };
+  const input = document.getElementById('comment-input');
+  input.value = `@${authorName} `;
+  input.focus();
+  document.getElementById('reply-context-text').innerText = `الرد على @${authorName}`;
+  document.getElementById('reply-context-banner').classList.add('open');
+}
+function cancelReply(){
+  replyingTo = null;
+  document.getElementById('comment-input').value = '';
+  document.getElementById('reply-context-banner').classList.remove('open');
+}
+
 async function submitComment(){
   const input = document.getElementById('comment-input');
   const text = input.value.trim();
   if(!text) return;
-  const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, content: text, author_name: currentProfile?.full_name || currentUser.email }); /* === تعديل: حفظ اسم صاحب التعليق === */
+  const parentId = replyingTo ? replyingTo.id : null;
+  const parentOwnerId = replyingTo ? replyingTo.ownerId : null;
+  const { error } = await _supabase.from('post_comments').insert({
+    post_id: currentPostIdForComments,
+    user_id: currentUser.id,
+    parent_id: parentId,
+    content: text,
+    author_name: currentProfile?.full_name || currentUser.email,
+    author_avatar: currentProfile?.avatar_url || getDefaultAvatar()
+  });
+  if(error){ showToast('تعذر إرسال التعليق', 'error'); return; }
+  /* إشعار لصاحب التعليق الأصلي لو كنا بنرد عليه */
+  if(parentOwnerId && parentOwnerId !== currentUser.id){
+    await _supabase.from('notifications').insert({
+      title: 'رد جديد',
+      message: `${currentProfile?.full_name || 'طالب'} رد على تعليقك`,
+      target_user_id: parentOwnerId
+    });
+  }
   input.value = '';
+  cancelReply();
   await renderComments();
   await loadPosts();
 }
-async function submitReply(parentId){
-  const input = document.getElementById('reply-input-'+parentId);
-  const text = input.value.trim();
-  if(!text) return;
-  const { error } = await _supabase.from('post_comments').insert({ post_id: currentPostIdForComments, user_id: currentUser.id, parent_id: parentId, content: text, author_name: currentProfile?.full_name || currentUser.email }); /* === تعديل: حفظ اسم صاحب الرد === */  if(error){ showToast('تعذر إرسال الرد', 'error'); return; }
-  input.value = '';
-  await renderComments();
-  await loadPosts();
-}
+/* === نهاية تعديل === */
 async function toggleCommentLike(commentId, btn){
   const liked = btn.classList.contains('liked');
   if(liked){ await _supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', currentUser.id); }
