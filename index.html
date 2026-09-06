@@ -182,7 +182,6 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 /* === نهاية تعديل === */
 .comment-author{font-size:12px;font-weight:800;color:var(--primary-dark);}
 .comment-text{font-size:13px;margin-top:2px;line-height:1.7;}
-.mention-tag{color:var(--secondary);font-weight:800;}
 .comment-foot{display:flex;align-items:center;gap:14px;margin-top:5px;padding-right:6px;}
 .comment-foot button{background:none;border:none;font-size:11px;font-weight:700;color:var(--text-light);cursor:pointer;}
 .comment-foot button.liked{color:var(--danger);}
@@ -467,6 +466,16 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .color-scroll-row::-webkit-scrollbar{ display:none; height:0; }
 /* === نهاية الإضافة === */
 
+
+
+
+
+
+
+
+
+
+  
 body.dark {
   background: var(--bg);
   color: var(--text);
@@ -579,12 +588,11 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
 .id-upload-box{
   border:2px dashed var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;
   cursor:pointer;transition:var(--transition);margin-bottom:14px;
-  position:relative;overflow:hidden;min-height:170px;display:flex;align-items:center;justify-content:center;
 }
 .id-upload-box:hover{border-color:var(--primary);background:rgba(79,70,229,.04);}
 .id-upload-box i{font-size:32px;color:var(--primary);margin-bottom:8px;}
 .id-upload-box p{font-size:12px;color:var(--text-secondary);}
-.id-upload-preview{width:100%;height:100%;max-height:260px;object-fit:contain;border-radius:var(--radius-sm);display:none;}
+.id-upload-preview{width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius-sm);margin-bottom:14px;display:none;}
 
 /* ===== تصميم صفحة الدعم زي الواتساب (مودال) ===== */
 #support-modal .support-chat-wrapper {
@@ -1336,13 +1344,11 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
       <div style="padding:22px 20px;max-height:75vh;overflow-y:auto;">
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">ارفع صورة كارنيه الكلية وأدخل بياناتك للتحقق من طلب تغيير الفرقة</p>
         <div class="id-upload-box" onclick="document.getElementById('id-card-file-input').click()">
-          <img id="id-upload-preview" class="id-upload-preview">
-          <div id="id-upload-placeholder">
-            <i class="fas fa-camera"></i>
-            <p id="id-upload-label">اضغط لرفع صورة الكارنيه</p>
-          </div>
+          <i class="fas fa-camera"></i>
+          <p id="id-upload-label">اضغط لرفع صورة الكارنيه</p>
         </div>
-        <input type="file" id="id-card-file-input" accept="image/*" capture="environment" style="display:none">
+        <img id="id-upload-preview" class="id-upload-preview">
+        <input type="file" id="id-card-file-input" accept="image/*" style="display:none">
         <div class="acc-field-group">
           <label>الاسم الثلاثي</label>
           <input type="text" id="verify-name-input">
@@ -1837,15 +1843,6 @@ async function sharePost(postId){
   if(linkInput) linkInput.value = shortUrl;
   }
 
-
-
-
-
-
-
-
-
-
 /* ================== التعليقات ================== */
 async function openComments(postId){
   currentPostIdForComments = postId;
@@ -1873,22 +1870,6 @@ async function renderComments(){
   /* === نهاية تعديل === */
   const byParent = {};
   comments.forEach(c=>{ const key = c.parent_id || 'root'; byParent[key] = byParent[key] || []; byParent[key].push(c); });
-  /* === تعديل: خريطة سريعة للتعليقات بالـ id عشان نلوّن اسم المنشن (@) لما نرد على حد === */
-  const commentById = {};
-  comments.forEach(c=>{ commentById[c.id] = c; });
-  function renderCommentContent(c){
-    const raw = c.content || '';
-    if(c.parent_id && commentById[c.parent_id]){
-      const parentName = commentById[c.parent_id].author_name || 'طالب';
-      const mentionPrefix = '@' + parentName + ' ';
-      if(raw.startsWith(mentionPrefix)){
-        const rest = raw.slice(mentionPrefix.length);
-        return `<span class="mention-tag">@${escapeHtml(parentName)}</span> ${escapeHtml(rest)}`;
-      }
-    }
-    return escapeHtml(raw);
-  }
-  /* === نهاية تعديل === */
   function renderNode(c){
     const liked = myLikedSet.has(c.id);
     const replies = byParent[c.id] || [];
@@ -1898,7 +1879,7 @@ async function renderComments(){
     return `<div class="comment-item" data-comment-id="${c.id}" data-owner-id="${c.user_id}">
       <img class="comment-avatar" src="${escapeHtml(avatarUrl)}" alt="">
       <div class="comment-body">
-        <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${renderCommentContent(c)}</div></div>
+        <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${escapeHtml(c.content||'')}</div></div>
         <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="startReply('${c.id}', '${c.user_id}', '${authorLabel.replace(/'/g,"\\'")}')"><i class="far fa-comment-dots"></i> رد</button></div>
         ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
       </div>
@@ -1973,18 +1954,6 @@ async function toggleCommentLike(commentId, btn){
   }
   await renderComments();
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* ================== الدرجات ================== */
 function setTerm(term, el){
@@ -2406,6 +2375,8 @@ async function confirmYearSelection(){
    ============================================================ */
 
 /* دالة موحّدة لعرض حالة الحضور بأيقونة ملوّنة بدل الرموز التعبيرية */
+
+/* دالة موحّدة لعرض حالة الحضور بأيقونة ملوّنة بدل الرموز التعبيرية */
 function getStatusBadge(status){
   if(status === 'present'){
     return `<span class="attendance-status-badge present"><i class="fas fa-circle-check"></i> حاضر</span>`;
@@ -2416,52 +2387,148 @@ function getStatusBadge(status){
   return `<span class="attendance-status-badge absent"><i class="fas fa-circle-xmark"></i> غائب</span>`;
 }
 
-/* === تعديل: دالة تحميل جلسات الحضور النشطة الخاصة بفرقة الطالب فقط (كانت غير معرّفة سابقاً وهذا كان سبب توقف الصفحة على "جاري التحميل" للأبد) === */
-async function loadAttendanceSessions(){
-  const container = document.getElementById('attendance-active-container');
-  if(!container) return;
-  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل جلسات الحضور...</p></div>';
+async function loadAttendanceRecords() {
+  const container = document.getElementById('attendance-records-container');
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
   const year = currentProfile?.academic_year || '1';
-  try{
-    const { data: sessions, error } = await _supabase
-      .from('attendance_sessions')
-      .select('*')
-      .eq('academic_year', year)
-      .order('start_time', { ascending:false })
-      .limit(20);
-
-    if(error){
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل جلسات الحضور</p></div>';
-      return;
-    }
-    if(!sessions || sessions.length === 0){
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد جلسات حضور متاحة حالياً لفرقتك</p></div>';
-      return;
-    }
-
-    const sessionIds = sessions.map(s=>s.id);
-    const { data: myRecords } = await _supabase
+  try {
+    const { data: records, error } = await _supabase
       .from('attendance_records')
-      .select('session_id, status')
+      .select('*, attendance_sessions!inner(subject_name, doctor_name, start_time, academic_year)')
       .eq('student_id', currentUser.id)
-      .in('session_id', sessionIds);
-    const recordMap = {};
-    (myRecords||[]).forEach(r=>{ recordMap[r.session_id] = r.status; });
+      .eq('attendance_sessions.academic_year', year)
+      .order('scan_time', { ascending: false });
 
-    container.innerHTML = sessions.map(s=>{
-      const already = recordMap[s.id];
-      const dateLabel = s.start_time ? new Date(s.start_time).toLocaleString('ar-EG') : '';
-      return `<div class="attendance-session-card">
-        <div class="session-info"><b>${escapeHtml(s.subject_name||'مادة')}</b><span>${escapeHtml(s.doctor_name||'')}</span></div>
-        <div class="session-info"><span>${dateLabel}</span>${already ? getStatusBadge(already) : ''}</div>
-        ${already ? '' : `<div class="qr-container"><button onclick="startQRScanner('${s.id}', '${escapeHtml(s.qr_code||s.session_code||'')}')" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;cursor:pointer;"><i class="fas fa-qrcode"></i> مسح رمز الحضور</button></div>`}
-      </div>`;
-    }).join('');
-  }catch(e){
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ أثناء تحميل الجلسات</p></div>';
+    if (error) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
+    if (!records || records.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد سجلات حضور</p></div>';
+      window._lastAttendanceStats = {};
+      renderAttendanceChart({});
+      return;
+    }
+
+    let subjectStats = {};
+    records.forEach(r => {
+      const subj = r.attendance_sessions?.subject_name || 'غير معروف';
+      if (!subjectStats[subj]) subjectStats[subj] = { total: 0, present: 0, late: 0, absent: 0 };
+      subjectStats[subj].total++;
+      if (r.status === 'present') subjectStats[subj].present++;
+      else if (r.status === 'late') subjectStats[subj].late++;
+      else subjectStats[subj].absent++;
+    });
+
+    let tableHtml = `<table class="top10-table"><thead><tr><th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th><th>نسبة الحضور</th><th>نسبة الغياب</th></tr></thead><tbody>`;
+    records.forEach(r => {
+      const subject = r.attendance_sessions?.subject_name || 'غير معروف';
+      const doctor = r.attendance_sessions?.doctor_name || '-';
+      const date = r.attendance_sessions?.start_time ? new Date(r.attendance_sessions.start_time).toLocaleDateString('ar-EG') : '-';
+      const stats = subjectStats[subject] || { total: 0, present: 0, absent: 0, late: 0 };
+      const presentPct = stats.total ? Math.round((stats.present / stats.total) * 100) : 0;
+      const absentPct = stats.total ? Math.round((stats.absent / stats.total) * 100) : 0;
+      tableHtml += `<tr>
+        <td>${escapeHtml(subject)}</td>
+        <td>${escapeHtml(doctor)}</td>
+        <td>${date}</td>
+        <td>${getStatusBadge(r.status)}</td>
+        <td style="color:var(--success);font-weight:800;">${presentPct}%</td>
+        <td style="color:var(--danger);font-weight:800;">${absentPct}%</td>
+      </tr>`;
+    });
+    tableHtml += '</tbody></table>';
+
+    container.innerHTML = tableHtml;
+    window._lastAttendanceStats = subjectStats;
+    renderAttendanceChart(subjectStats);
+
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>';
   }
 }
-/* === نهاية تعديل === */
+
+
+
+  
+
+async function loadAttendanceRecords() {
+  const container = document.getElementById('attendance-records-container');
+  container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
+  const year = currentProfile?.academic_year || '1';
+  try {
+    /* === تعديل: نجيب الأول كل الجلسات (sessions) الخاصة بفرقة الطالب الحالية === */
+    const { data: yearSessions, error: sessionsError } = await _supabase
+      .from('attendance_sessions')
+      .select('id')
+      .eq('academic_year', year);
+
+    if (sessionsError) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
+
+    const sessionIds = (yearSessions || []).map(s => s.id);
+
+    if (sessionIds.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد سجلات حضور</p></div>';
+      window._lastAttendanceStats = {};
+      renderAttendanceChart({});
+      return;
+    }
+
+    /* === تعديل: نفلتر السجلات بس على الجلسات اللي جبناها فوق (بتاعة فرقة الطالب الحالية) === */
+    const { data: records, error } = await _supabase
+      .from('attendance_records')
+      .select('*, attendance_sessions(subject_name, doctor_name, start_time)')
+      .eq('student_id', currentUser.id)
+      .in('session_id', sessionIds)
+      .order('scan_time', { ascending: false });
+
+    if (error) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
+    if (!records || records.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد سجلات حضور</p></div>';
+      window._lastAttendanceStats = {};
+      renderAttendanceChart({});
+      return;
+    }
+
+    let subjectStats = {};
+    records.forEach(r => {
+      const subj = r.attendance_sessions?.subject_name || 'غير معروف';
+      if (!subjectStats[subj]) subjectStats[subj] = { total: 0, present: 0, late: 0, absent: 0 };
+      subjectStats[subj].total++;
+      if (r.status === 'present') subjectStats[subj].present++;
+      else if (r.status === 'late') subjectStats[subj].late++;
+      else subjectStats[subj].absent++;
+    });
+
+    let tableHtml = `<table class="top10-table"><thead><tr><th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th><th>نسبة الحضور</th><th>نسبة الغياب</th></tr></thead><tbody>`;
+    records.forEach(r => {
+      const subject = r.attendance_sessions?.subject_name || 'غير معروف';
+      const doctor = r.attendance_sessions?.doctor_name || '-';
+      const date = r.attendance_sessions?.start_time ? new Date(r.attendance_sessions.start_time).toLocaleDateString('ar-EG') : '-';
+      const stats = subjectStats[subject] || { total: 0, present: 0, absent: 0, late: 0 };
+      const presentPct = stats.total ? Math.round((stats.present / stats.total) * 100) : 0;
+      const absentPct = stats.total ? Math.round((stats.absent / stats.total) * 100) : 0;
+      tableHtml += `<tr>
+        <td>${escapeHtml(subject)}</td>
+        <td>${escapeHtml(doctor)}</td>
+        <td>${date}</td>
+        <td>${getStatusBadge(r.status)}</td>
+        <td style="color:var(--success);font-weight:800;">${presentPct}%</td>
+        <td style="color:var(--danger);font-weight:800;">${absentPct}%</td>
+      </tr>`;
+    });
+    tableHtml += '</tbody></table>';
+
+    container.innerHTML = tableHtml;
+    window._lastAttendanceStats = subjectStats;
+    renderAttendanceChart(subjectStats);
+
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>';
+  }
+  }
+
+
+
+
+  
 
 let html5QrCode = null;
 function startQRScanner(sessionId, expectedCode) {
@@ -2540,35 +2607,14 @@ async function markAttendance(sessionId, status) {
   }
 }
 
-/* === تعديل: توحيد دالة تحميل سجل الحضور في نسخة واحدة فقط، مفلترة بفرقة الطالب الحالية (تم حذف نسختين مكررتين كانتا تتعارض وتظهر بيانات كل الفرق مع بعض) === */
 async function loadAttendanceRecords() {
   const container = document.getElementById('attendance-records-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
-  const year = currentProfile?.academic_year || '1';
   try {
-    // نجيب الأول كل الجلسات (sessions) الخاصة بفرقة الطالب الحالية
-    const { data: yearSessions, error: sessionsError } = await _supabase
-      .from('attendance_sessions')
-      .select('id')
-      .eq('academic_year', year);
-
-    if (sessionsError) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
-
-    const sessionIds = (yearSessions || []).map(s => s.id);
-
-    if (sessionIds.length === 0) {
-      container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد سجلات حضور</p></div>';
-      window._lastAttendanceStats = {};
-      renderAttendanceChart({});
-      return;
-    }
-
-    // نفلتر السجلات بس على الجلسات اللي جبناها فوق (بتاعة فرقة الطالب الحالية)
     const { data: records, error } = await _supabase
       .from('attendance_records')
       .select('*, attendance_sessions(subject_name, doctor_name, start_time)')
       .eq('student_id', currentUser.id)
-      .in('session_id', sessionIds)
       .order('scan_time', { ascending: false });
 
     if (error) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>'; return; }
@@ -2579,6 +2625,7 @@ async function loadAttendanceRecords() {
       return;
     }
 
+    // نحسب الإحصائيات لكل مادة عشان نغذي بيها الرسم البياني وأعمدة النسبة في الجدول
     let subjectStats = {};
     records.forEach(r => {
       const subj = r.attendance_sessions?.subject_name || 'غير معروف';
@@ -2589,6 +2636,7 @@ async function loadAttendanceRecords() {
       else subjectStats[subj].absent++;
     });
 
+    /* === تعديل 2: إضافة عمود "نسبة الحضور" و"نسبة الغياب" لكل صف === */
     let tableHtml = `<table class="top10-table"><thead><tr><th>المادة</th><th>الدكتور</th><th>التاريخ</th><th>الحالة</th><th>نسبة الحضور</th><th>نسبة الغياب</th></tr></thead><tbody>`;
     records.forEach(r => {
       const subject = r.attendance_sessions?.subject_name || 'غير معروف';
@@ -2607,6 +2655,7 @@ async function loadAttendanceRecords() {
       </tr>`;
     });
     tableHtml += '</tbody></table>';
+    /* === نهاية تعديل 2 === */
 
     container.innerHTML = tableHtml;
     window._lastAttendanceStats = subjectStats;
@@ -2616,7 +2665,6 @@ async function loadAttendanceRecords() {
     container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ</p></div>';
   }
 }
-/* === نهاية تعديل === */
 
 function renderAttendanceChart(subjectStats = null) {
   const canvas = document.getElementById('attendance-chart');
@@ -2738,6 +2786,10 @@ function renderAttendanceChart(subjectStats = null) {
   });
   /* === نهاية تعديل 3 === */
 }
+
+
+
+
 
 /* ============================================================
    ========== نظام العشرة الأوائل ==========
@@ -3484,8 +3536,6 @@ function proceedToIdentityVerify(){
   closeChangeYearModal();
   idCardFile = null;
   document.getElementById('id-upload-preview').style.display = 'none';
-  document.getElementById('id-upload-preview').removeAttribute('src');
-  document.getElementById('id-upload-placeholder').style.display = 'flex';
   document.getElementById('id-upload-label').innerText = 'اضغط لرفع صورة الكارنيه';
   document.getElementById('verify-name-input').value = currentProfile?.full_name || '';
   document.getElementById('verify-email-input').value = currentUser?.email || '';
@@ -3500,10 +3550,9 @@ document.getElementById('id-card-file-input').addEventListener('change', (e)=>{
   if(!file) return;
   idCardFile = file;
   const preview = document.getElementById('id-upload-preview');
-  const placeholder = document.getElementById('id-upload-placeholder');
   preview.src = URL.createObjectURL(file);
   preview.style.display = 'block';
-  if(placeholder) placeholder.style.display = 'none';
+  document.getElementById('id-upload-label').innerText = 'تم اختيار الصورة، اضغط لتغييرها';
 });
 
 async function submitYearChangeRequest(){
@@ -3694,5 +3743,3 @@ document.getElementById('support-text-input-modal')?.addEventListener('keydown',
 </script>
 </body>
 </html>
-
-  
