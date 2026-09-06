@@ -1846,6 +1846,134 @@ async function sharePost(postId){
 
 
 
+/* ================== التعليقات ================== */
+async function openComments(postId){
+  currentPostIdForComments = postId;
+  document.getElementById('comments-overlay').classList.add('open');
+  await renderComments();
+}
+function closeComments(){
+  document.getElementById('comments-overlay').classList.remove('open');
+  currentPostIdForComments = null;
+}
+async function renderComments(){
+  const list = document.getElementById('comments-list');
+  list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+  const { data: comments, error } = await _supabase.from('post_comments').select('*')
+    .eq('post_id', currentPostIdForComments).order('created_at', { ascending:true });
+  if(error || !comments){ list.innerHTML = '<div class="notif-empty">تعذر تحميل التعليقات</div>'; return; }
+  if(comments.length === 0){ list.innerHTML = '<div class="notif-empty">لا توجد تعليقات بعد، كن أول من يعلق</div>'; return; }
+  const { data: myLikes } = await _supabase.from('comment_likes').select('comment_id').eq('user_id', currentUser.id);
+  const myLikedSet = new Set((myLikes||[]).map(l=>l.comment_id));
+  /* === تعديل: جلب عدد الإعجابات لكل تعليق === */
+  const commentIds = comments.map(c=>c.id);
+  const { data: allCommentLikes } = await _supabase.from('comment_likes').select('comment_id').in('comment_id', commentIds);
+  const likeCountMap = {};
+  (allCommentLikes||[]).forEach(l=>{ likeCountMap[l.comment_id] = (likeCountMap[l.comment_id]||0) + 1; });
+  /* === نهاية تعديل === */
+  const byParent = {};
+  comments.forEach(c=>{ const key = c.parent_id || 'root'; byParent[key] = byParent[key] || []; byParent[key].push(c); });
+  /* === تعديل: خريطة سريعة للتعليقات بالـ id عشان نلوّن اسم المنشن (@) لما نرد على حد === */
+  const commentById = {};
+  comments.forEach(c=>{ commentById[c.id] = c; });
+  function renderCommentContent(c){
+    const raw = c.content || '';
+    if(c.parent_id && commentById[c.parent_id]){
+      const parentName = commentById[c.parent_id].author_name || 'طالب';
+      const mentionPrefix = '@' + parentName + ' ';
+      if(raw.startsWith(mentionPrefix)){
+        const rest = raw.slice(mentionPrefix.length);
+        return `<span class="mention-tag">@${escapeHtml(parentName)}</span> ${escapeHtml(rest)}`;
+      }
+    }
+    return escapeHtml(raw);
+  }
+  /* === نهاية تعديل === */
+  function renderNode(c){
+    const liked = myLikedSet.has(c.id);
+    const replies = byParent[c.id] || [];
+    const authorLabel = c.author_name ? escapeHtml(c.author_name) : (c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب');
+    /* === تعديل: صورة صاحب التعليق جنب اسمه === */
+    const avatarUrl = c.author_avatar || getAvatarForName(c.author_name || authorLabel);
+    return `<div class="comment-item" data-comment-id="${c.id}" data-owner-id="${c.user_id}">
+      <img class="comment-avatar" src="${escapeHtml(avatarUrl)}" alt="">
+      <div class="comment-body">
+        <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${renderCommentContent(c)}</div></div>
+        <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="startReply('${c.id}', '${c.user_id}', '${authorLabel.replace(/'/g,"\\'")}')"><i class="far fa-comment-dots"></i> رد</button></div>
+        ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
+      </div>
+    </div>`;
+    /* === نهاية تعديل === */
+  }
+  const roots = byParent['root'] || [];
+  list.innerHTML = roots.map(renderNode).join('');
+  }
+/* === تعديل: نظام المنشن للرد بدل صندوق رد منفصل لكل تعليق === */
+let replyingTo = null;
+
+function startReply(commentId, ownerId, authorName){
+  replyingTo = { id: commentId, ownerId, name: authorName };
+  const input = document.getElementById('comment-input');
+  input.value = `@${authorName} `;
+  input.focus();
+  document.getElementById('reply-context-text').innerText = `الرد على @${authorName}`;
+  document.getElementById('reply-context-banner').classList.add('open');
+}
+function cancelReply(){
+  replyingTo = null;
+  document.getElementById('comment-input').value = '';
+  document.getElementById('reply-context-banner').classList.remove('open');
+}
+
+async function submitComment(){
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const parentId = replyingTo ? replyingTo.id : null;
+  const parentOwnerId = replyingTo ? replyingTo.ownerId : null;
+  const { error } = await _supabase.from('post_comments').insert({
+    post_id: currentPostIdForComments,
+    user_id: currentUser.id,
+    parent_id: parentId,
+    content: text,
+    author_name: currentProfile?.full_name || currentUser.email,
+    author_avatar: currentProfile?.avatar_url || getDefaultAvatar()
+  });
+  if(error){ showToast('تعذر إرسال التعليق', 'error'); return; }
+  /* إشعار لصاحب التعليق الأصلي لو كنا بنرد عليه */
+  if(parentOwnerId && parentOwnerId !== currentUser.id){
+    await _supabase.from('notifications').insert({
+      title: 'رد جديد',
+      message: `${currentProfile?.full_name || 'طالب'} رد على تعليقك`,
+      target_user_id: parentOwnerId
+    });
+  }
+  input.value = '';
+  cancelReply();
+  await renderComments();
+  await loadPosts();
+}
+/* === نهاية تعديل === */
+async function toggleCommentLike(commentId, btn){
+  const liked = btn.classList.contains('liked');
+  const ownerId = btn.closest('.comment-item')?.dataset.ownerId;
+  if(liked){
+    await _supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', currentUser.id);
+  } else {
+    await _supabase.from('comment_likes').insert({ comment_id: commentId, user_id: currentUser.id });
+    /* === تعديل: إشعار صاحب التعليق بالإعجاب === */
+    if(ownerId && ownerId !== currentUser.id){
+      await _supabase.from('notifications').insert({
+        title: 'إعجاب جديد',
+        message: `${currentProfile?.full_name || 'طالب'} أعجب بتعليقك`,
+        target_user_id: ownerId
+      });
+    }
+    /* === نهاية تعديل === */
+  }
+  await renderComments();
+  }
+
 
 
 
