@@ -185,8 +185,16 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .comment-foot{display:flex;align-items:center;gap:14px;margin-top:5px;padding-right:6px;}
 .comment-foot button{background:none;border:none;font-size:11px;font-weight:700;color:var(--text-light);cursor:pointer;}
 .comment-foot button.liked{color:var(--danger);}
-.comment-replies{margin-right:14px;margin-top:10px;border-right:2px solid var(--border);padding-right:12px;}
-/* === تعديل: بانر الرد على تعليق معين === */
+.comment-replies{margin-right:14px;margin-top:10px;border-right:2px solid var(--border);padding-right:12px;display:none;}
+.comment-replies.open{display:block;}
+/* === تعديل: لون المنشن (@اسم) في نص الرد === */
+.mention-tag{color:#0ea5e9;font-weight:800;}
+/* === تعديل: زرار عرض/إخفاء الردود === */
+.toggle-replies-btn{background:none;border:none;font-size:12px;font-weight:700;color:var(--primary);cursor:pointer;margin-top:8px;display:flex;align-items:center;gap:6px;}
+.toggle-replies-btn i{transition:transform .2s;}
+.toggle-replies-btn.open i{transform:rotate(180deg);}
+/* === نهاية تعديل === */ 
+  /* === تعديل: بانر الرد على تعليق معين === */
 .reply-context-banner{display:none;align-items:center;justify-content:space-between;padding:8px 16px;font-size:12px;font-weight:700;color:var(--primary);background:var(--bg);border-top:1px solid var(--border);}
 .reply-context-banner.open{display:flex;}
 .reply-context-banner button{background:none;border:none;color:var(--text-light);cursor:pointer;font-size:14px;}
@@ -1853,6 +1861,9 @@ function closeComments(){
   document.getElementById('comments-overlay').classList.remove('open');
   currentPostIdForComments = null;
 }
+
+
+
 async function renderComments(){
   const list = document.getElementById('comments-list');
   list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
@@ -1862,33 +1873,69 @@ async function renderComments(){
   if(comments.length === 0){ list.innerHTML = '<div class="notif-empty">لا توجد تعليقات بعد، كن أول من يعلق</div>'; return; }
   const { data: myLikes } = await _supabase.from('comment_likes').select('comment_id').eq('user_id', currentUser.id);
   const myLikedSet = new Set((myLikes||[]).map(l=>l.comment_id));
-  /* === تعديل: جلب عدد الإعجابات لكل تعليق === */
   const commentIds = comments.map(c=>c.id);
   const { data: allCommentLikes } = await _supabase.from('comment_likes').select('comment_id').in('comment_id', commentIds);
   const likeCountMap = {};
   (allCommentLikes||[]).forEach(l=>{ likeCountMap[l.comment_id] = (likeCountMap[l.comment_id]||0) + 1; });
-  /* === نهاية تعديل === */
   const byParent = {};
   comments.forEach(c=>{ const key = c.parent_id || 'root'; byParent[key] = byParent[key] || []; byParent[key].push(c); });
+
+  /* === تعديل: عدّ كل الردود المتفرعة تحت تعليق معين (مش بس المباشرة) === */
+  function countAllReplies(commentId){
+    const direct = byParent[commentId] || [];
+    let total = direct.length;
+    direct.forEach(r => { total += countAllReplies(r.id); });
+    return total;
+  }
+  /* === نهاية تعديل === */
+
+  /* === تعديل: تلوين المنشن (@الاسم) في بداية نص الرد بلون مميز === */
+  function renderCommentText(c){
+    const rawText = c.content || '';
+    if(c.mention_name && rawText.startsWith('@'+c.mention_name)){
+      const mentionPart = escapeHtml('@'+c.mention_name);
+      const restPart = escapeHtml(rawText.slice(('@'+c.mention_name).length));
+      return `<span class="mention-tag">${mentionPart}</span>${restPart}`;
+    }
+    return escapeHtml(rawText);
+  }
+  /* === نهاية تعديل === */
+
   function renderNode(c){
     const liked = myLikedSet.has(c.id);
     const replies = byParent[c.id] || [];
     const authorLabel = c.author_name ? escapeHtml(c.author_name) : (c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب');
-    /* === تعديل: صورة صاحب التعليق جنب اسمه === */
     const avatarUrl = c.author_avatar || getAvatarForName(c.author_name || authorLabel);
+    const repliesCount = countAllReplies(c.id); /* === تعديل === */
     return `<div class="comment-item" data-comment-id="${c.id}" data-owner-id="${c.user_id}">
       <img class="comment-avatar" src="${escapeHtml(avatarUrl)}" alt="">
       <div class="comment-body">
-        <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${escapeHtml(c.content||'')}</div></div>
+        <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${renderCommentText(c)}</div></div>
         <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="startReply('${c.id}', '${c.user_id}', '${authorLabel.replace(/'/g,"\\'")}')"><i class="far fa-comment-dots"></i> رد</button></div>
-        ${replies.length ? `<div class="comment-replies">${replies.map(renderNode).join('')}</div>` : ''}
+        ${repliesCount > 0 ? `
+          <!-- === تعديل: زرار عرض/إخفاء الردود بدل ما تظهر مباشرة === -->
+          <button class="toggle-replies-btn" onclick="toggleRepliesVisibility('${c.id}', this)">
+            <span>عرض ${repliesCount} ${repliesCount === 1 ? 'رد' : 'ردود'}</span> <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="comment-replies" id="replies-${c.id}">${replies.map(renderNode).join('')}</div>
+          <!-- === نهاية تعديل === -->
+        ` : ''}
       </div>
     </div>`;
-    /* === نهاية تعديل === */
   }
   const roots = byParent['root'] || [];
   list.innerHTML = roots.map(renderNode).join('');
-  }
+}
+
+/* === تعديل: دالة إظهار/إخفاء الردود عند الضغط على الزرار === */
+function toggleRepliesVisibility(commentId, btn){
+  const box = document.getElementById('replies-'+commentId);
+  const isOpen = box.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+/* === نهاية تعديل === */
+
+  
 /* === تعديل: نظام المنشن للرد بدل صندوق رد منفصل لكل تعليق === */
 let replyingTo = null;
 
@@ -1918,7 +1965,8 @@ async function submitComment(){
     parent_id: parentId,
     content: text,
     author_name: currentProfile?.full_name || currentUser.email,
-    author_avatar: currentProfile?.avatar_url || getDefaultAvatar()
+    author_avatar: currentProfile?.avatar_url || getDefaultAvatar(),
+    mention_name: replyingTo ? replyingTo.name : null /* === تعديل: حفظ اسم الشخص المنشَن بشكل منفصل === */
   });
   if(error){ showToast('تعذر إرسال التعليق', 'error'); return; }
   /* إشعار لصاحب التعليق الأصلي لو كنا بنرد عليه */
