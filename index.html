@@ -3590,15 +3590,46 @@ function proceedToIdentityVerify(){
   if(!pendingNewYear) return;
   closeChangeYearModal();
   idCardFile = null;
-  document.getElementById('id-upload-preview').style.display = 'none';
-  document.getElementById('id-upload-label').innerText = 'اضغط لرفع صورة الكارنيه';
-  document.getElementById('verify-name-input').value = currentProfile?.full_name || '';
+document.getElementById('id-upload-preview').style.display = 'none';
+document.getElementById('id-upload-placeholder').style.display = 'block';  document.getElementById('verify-name-input').value = currentProfile?.full_name || '';
   document.getElementById('verify-email-input').value = currentUser?.email || '';
   document.getElementById('verify-phone-input').value = currentProfile?.phone_number || '';
   document.getElementById('verify-idnum-input').value = '';
   document.getElementById('identity-verify-modal').classList.add('open');
 }
 function closeIdentityVerifyModal(){ document.getElementById('identity-verify-modal').classList.remove('open'); }
+
+let idCardFile = null;
+let idPressTimer = null;
+let idLongPressTriggered = false;
+
+const idUploadBox = document.getElementById('id-upload-box');
+idUploadBox.addEventListener('touchstart', idPressStart);
+idUploadBox.addEventListener('mousedown', idPressStart);
+idUploadBox.addEventListener('touchend', idPressEnd);
+idUploadBox.addEventListener('mouseup', idPressEnd);
+idUploadBox.addEventListener('touchmove', idPressCancel);
+idUploadBox.addEventListener('mouseleave', idPressCancel);
+
+function idPressStart(){
+  idLongPressTriggered = false;
+  idPressTimer = setTimeout(()=>{
+    idLongPressTriggered = true;
+    if(idCardFile) viewIdCardImageFull();
+  }, 450);
+}
+function idPressEnd(){
+  clearTimeout(idPressTimer);
+  if(!idLongPressTriggered){
+    document.getElementById('id-card-file-input').click();
+  }
+}
+function idPressCancel(){ clearTimeout(idPressTimer); }
+
+function viewIdCardImageFull(){
+  document.getElementById('id-fullimage-img').src = document.getElementById('id-upload-preview').src;
+  document.getElementById('id-fullimage-overlay').style.display = 'flex';
+}
 
 document.getElementById('id-card-file-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
@@ -3607,7 +3638,7 @@ document.getElementById('id-card-file-input').addEventListener('change', (e)=>{
   const preview = document.getElementById('id-upload-preview');
   preview.src = URL.createObjectURL(file);
   preview.style.display = 'block';
-  document.getElementById('id-upload-label').innerText = 'تم اختيار الصورة، اضغط لتغييرها';
+  document.getElementById('id-upload-placeholder').style.display = 'none';
 });
 
 async function submitYearChangeRequest(){
