@@ -3637,8 +3637,14 @@ const FAQ_ANSWERS = {
   photo: 'تقدر تغيّر صورتك الشخصية بالضغط على أيقونة القلم اللي على صورتك في القائمة الجانبية أو من "تعديل البيانات".',
   schedule: 'تقدر تشوف جدولك الدراسي من القائمة الجانبية → "الجدول الدراسي"، واختار الترم اللي عايزه.',
   fees: 'مصاريف معهد مصر العالي 2026/2027 - نظم المعلومات:\nالفرقة الأولى: 25 ألف جنيه\nالفرقة الثانية: 21 لـ 22 ألف جنيه\nالفرقة الثالثة: 20 لـ 21 ألف جنيه\nالفرقة الرابعة: 18 لـ 20 ألف جنيه',
-  websites: 'مواقع المعهد نظم المعلومات:\nموقع ابن الهيثم: https://stda.mans.edu.eg/\nموقع المنصة التعليمية: https://student.metmans.edu.eg/\nموقع الكويزات: https://exexams.mans.edu.eg/'
-};
+  websites: `
+  <div style="font-weight:800;margin-bottom:8px;">مواقع المعهد نظم المعلومات:</div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <a href="https://stda.mans.edu.eg/" target="_blank" style="color:#38bdf8;font-weight:700;text-decoration:underline;">موقع ابن الهيثم</a>
+    <a href="https://student.metmans.edu.eg/" target="_blank" style="color:#38bdf8;font-weight:700;text-decoration:underline;">موقع المنصة التعليمية</a>
+    <a href="https://exexams.mans.edu.eg/" target="_blank" style="color:#38bdf8;font-weight:700;text-decoration:underline;">موقع الكويزات</a>
+  </div>
+`};
 const FAQ_QUESTIONS = [
   { key: 'grades', label: 'إزاي أعرف درجاتي؟' },
   { key: 'attendance', label: 'إزاي أسجل حضوري؟' },
@@ -3676,6 +3682,20 @@ function addBotMessageModal(text) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
+
+
+/* === جديد: عرض رسالة بوت بها HTML حقيقي (روابط قابلة للضغط) === */
+function addBotMessageHtmlModal(html) {
+  const chatArea = document.getElementById('support-chat-modal');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble bot';
+  bubble.innerHTML = html;
+  chatArea.appendChild(bubble);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+
+  
 function addUserMessageModal(text) {
   const chatArea = document.getElementById('support-chat-modal');
   const bubble = document.createElement('div');
@@ -3724,7 +3744,12 @@ function renderFaqGridModal() {
 function askFaqModal(key, label) {
   addUserMessageModal(label);
   setTimeout(() => {
-    addBotMessageModal(FAQ_ANSWERS[key] || 'عذراً، لا توجد إجابة لهذا السؤال حالياً.');
+    const answer = FAQ_ANSWERS[key] || 'عذراً، لا توجد إجابة لهذا السؤال حالياً.';
+    if (key === 'websites') {
+      addBotMessageHtmlModal(answer);
+    } else {
+      addBotMessageModal(answer);
+    }
   }, 400);
 }
 
@@ -3760,13 +3785,16 @@ function submitSupportTextMessageModal() {
 
   setTimeout(() => {
     if (matched) {
-      addBotMessageModal(FAQ_ANSWERS[matched.key]);
+      if (matched.key === 'websites') {
+        addBotMessageHtmlModal(FAQ_ANSWERS[matched.key]);
+      } else {
+        addBotMessageModal(FAQ_ANSWERS[matched.key]);
+      }
     } else {
       addBotMessageModal('لا توجد هذه المعلومات لدينا حالياً تقدر تتواصل مع فريق الدعم مباشرة للمساعدة.');
     }
   }, 500);
-}
-
+  
 // دعم الضغط على Enter في شريط الإدخال
 document.getElementById('support-text-input-modal')?.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
