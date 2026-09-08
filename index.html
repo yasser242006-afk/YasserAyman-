@@ -135,8 +135,8 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--text);}
 .welcome-box p{margin-top:8px;font-size:13px;color:var(--text-secondary);}
 
 /* === تعديل: عرض المنشورات كسلايدر أفقي (بوست واحد بالمرة) بدل ما تكون تحت بعض === */
-#posts-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:16px;scrollbar-width:none;-ms-overflow-style:none;}
-#posts-container::-webkit-scrollbar{display:none;height:0;}
+#posts-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:16px;scrollbar-width:none;-ms-overflow-style:none;justify-content:center;align-items:flex-start;}
+  #posts-container::-webkit-scrollbar{display:none;height:0;}
 .post-card{background:var(--bg-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border);
   margin-bottom:16px;overflow:hidden;flex:0 0 100%;scroll-snap-align:start;}
 /* === نهاية تعديل === */
