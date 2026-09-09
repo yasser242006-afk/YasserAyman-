@@ -880,7 +880,12 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
   font-family:var(--font-family);font-weight:800;font-size:14px;cursor:pointer;transition:var(--transition);
   display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(79,70,229,.3);}
 .exam-submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(79,70,229,.4);}
-
+.exam-divider{
+  border:none;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--border) 15%, var(--border) 85%, transparent);
+  margin:20px 0;
+} 
 </style>
 </head>
 <body>
@@ -1040,9 +1045,9 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
           </div>
           <button class="q-search-btn" onclick="loadExamQuestions()"><i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span></button>
         </div>
-        <hr class="exam-divider">
-        <div id="exam-questions-container"><div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة والترم ونوع الامتحان ثم اضغط بحث</p></div></div>
       </div>
+      <hr class="exam-divider">
+      <div id="exam-questions-container"><div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة والترم ونوع الامتحان ثم اضغط بحث</p></div></div>
     </section>
 
     <!-- SCHEDULE -->
@@ -2900,6 +2905,7 @@ let examTimerInterval = null;
 let examTimeLimit = 0;
 let examEndTime = null;
 let studentAnswers = {};
+let examRemainingSeconds = null;
 
 async function loadExamQuestions() {
   const subject = document.getElementById('questions-subject').value;
@@ -2955,20 +2961,37 @@ function renderQuestion() {
   const options = [q.option1, q.option2, q.option3, q.option4].filter(o => o && o.trim() !== '');
   options.forEach((opt, i) => {
     const letter = String.fromCharCode(65 + i);
-    const checked = studentAnswers[q.id] === opt ? 'checked' : '';
-    optionsHtml += `<div style="display:flex;align-items:center;gap:8px;margin:6px 0;"><input type="radio" name="question_${q.id}" value="${escapeHtml(opt)}" id="opt_${q.id}_${i}" ${checked} onchange="studentAnswers['${q.id}']=this.value"><label for="opt_${q.id}_${i}" style="font-size:14px;">${letter}. ${escapeHtml(opt)}</label></div>`;
+    const checked = studentAnswers[q.id] === opt;
+    optionsHtml += `
+      <label class="exam-option-row ${checked ? 'selected' : ''}">
+        <input type="radio" name="question_${q.id}" value="${escapeHtml(opt)}" ${checked ? 'checked' : ''} onchange="selectExamOption('${q.id}', this)">
+        <span class="exam-option-letter">${letter}</span>
+        <span class="exam-option-text">${escapeHtml(opt)}</span>
+      </label>`;
   });
   container.innerHTML = `
-    <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;color:var(--text-secondary);">السؤال ${idx} من ${total}</span><span id="exam-timer" style="font-size:14px;font-weight:700;color:var(--danger);">⏱️ 00:00</span></div>
-    <div style="background:var(--bg);padding:14px;border-radius:var(--radius-md);margin-bottom:14px;"><p style="font-size:15px;font-weight:600;">${escapeHtml(q.question_text)}</p></div>
-    <div style="padding:0 4px;">${optionsHtml}</div>
-    <div style="display:flex;justify-content:space-between;margin-top:16px;gap:10px;">
-      <button class="icon-btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''} style="background:var(--bg);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--text-secondary);"><i class="fas fa-chevron-right"></i> السابق</button>
-      <button class="icon-btn" onclick="nextQuestion()" ${currentQuestionIndex === total-1 ? 'disabled' : ''} style="background:var(--bg);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--text-secondary);">التالي <i class="fas fa-chevron-left"></i></button>
+    <div class="exam-progress-row">
+      <span class="exam-progress-badge">السؤال ${idx} من ${total}</span>
+      <span class="exam-timer-badge" id="exam-timer"><i class="fas fa-stopwatch"></i> 00:00</span>
     </div>
-    <div style="margin-top:16px;"><button onclick="submitExam()" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font-family);font-weight:700;font-size:14px;cursor:pointer;"><i class="fas fa-paper-plane"></i> إنهاء وإرسال الامتحان</button></div>
+    <div class="exam-question-box"><p class="exam-question-text">${escapeHtml(q.question_text)}</p></div>
+    <div class="exam-options-list">${optionsHtml}</div>
+    <div class="exam-nav-row">
+      <button class="exam-nav-btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i> السابق</button>
+      <button class="exam-nav-btn" onclick="nextQuestion()" ${currentQuestionIndex === total - 1 ? 'disabled' : ''}>التالي <i class="fas fa-chevron-left"></i></button>
+    </div>
+    <button class="exam-submit-btn" onclick="submitExam()"><i class="fas fa-paper-plane"></i> إنهاء وإرسال الامتحان</button>
   `;
+  updateExamTimerDisplay();
 }
+
+/* === جديد: تحديد إجابة وتحديث تظليل الاختيار المحدد === */
+function selectExamOption(qId, input){
+  studentAnswers[qId] = input.value;
+  document.querySelectorAll(`input[name="question_${qId}"]`).forEach(r=>{
+    r.closest('.exam-option-row').classList.toggle('selected', r.checked);
+  });
+                   }
 
 function prevQuestion() { if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); } }
 function nextQuestion() { if (currentQuestionIndex < currentExamQuestions.length - 1) { currentQuestionIndex++; renderQuestion(); } }
@@ -2982,14 +3005,22 @@ function startExamTimer() {
     if (diff > 0) timeLeft = Math.min(diff, examTimeLimit);
     else { showToast('انتهى وقت الامتحان', 'error'); submitExam(); return; }
   }
+  examRemainingSeconds = timeLeft;
+  updateExamTimerDisplay();
   examTimerInterval = setInterval(() => {
-    timeLeft--;
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = Math.floor(timeLeft % 60);
-    const timerEl = document.getElementById('exam-timer');
-    if (timerEl) timerEl.innerText = `⏱️ ${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
-    if (timeLeft <= 0) { clearInterval(examTimerInterval); showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error'); submitExam(); }
+    examRemainingSeconds--;
+    updateExamTimerDisplay();
+    if (examRemainingSeconds <= 0) { clearInterval(examTimerInterval); showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error'); submitExam(); }
   }, 1000);
+}
+
+/* === جديد: تحديث عرض العداد بدون إيموجي === */
+function updateExamTimerDisplay(){
+  const timerEl = document.getElementById('exam-timer');
+  if(!timerEl || examRemainingSeconds == null) return;
+  const minutes = Math.floor(examRemainingSeconds / 60);
+  const seconds = Math.floor(examRemainingSeconds % 60);
+  timerEl.innerHTML = `<i class="fas fa-stopwatch"></i> ${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
 }
 
 async function submitExam() {
@@ -2997,8 +3028,16 @@ async function submitExam() {
   const total = currentExamQuestions.length;
   const answered = Object.keys(studentAnswers).length;
   if (answered < total) {
-    const confirmSubmit = confirm(`أنت لم تجب على ${total - answered} سؤال. هل تريد الإرسال على أي حال؟`);
-    if (!confirmSubmit) return;
+    const confirmSubmit = await showConfirm({
+      title: 'لم تكمل الإجابة',
+      message: `أنت لم تجب على ${total - answered} سؤال. هل تريد الإرسال على أي حال؟`,
+      confirmText: 'إرسال على أي حال',
+      cancelText: 'رجوع للامتحان',
+      icon: 'fas fa-triangle-exclamation',
+      iconClass: 'danger',
+      confirmClass: 'danger'
+    });
+    if (!confirmSubmit) { startExamTimer(); return; }
   }
   let correct = 0;
   currentExamQuestions.forEach(q => {
