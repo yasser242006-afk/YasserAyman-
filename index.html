@@ -840,7 +840,46 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
 .id-upload-box{ position:relative; overflow:hidden; } 
 
 
+/* === تصميم صفحة عرض أسئلة الامتحان === */
+.exam-divider{border:none;border-top:1px dashed var(--border);margin:18px 0;}
 
+.exam-progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.exam-progress-badge{font-size:12px;font-weight:700;color:var(--text-secondary);background:var(--bg);padding:6px 12px;border-radius:20px;}
+.exam-timer-badge{font-size:13px;font-weight:800;color:var(--danger);background:rgba(239,68,68,.08);padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;}
+.exam-timer-badge i{font-size:12px;}
+
+.exam-question-box{background:linear-gradient(180deg,var(--bg),var(--bg-card));border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 16px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.exam-question-text{font-size:15px;font-weight:700;line-height:1.8;color:var(--text);}
+
+.exam-options-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.exam-option-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--bg);cursor:pointer;transition:var(--transition);}
+.exam-option-row:hover{border-color:var(--primary-light);}
+.exam-option-row.selected{border-color:var(--primary);background:rgba(79,70,229,.06);box-shadow:0 2px 8px rgba(79,70,229,.15);}
+.exam-option-row input[type=radio]{
+  appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  border:2.5px solid var(--border);flex-shrink:0;cursor:pointer;position:relative;transition:var(--transition);
+}
+.exam-option-row input[type=radio]:checked{border-color:var(--primary);background:var(--primary);}
+.exam-option-row input[type=radio]:checked::after{
+  content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:8px;height:8px;border-radius:50%;background:#fff;
+}
+.exam-option-letter{width:26px;height:26px;border-radius:50%;background:var(--primary-light);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.exam-option-row.selected .exam-option-letter{background:var(--primary);}
+.exam-option-text{font-size:14px;font-weight:600;color:var(--text);flex:1;}
+
+.exam-nav-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:16px;}
+.exam-nav-btn{flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);
+  font-family:var(--font-family);font-size:13px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:6px;}
+.exam-nav-btn:hover:not(:disabled){border-color:var(--primary-light);color:var(--primary);}
+.exam-nav-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.exam-submit-btn{width:100%;padding:13px;border-radius:var(--radius-sm);border:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+  font-family:var(--font-family);font-weight:800;font-size:14px;cursor:pointer;transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(79,70,229,.3);}
+.exam-submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(79,70,229,.4);}
 
 </style>
 </head>
@@ -1001,6 +1040,7 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
           </div>
           <button class="q-search-btn" onclick="loadExamQuestions()"><i class="fas fa-magnifying-glass"></i><span>عرض الأسئلة</span></button>
         </div>
+        <hr class="exam-divider">
         <div id="exam-questions-container"><div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة والترم ونوع الامتحان ثم اضغط بحث</p></div></div>
       </div>
     </section>
