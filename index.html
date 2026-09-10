@@ -2781,7 +2781,7 @@ async function markAttendance(sessionId, status) {
   if (error) {
     showToast('حدث خطأ في تسجيل الحضور', 'error');
   } else {
-    showToast('تم تسجيل الحضور بنجاح ✅', 'success');
+    showToast('تم تسجيل الحضور بنجاح ', 'success');
     loadAttendanceSessions();
     loadAttendanceRecords();
   }
@@ -3212,7 +3212,7 @@ function showCashInput(rank, gradeData) {
   modal.innerHTML = `
     <div style="background:#fff;border-radius:24px;padding:24px;max-width:340px;width:90%;text-align:center;box-shadow:var(--shadow-lg);">
       <i class="fas fa-trophy" style="font-size:40px;color:var(--warn);"></i>
-      <h3 style="font-size:18px;font-weight:800;margin:10px 0;">🎉 مكافأة المركز ${rank}</h3>
+      <h3 style="font-size:18px;font-weight:800;margin:10px 0;"> مكافأة المركز ${rank}</h3>
       <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">لقد حصلت على مكافأة 50 جنيه. أدخل رقم فودافون كاش لاستلامها:</p>
       <input type="text" id="cash-number" placeholder="رقم فودافون كاش" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-family);font-size:14px;margin-bottom:12px;">
       <button onclick="submitCashNumber('${gradeData.subject_name}', ${gradeData.term}, '${gradeData.exam_type}')" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-weight:700;font-size:14px;cursor:pointer;">إرسال</button>
@@ -3379,7 +3379,7 @@ function installPWA() {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choice) => {
       if (choice.outcome === 'accepted') {
-        showToast('تم تثبيت التطبيق بنجاح 🎉', 'success');
+        showToast('تم تثبيت التطبيق بنجاح ', 'success');
       } else {
         showToast('تم إلغاء التثبيت', 'info');
       }
