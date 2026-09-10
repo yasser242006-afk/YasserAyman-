@@ -1073,11 +1073,14 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
         <button class="active" data-term="1" onclick="setTerm('1',this)">الترم الأول</button>
         <button data-term="2" onclick="setTerm('2',this)">الترم الثاني</button>
       </div>
-      <div class="exam-type-tabs">
-        <button class="active" data-type="quiz" onclick="setExamType('quiz',this)">كويزات</button>
-        <button data-type="midterm" onclick="setExamType('midterm',this)">ميدترم</button>
-        <button data-type="final" onclick="setExamType('final',this)">فاينال</button>
-      </div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;">
+  <div class="exam-type-tabs" style="margin-bottom:0;flex:1;">
+    <button class="active" data-type="quiz" onclick="setExamType('quiz',this)">كويزات</button>
+    <button data-type="midterm" onclick="setExamType('midterm',this)">ميدترم</button>
+    <button data-type="final" onclick="setExamType('final',this)">فاينال</button>
+  </div>
+  <button class="cert-trigger-btn" onclick="openCertificateOptions()"><i class="fas fa-award"></i> شهادتي</button>
+</div>
       <div class="chart-card"><h4><i class="fas fa-chart-column"></i> الرسم البياني للدرجات</h4><svg id="grades-chart" width="100%" height="180" viewBox="0 0 320 180"></svg></div>
       <div id="grades-container"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل الدرجات...</p></div></div>
     </section>
