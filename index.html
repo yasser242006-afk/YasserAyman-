@@ -2157,22 +2157,59 @@ async function loadGrades(){
       .eq('student_id', currentUser.id).eq('term', currentTerm).eq('exam_type', currentExamType)
       .order('created_at', { ascending:false });
     if(error){ container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل الدرجات</p></div>'; return; }
-    if(!grades || grades.length === 0){ container.innerHTML = '<div class="empty-state"><i class="fas fa-file-circle-xmark"></i><p>لا توجد درجات مسجلة بعد</p></div>'; drawChart([]); return; }
-    drawChart(grades);
-    container.innerHTML = grades.map(g=>{
-      const percent = Math.round((g.score / g.max_score) * 1000)/10;
-      const info = gradeInfo(percent);
-      const certData = encodeURIComponent(JSON.stringify({subject: g.subject_name, percent, label: info.label, rank: g.rank}));
-      return `<div class="grade-card">
-        <div class="grade-card-top"><div class="grade-subject">${escapeHtml(g.subject_name||'')}</div><div class="grade-badge ${info.cls}">${info.label}</div></div>
-        <div class="grade-score-row"><div class="grade-score-big">${g.score} / ${g.max_score}</div><div style="font-size:13px;color:var(--text-secondary)">النسبة: <b style="color:var(--text)">${percent}%</b></div></div>
-        <div class="grade-grid"><div>المركز: <b>${g.rank ? '#'+g.rank : '-'}</b></div><div>تاريخ الامتحان: <b>${g.exam_date || '-'}</b></div><div>ساعة الامتحان: <b>${g.exam_time || '-'}</b></div><div>تاريخ النتيجة: <b>${g.result_date || '-'}</b></div></div>
-        <button class="print-btn" onclick="printCertificateFromData('${certData}')"><i class="fas fa-print"></i> طباعة شهادة</button>
-      </div>`;
-    }).join('');
+    const gradesList = grades || [];
+    drawChart(gradesList);
+    renderGradesTable(gradesList);
   } catch(e) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات</p></div>'; }
 }
-function printCertificateFromData(encodedData){ try { printCertificate(JSON.parse(decodeURIComponent(encodedData))); } catch(e) {} }
+
+/* === جديد: عرض الدرجات في شكل جدول حقيقي بدل الكروت === */
+function renderGradesTable(grades){
+  const container = document.getElementById('grades-container');
+  const year = currentProfile?.academic_year || '1';
+  const subjects = LECTURE_SUBJECTS[year]?.[currentTerm] || [];
+  const studentName = currentProfile?.full_name || currentUser.email;
+
+  if(subjects.length === 0){
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد مواد مسجلة لهذا الترم</p></div>';
+    return;
+  }
+
+  const gradeMap = {};
+  grades.forEach(g => { gradeMap[(g.subject_name||'').trim()] = g; });
+
+  let rows = '';
+  subjects.forEach(subj => {
+    const g = gradeMap[subj.trim()];
+    if(g){
+      const percent = Math.round((g.score / g.max_score) * 1000)/10;
+      const info = gradeInfo(percent);
+      rows += `<tr>
+        <td>${escapeHtml(subj)}</td>
+        <td>
+          <div>${g.exam_date || '-'}</div>
+          <div style="font-size:10px;color:var(--text-light);">النتيجة: ${g.result_date || '-'}</div>
+        </td>
+        <td>${g.score} / ${g.max_score}</td>
+        <td>${percent}%</td>
+        <td><span class="grade-badge ${info.cls}" style="font-size:10px;">${info.label}</span></td>
+      </tr>`;
+    } else {
+      rows += `<tr class="grade-row-empty"><td>${escapeHtml(subj)}</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+    }
+  });
+
+  container.innerHTML = `
+    <div class="grades-table-wrap">
+      <div class="grades-table-name-row"><i class="fas fa-user"></i> اسم الطالب: <b>${escapeHtml(studentName)}</b></div>
+      <table class="grades-real-table">
+        <thead><tr><th>المادة</th><th>تاريخ / نتيجة الامتحان</th><th>الدرجة</th><th>النسبة</th><th>التقدير</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
 function drawChart(grades){
   const svg = document.getElementById('grades-chart');
   if(!grades || grades.length === 0){ svg.innerHTML = '<text x="160" y="90" text-anchor="middle" fill="#94a3b8" font-size="12">لا توجد بيانات لعرضها</text>'; return; }
