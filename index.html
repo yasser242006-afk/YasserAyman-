@@ -1621,6 +1621,7 @@ async function createNewProfile() {
     first_login_shown: false,
     last_notification_check: new Date().toISOString(),
     signup_provider: currentUser?.app_metadata?.provider || 'email', /* === تعديل: تسجيل طريقة التسجيل === */
+    gender: null,
   };
   const { error } = await _supabase.from('yasser_ayman').insert([newProfile]);
   if (error) throw error;
@@ -1655,6 +1656,7 @@ async function init(){
       }
     }
     await ensureAcademicYearSelected();
+    await ensureGenderSelected();
     renderProfileUI();
     maybeShowWelcome();
     await refreshNotifications();
