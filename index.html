@@ -2227,13 +2227,84 @@ function drawChart(grades){
   });
   svg.innerHTML = `<defs><linearGradient id="gradGrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient></defs><line x1="20" y1="${h-30}" x2="${w-10}" y2="${h-30}" stroke="#e2e8f0" stroke-width="1"/>${bars}`;
 }
-function printCertificate({subject, percent, label, rank}){
-  document.getElementById('cert-name').innerText = currentProfile?.full_name || currentUser.email;
-  document.getElementById('cert-percent').innerText = percent + '%';
-  document.getElementById('cert-grade').innerText = label;
-  document.getElementById('cert-rank').innerText = rank ? ('#'+rank) : '-';
-  document.getElementById('cert-subject-line').innerText = 'مادة: ' + subject;
-  window.print();
+/* === نظام الشهادة الجديد === */
+function openCertificateOptions(){
+  const termLabel = currentTerm === '1' ? 'الترم الأول' : 'الترم الثاني';
+  const typeLabel = { quiz:'كويزات', midterm:'ميدترم', final:'فاينال' }[currentExamType];
+  document.getElementById('cert-modal-term-label').innerText = `${termLabel} - ${typeLabel}`;
+  document.getElementById('cert-options-modal').classList.add('open');
+}
+function closeCertificateOptions(){
+  document.getElementById('cert-options-modal').classList.remove('open');
+}
+
+async function prepareCertificateData(){
+  const { data: grades } = await _supabase.from('grades').select('*')
+    .eq('student_id', currentUser.id).eq('term', currentTerm).eq('exam_type', currentExamType);
+  if(!grades || grades.length === 0){
+    showToast('لا توجد درجات مسجلة لعرضها في الشهادة', 'error');
+    return null;
+  }
+  const totalScore = grades.reduce((s,g)=>s+g.score,0);
+  const totalMax = grades.reduce((s,g)=>s+g.max_score,0);
+  const percent = totalMax > 0 ? Math.round((totalScore/totalMax)*1000)/10 : 0;
+  const info = gradeInfo(percent);
+  return { percent, label: info.label, subjectsCount: grades.length };
+}
+
+async function buildCertificateHtml(){
+  const data = await prepareCertificateData();
+  if(!data) return false;
+  const name = currentProfile?.full_name || currentUser.email;
+  const gender = currentProfile?.gender || 'male';
+  const theme = gender === 'female' ? 'cert-theme-female' : 'cert-theme-male';
+  const termLabel = currentTerm === '1' ? 'الترم الأول' : 'الترم الثاني';
+  const typeLabel = { quiz:'كويزات', midterm:'ميدترم', final:'فاينال' }[currentExamType];
+
+  const certEl = document.getElementById('certificate-render');
+  certEl.className = `cert-box ${theme}`;
+  certEl.innerHTML = `
+    <div class="cert-badge"><i class="fas fa-graduation-cap"></i></div>
+    <h1 class="cert-heading">شهادة تقدير</h1>
+    <p class="cert-sub">بوابة الطلاب - معهد نظم معلومات السلاب</p>
+    <div class="cert-divider"></div>
+    <p class="cert-desc">تُمنح هذه الشهادة بكل فخر واعتزاز إلى الطالب/ة</p>
+    <div class="cert-name">${escapeHtml(name)}</div>
+    <p class="cert-desc">وذلك تقديراً لتفوقه/ها في ${termLabel} - ${typeLabel}</p>
+    <div class="cert-stats-row">
+      <div><span class="cert-stat-num">${data.percent}%</span><small>النسبة</small></div>
+      <div><span class="cert-stat-num">${data.label}</span><small>التقدير</small></div>
+      <div><span class="cert-stat-num">${data.subjectsCount}</span><small>عدد المواد</small></div>
+    </div>
+    <div class="cert-footer">تاريخ الإصدار: ${new Date().toLocaleDateString('ar-EG')}</div>
+  `;
+  return true;
+}
+
+async function printCertificateNow(){
+  const ok = await buildCertificateHtml();
+  if(!ok) return;
+  closeCertificateOptions();
+  setTimeout(()=> window.print(), 200);
+}
+
+async function downloadCertificateNow(){
+  const ok = await buildCertificateHtml();
+  if(!ok) return;
+  const certEl = document.getElementById('certificate-render');
+  certEl.style.display = 'block';
+  try{
+    const canvas = await html2canvas(certEl, { scale: 2, backgroundColor: null });
+    const link = document.createElement('a');
+    link.download = 'شهادة-تقدير.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('تم تنزيل الشهادة بنجاح', 'success');
+  }catch(e){
+    showToast('حدث خطأ أثناء تنزيل الشهادة', 'error');
+  }
+  certEl.style.display = 'none';
+  closeCertificateOptions();
 }
 
 /* ================== الجدول الدراسي ================== */
