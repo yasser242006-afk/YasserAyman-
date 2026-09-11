@@ -2651,7 +2651,46 @@ async function confirmYearSelection(){
   btn.disabled = false; btn.innerText = 'تأكيد الاختيار';
   if(window._resolveYearSelection){ window._resolveYearSelection(); window._resolveYearSelection = null; }
 }
-
+/* === اختيار النوع مرة واحدة (يُستخدم بس في تصميم الشهادة) === */
+function ensureGenderSelected(){
+  return new Promise((resolve) => {
+    if(currentProfile?.gender){ resolve(); return; }
+    const overlay = document.createElement('div');
+    overlay.id = 'gender-select-overlay';
+    overlay.className = 'year-select-overlay show';
+    overlay.innerHTML = `
+      <div class="year-select-box">
+        <i class="fas fa-venus-mars" style="font-size:40px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+        <h2>اختر نوعك</h2>
+        <p>بيُستخدم بس في تصميم شهادة التقدير، هيتحفظ تلقائيًا ومش هيتكرر تاني</p>
+        <div class="year-cards-grid">
+          <div class="year-card" id="gender-card-male" onclick="pickGenderOption('male')"><i class="fas fa-person"></i><span>ذكر</span></div>
+          <div class="year-card" id="gender-card-female" onclick="pickGenderOption('female')"><i class="fas fa-person-dress"></i><span>أنثى</span></div>
+        </div>
+        <button id="gender-confirm-btn" class="year-confirm-btn" disabled onclick="confirmGenderSelection()">تأكيد الاختيار</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    window._resolveGenderSelection = resolve;
+  });
+}
+let pendingGenderChoice = null;
+function pickGenderOption(gender){
+  pendingGenderChoice = gender;
+  document.getElementById('gender-card-male').classList.toggle('selected', gender==='male');
+  document.getElementById('gender-card-female').classList.toggle('selected', gender==='female');
+  document.getElementById('gender-confirm-btn').disabled = false;
+}
+async function confirmGenderSelection(){
+  if(!pendingGenderChoice) return;
+  const btn = document.getElementById('gender-confirm-btn');
+  btn.disabled = true; btn.innerText = 'جاري الحفظ...';
+  const { error } = await _supabase.from('yasser_ayman').update({ gender: pendingGenderChoice }).eq('id', currentUser.id);
+  if(error){ showToast('حدث خطأ أثناء الحفظ، حاول تاني', 'error'); btn.disabled = false; btn.innerText = 'تأكيد الاختيار'; return; }
+  currentProfile.gender = pendingGenderChoice;
+  document.getElementById('gender-select-overlay').remove();
+  if(window._resolveGenderSelection){ window._resolveGenderSelection(); window._resolveGenderSelection = null; }
+    }
 
 
 
