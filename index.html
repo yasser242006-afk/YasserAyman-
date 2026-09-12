@@ -4053,15 +4053,27 @@ async function submitYearChangeRequest(){
   if(!idCardFile){ showToast('يرجى رفع صورة الكارنيه', 'error'); return; }
   if(!name){ showToast('يرجى إدخال الاسم الثلاثي', 'error'); return; }
   if(!idNum){ showToast('يرجى إدخال رقم الـ ID', 'error'); return; }
+  if(!pendingNewYear){ showToast('يرجى اختيار الفرقة المطلوبة', 'error'); return; }
+
+  const submitBtn = document.querySelector('#identity-verify-modal .acc-save-btn');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...'; }
 
   try{
+    // 1. رفع صورة الكارنيه
     const ext = idCardFile.name.split('.').pop();
     const path = `${currentUser.id}/idcard_${Date.now()}.${ext}`;
+    console.log('🚀 بدء رفع الصورة...', path);
     const { error: upErr } = await _supabase.storage.from('id-cards').upload(path, idCardFile, { upsert:true });
-    if(upErr) throw upErr;
+    if(upErr) {
+      console.error('❌ فشل رفع الصورة:', upErr);
+      throw new Error('فشل رفع الصورة: ' + upErr.message);
+    }
     const { data: urlData } = _supabase.storage.from('id-cards').getPublicUrl(path);
+    console.log(' تم رفع الصورة:', urlData.publicUrl);
 
-    const { error } = await _supabase.from('year_change_requests').insert({
+    // 2. حفظ الطلب في الجدول
+    console.log(' بدء حفظ الطلب في الجدول...');
+    const { data: insertData, error } = await _supabase.from('year_change_requests').insert({
       student_id: currentUser.id,
       full_name: name,
       email: currentUser.email,
@@ -4070,13 +4082,21 @@ async function submitYearChangeRequest(){
       student_id_number: idNum,
       card_image_url: urlData.publicUrl,
       status: 'pending'
-    });
-    if(error) throw error;
+    }).select();
+
+    if(error) {
+      console.error(' فشل حفظ الطلب:', error);
+      throw new Error('فشل حفظ الطلب: ' + error.message);
+    }
+    console.log(' تم حفظ الطلب:', insertData);
 
     showToast('تم إرسال طلبك، في انتظار موافقة الإدارة', 'success');
     closeIdentityVerifyModal();
   }catch(err){
-    showToast('حدث خطأ أثناء إرسال الطلب: '+err.message, 'error');
+    console.error(' خطأ كامل:', err);
+    showToast('حدث خطأ: ' + (err.message || 'غير معروف'), 'error');
+  }finally{
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الطلب'; }
   }
 }
 
