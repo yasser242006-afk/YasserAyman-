@@ -2141,13 +2141,37 @@ function setExamType(type, el){
   if(el) el.classList.add('active');
   loadGrades();
 }
-function gradeInfo(percent){
-  if(percent >= 85) return { label:'امتياز', cls:'excellent' };
-  if(percent >= 75) return { label:'جيد جدًا', cls:'vgood' };
-  if(percent >= 65) return { label:'جيد', cls:'good' };
-  if(percent >= 50) return { label:'مقبول', cls:'pass' };
-  return { label:'ضعيف', cls:'weak' };
+/* === تعديل: تقديرات مختلفة حسب نوع الامتحان (كويز من 10، ميدترم من 20، فاينال من 70) === */
+function gradeInfoByScore(score, examType){
+  let bands;
+  if(examType === 'quiz'){
+    bands = [
+      {min:9, label:'امتياز', cls:'excellent'},
+      {min:8, label:'جيد جدًا', cls:'vgood'},
+      {min:7, label:'جيد', cls:'good'},
+      {min:5, label:'مقبول', cls:'pass'},
+      {min:0, label:'ضعيف', cls:'weak'}
+    ];
+  } else if(examType === 'midterm'){
+    bands = [
+      {min:19, label:'امتياز', cls:'excellent'},
+      {min:17, label:'جيد جدًا', cls:'vgood'},
+      {min:15, label:'جيد', cls:'good'},
+      {min:10, label:'مقبول', cls:'pass'},
+      {min:0, label:'ضعيف', cls:'weak'}
+    ];
+  } else {
+    bands = [
+      {min:65, label:'امتياز', cls:'excellent'},
+      {min:59, label:'جيد جدًا', cls:'vgood'},
+      {min:53, label:'جيد', cls:'good'},
+      {min:35, label:'مقبول', cls:'pass'},
+      {min:0, label:'ضعيف', cls:'weak'}
+    ];
+  }
+  return bands.find(b => score >= b.min);
 }
+/* === نهاية تعديل === */
 async function loadGrades(){
   const container = document.getElementById('grades-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
@@ -2783,7 +2807,8 @@ async function loadAttendanceRecords() {
   const container = document.getElementById('attendance-records-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
   const year = currentProfile?.academic_year || '1';
-
+      const percent = Math.round((g.score / g.max_score) * 1000)/10;
+      const info = gradeInfoByScore(g.score, g.exam_type); /* === تعديل === */
   try {
     const { data: yearSessions, error: sessionsError } = await _supabase
       .from('attendance_sessions')
@@ -3146,6 +3171,28 @@ async function loadExamQuestions() {
       return;
     }
     const exam = exams[0];
+
+    /* === تعديل: هل الطالب سبق واخد المحاولة دي؟ لو أيوه اعرض مراجعة أخطائه بدل السماح بالإعادة === */
+    const { data: existingGrade } = await _supabase
+      .from('grades')
+      .select('*')
+      .eq('student_id', currentUser.id)
+      .eq('exam_id', exam.id)
+      .maybeSingle();
+    if (existingGrade) {
+      renderWrongAnswersReview(container, existingGrade, exam);
+      return;
+    }
+    /* === نهاية تعديل === */
+
+    /* === تعديل: هل انتهى وقت الامتحان قبل ما الطالب ياخده أصلاً؟ === */
+    const nowCheck = new Date();
+    if (exam.end_date && nowCheck > new Date(exam.end_date)) {
+      container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><p>انتهى وقت هذا الامتحان ولم تشارك فيه</p></div>`;
+      return;
+    }
+    /* === نهاية تعديل === */
+
     currentExamId = exam.id;
     examTimeLimit = exam.duration_seconds || 600;
     examEndTime = exam.end_date ? new Date(exam.end_date) : null;
@@ -3167,6 +3214,35 @@ async function loadExamQuestions() {
     container.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>حدث خطأ في تحميل الأسئلة</p></div>`;
   }
 }
+
+/* === تعديل: عرض صندوق مراجعة الأسئلة الغلط بعد انتهاء المحاولة === */
+function renderWrongAnswersReview(container, gradeRow, exam){
+  const answers = gradeRow.answers_json || [];
+  const wrong = answers.filter(a => !a.isCorrect);
+  const info = gradeInfoByScore(gradeRow.score, gradeRow.exam_type);
+  let html = `
+    <div style="text-align:center;padding:14px 0 20px;">
+      <div style="font-size:28px;font-weight:800;color:var(--primary);">${gradeRow.score} / ${gradeRow.max_score}</div>
+      <div style="font-size:14px;font-weight:700;margin-top:6px;color:${info.cls==='excellent'?'var(--success)':info.cls==='weak'?'var(--danger)':'var(--warn)'};">${info.label}</div>
+    </div>
+  `;
+  if(wrong.length === 0){
+    html += `<div class="empty-state"><i class="fas fa-circle-check" style="color:var(--success)"></i><p>ممتاز! كل إجاباتك كانت صحيحة</p></div>`;
+  } else {
+    html += `<h4 style="font-size:14px;font-weight:800;margin-bottom:10px;"><i class="fas fa-circle-xmark" style="color:var(--danger)"></i> الأسئلة اللي أخطأت فيها</h4>`;
+    wrong.forEach((w, i) => {
+      html += `
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${i+1}. ${escapeHtml(w.text)}</div>
+          <div style="font-size:12px;color:var(--danger);">إجابتك: ${escapeHtml(w.studentAnswer || 'بدون إجابة')}</div>
+          <div style="font-size:12px;color:var(--success);margin-top:4px;">الإجابة الصحيحة: ${escapeHtml(w.correctAnswer || '-')}</div>
+        </div>
+      `;
+    });
+  }
+  container.innerHTML = html;
+}
+/* === نهاية تعديل === */
 
 function renderQuestion() {
   const container = document.getElementById('exam-questions-container');
@@ -3224,12 +3300,20 @@ function startExamTimer() {
   }
   examRemainingSeconds = timeLeft;
   updateExamTimerDisplay();
-  examTimerInterval = setInterval(() => {
-    examRemainingSeconds--;
-    updateExamTimerDisplay();
-    if (examRemainingSeconds <= 0) { clearInterval(examTimerInterval); showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error'); submitExam(); }
+    examTimerInterval = setInterval(() => {
+    timeLeft--;
+    /* === تعديل: عرض الوقت بصيغة ساعة:دقيقة:ثانية الحقيقية === */
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = Math.floor(timeLeft % 60);
+    const timeStr = hours > 0
+      ? `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`
+      : `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    const timerEl = document.getElementById('exam-timer');
+    if (timerEl) timerEl.innerText = `⏱️ ${timeStr}`;
+    /* === نهاية تعديل === */
+    if (timeLeft <= 0) { clearInterval(examTimerInterval); showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error'); submitExam(); }
   }, 1000);
-}
 
 function updateExamTimerDisplay(){
   const timerEl = document.getElementById('exam-timer');
@@ -3262,22 +3346,25 @@ function updateExamTimerDisplay(){
   }
 
   /* === تعديل: حساب الدرجة من نقاط كل سؤال الفعلية بدل رقم ثابت === */
-  let correct = 0;
-  let earnedPoints = 0;
-  let totalPoints = 0;
+    let correct = 0;
+  /* === تعديل: بناء قائمة مراجعة الإجابات لحفظها === */
+  const answersReview = [];
   currentExamQuestions.forEach(q => {
-    const points = Number(q.points) || 1;
-    totalPoints += points;
-    if (studentAnswers[q.id] && studentAnswers[q.id] === q.correct_answer) {
-      correct++;
-      earnedPoints += points;
-    }
+    const isCorrect = studentAnswers[q.id] && studentAnswers[q.id] === q.correct_answer;
+    if (isCorrect) correct++;
+    answersReview.push({
+      id: q.id,
+      text: q.question_text,
+      studentAnswer: studentAnswers[q.id] || null,
+      correctAnswer: q.correct_answer,
+      isCorrect: !!isCorrect
+    });
   });
+  /* === نهاية تعديل === */
   const totalQuestions = currentExamQuestions.length;
-  const score = earnedPoints;
-  const maxScore = totalPoints;
-  const percent = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-  const info = gradeInfo(percent);
+  const maxScore = currentExamType === 'quiz' ? 10 : currentExamType === 'midterm' ? 20 : 70;
+  const score = Math.round((correct / totalQuestions) * maxScore);
+  const info = gradeInfoByScore(score, currentExamType); /* === تعديل === */
   /* === نهاية تعديل === */
 
   const resultHtml = `
@@ -3297,7 +3384,7 @@ function updateExamTimerDisplay(){
   modal.innerHTML = resultHtml;
   document.body.appendChild(modal);
 
-  const gradeData = {
+    const gradeData = {
     student_id: currentUser.id,
     subject_name: document.getElementById('questions-subject').value,
     term: parseInt(document.getElementById('questions-term').value),
@@ -3308,7 +3395,9 @@ function updateExamTimerDisplay(){
     exam_date: new Date().toISOString().split('T')[0],
     result_date: new Date().toISOString().split('T')[0],
     academic_year: currentProfile.academic_year,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    exam_id: currentExamId, /* === تعديل: ربط الدرجة بالامتحان لمنع إعادة المحاولة === */
+    answers_json: answersReview /* === تعديل: حفظ مراجعة الإجابات === */
   };
   try {
     const { error } = await _supabase.from('grades').insert([gradeData]);
