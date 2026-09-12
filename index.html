@@ -1545,6 +1545,8 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
 
 
 <script>
+
+
 /* ================== إعداد Supabase ================== */
 const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
@@ -1571,17 +1573,16 @@ const LECTURE_SUBJECTS = {
     '1': ['قواعد البيانات (1)', 'البرمجة الهيكلية المتقدمة', 'محاسبة شركات', 'دراسات إقتصادية بلغة إنجليزية', 'إدارة الانتاج و العمليات'],
     '2': ['تسويق', 'قانون تجاري', 'نظم معلومات إدارية', 'إحصاء', 'رياضيات تمويل', 'تطبيقات الانترنت و الوسائط المتعددة']
   },
-  '3': { 
-    '1': ['قواعد البيانات (2) ','حزم الإحصاء وبحوث العمليات',' تحليل نظم المعلومات  '   ,'التجارة الإلكترونية ',' محاسبة الضرائب','دراسات إدارية بلغة انجليزية'],
-    '2': ['تصميم نظم المعلومات ','محاسبة تكاليف','اقتصاد كلي','إدارة مشتريات و مخازن ','تصميم مواقع الويب ']
+  '3': {
+    '1': ['قواعد البيانات (2)', 'حزم الإحصاء وبحوث العمليات', 'تحليل نظم المعلومات', 'التجارة الإلكترونية', 'محاسبة الضرائب', 'دراسات إدارية بلغة انجليزية'],
+    '2': ['تصميم نظم المعلومات', 'محاسبة تكاليف', 'اقتصاد كلي', 'إدارة مشتريات و مخازن', 'تصميم مواقع الويب']
   },
   '4': {
-    '1': ['نظم دعم القرار','نظم المعلومات الجغرافية','إدراة المواد البشرية','محاسبة إدراية','دراسات محاسبية بلغة انجليزية','ادراية المواد البشرية'],
-    '2': ['تطبيقات الحاسب في اعداد التقارير ','شبكات و امن المعلومات','نظم معلومات محاسبية ','دراسات جدوي إقتصادية ','ادارة المؤسسات المالية و التمويل ','مشروع التخرج '] 
+    '1': ['نظم دعم القرار', 'نظم المعلومات الجغرافية', 'إدراة المواد البشرية', 'محاسبة إدراية', 'دراسات محاسبية بلغة انجليزية', 'ادراية المواد البشرية'],
+    '2': ['تطبيقات الحاسب في اعداد التقارير', 'شبكات و امن المعلومات', 'نظم معلومات محاسبية', 'دراسات جدوي إقتصادية', 'ادارة المؤسسات المالية و التمويل', 'مشروع التخرج']
   }
 };
 
-// ===== قائمة لغات البرمجة المطلوبة =====
 const PROGRAMMING_LANGUAGES = [
   'HTML', 'CSS', 'JavaScript', 'Java', 'PHP',
   'Python', 'C#', 'C++', 'TypeScript', 'SQL'
@@ -1590,27 +1591,24 @@ const PROGRAMMING_LANGUAGES = [
 function showToast(message, type='info'){
   const container = document.getElementById('toast-container');
   if(!container) return;
-  /* === تعديل: مسح أي رسالة قديمة قبل عرض الجديدة عشان ميبقاش فيه تكرار === */
   container.innerHTML = '';
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerText = message;
   container.appendChild(toast);
   setTimeout(()=>toast.remove(), 3500);
-  /* === نهاية التعديل === */
-  }
+}
 
 function getDefaultAvatar(){
   const name = currentProfile?.full_name || currentUser?.email || 'Student';
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=4f46e5,0ea5e9`;
 }
-/* === تعديل: صورة افتراضية بأي اسم (تستخدم في التعليقات القديمة اللي معندهاش صورة محفوظة) === */
+
 function getAvatarForName(name){
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name||'User')}&backgroundColor=4f46e5,0ea5e9`;
 }
-/* === نهاية تعديل === */
 
-/* ================== إنشاء بروفايل جديد مع الصورة من Google ================== */
+/* ================== إنشاء بروفايل جديد ================== */
 async function createNewProfile() {
   const avatarFromProvider = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.picture || null;
   const newProfile = {
@@ -1621,11 +1619,12 @@ async function createNewProfile() {
     academic_year: null,
     first_login_shown: false,
     last_notification_check: new Date().toISOString(),
-    signup_provider: currentUser?.app_metadata?.provider || 'email', /* === تعديل: تسجيل طريقة التسجيل === */
+    signup_provider: currentUser?.app_metadata?.provider || 'email',
   };
   const { error } = await _supabase.from('yasser_ayman').insert([newProfile]);
   if (error) throw error;
-  }
+}
+
 /* ================== تهيئة الصفحة ================== */
 window.addEventListener('DOMContentLoaded', init);
 
@@ -1734,11 +1733,9 @@ let notifExpanded = false;
 
 async function refreshNotifications(){
   const year = currentProfile?.academic_year || '1';
-  /* === تعديل: جلب إشعارات الفرقة العامة + الإشعارات الشخصية (رد/لايك) === */
   const { data, error } = await _supabase.from('notifications').select('*')
     .or(`academic_year.eq.all,academic_year.eq.${year},target_user_id.eq.${currentUser.id}`)
     .order('created_at', { ascending:false });
-  /* === نهاية تعديل === */
   allNotifItems = (data || []).map(n => ({ title: n.title, message: n.message, date: n.created_at }));
   const badge = document.getElementById('notif-badge');
   if(allNotifItems.length === 0){
@@ -1794,7 +1791,6 @@ function timeAgo(iso){
 }
 
 function switchView(view, el){
-  // استثناء "support" لأننا نفتح مودال بدلاً من صفحة
   if(view === 'support'){
     openSupportModal();
     return;
@@ -1807,7 +1803,7 @@ function switchView(view, el){
   if(sidebar.classList.contains('open')) toggleSidebar();
 
   if(view === 'grades') loadGrades();
-  if(view === 'questions'){ 
+  if(view === 'questions'){
     const subjSelect = document.getElementById('q-subject-select');
     const termSelect = document.getElementById('q-term-select');
     document.getElementById('questions-term').value = termSelect.value;
@@ -1817,9 +1813,7 @@ function switchView(view, el){
   }
   if(view === 'schedule') loadSchedule();
   if(view === 'lectures') {
-    // إعادة عرض تبويبات المواد حسب الفئة الحالية
     renderLectureSubjectTabs();
-    // تحميل المحاضرات حسب الفئة والمواد
     if (currentLectureCategory === 'programming') {
       loadLectures();
     } else {
@@ -1846,6 +1840,7 @@ function closeImageMenuOnce(){
 }
 function viewImage(){ window.open(currentProfile?.avatar_url || getDefaultAvatar(), '_blank'); }
 function triggerImageChange(){ document.getElementById('image-file-input').click(); }
+
 document.getElementById('image-file-input').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
@@ -1862,6 +1857,7 @@ document.getElementById('image-file-input').addEventListener('change', async (e)
   }catch(err){ showToast('حدث خطأ أثناء رفع الصورة: '+err.message, 'error'); }
   e.target.value = '';
 });
+
 async function deleteImage(){
   await _supabase.from('yasser_ayman').update({ avatar_url: null }).eq('id', currentUser.id);
   currentProfile.avatar_url = null;
@@ -1873,10 +1869,10 @@ async function deleteImage(){
 async function loadPosts(){
   const year = currentProfile?.academic_year || '1';
   const container = document.getElementById('posts-container');
-    const { data: posts, error } = await _supabase.from('posts').select('*')
+  const { data: posts, error } = await _supabase.from('posts').select('*')
     .or(`academic_year.eq.all,academic_year.eq.${year}`)
     .order('created_at', { ascending:false })
-    .limit(5); /* === تعديل: أقصى 5 منشورات في السلايدر === */
+    .limit(5);
   if(error){ container.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر تحميل المنشورات</p></div>`; return; }
   if(!posts || posts.length === 0){ container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد منشورات حتى الآن</p></div>`; return; }
   container.innerHTML = '';
@@ -1885,7 +1881,6 @@ async function loadPosts(){
     container.appendChild(card);
   }
 }
-
 
 async function buildPostCard(post){
   const [{ count: likeCount }, { data: myLike }, { count: commentCount }, { count: viewCount }, { count: shareCount }] = await Promise.all([
@@ -1899,7 +1894,6 @@ async function buildPostCard(post){
   _supabase.from('post_views').insert({ post_id: post.id, user_id: currentUser.id }).then(()=>{});
   const div = document.createElement('div');
   div.className = 'post-card';
-  /* === تعديل: أيقونة الأدمن الحقيقية (لو موجودة) بدل أيقونة الميكروفون، والاسم والتاريخ بجانب بعض === */
   const adminIconHtml = post.admin_avatar_url
     ? `<img src="${escapeHtml(post.admin_avatar_url)}" style="width:100%;height:100%;object-fit:cover;">`
     : `<i class="fas fa-bullhorn"></i>`;
@@ -1924,12 +1918,9 @@ async function buildPostCard(post){
       <div class="views-count"><i class="far fa-eye"></i> ${viewCount||0}</div>
     </div>
   `;
-  /* === نهاية تعديل === */
   return div;
 }
 
-
-  
 async function toggleLike(postId, btn){
   const isLiked = btn.classList.contains('liked');
   const countSpan = btn.querySelector('.like-count');
@@ -1950,18 +1941,17 @@ async function toggleLike(postId, btn){
   }
 }
 
-let currentSharePostId = null; /* === تعديل: تتبع المنشور الحالي عند فتح شيت المشاركة === */
+let currentSharePostId = null;
 
-/* ================== اختصار الرابط ================== */
 async function shortenUrl(longUrl){
   try{
     const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
     if(!res.ok) throw new Error('shorten failed');
     const shortUrl = (await res.text()).trim();
     if(shortUrl && shortUrl.startsWith('http')) return shortUrl;
-    return longUrl; /* لو الرد مش رابط صحيح، استخدم الأصلي */
+    return longUrl;
   }catch(e){
-    return longUrl; /* لو فشل الاختصار لأي سبب، استخدم الرابط الأصلي بدل ما يقف الكود */
+    return longUrl;
   }
 }
 
@@ -1974,7 +1964,7 @@ async function sharePost(postId){
   const shortUrl = await shortenUrl(url);
   shareTargetUrl = shortUrl;
   if(linkInput) linkInput.value = shortUrl;
-  }
+}
 
 /* ================== التعليقات ================== */
 async function openComments(postId){
@@ -1986,8 +1976,6 @@ function closeComments(){
   document.getElementById('comments-overlay').classList.remove('open');
   currentPostIdForComments = null;
 }
-
-
 
 async function renderComments(){
   const list = document.getElementById('comments-list');
@@ -2005,16 +1993,13 @@ async function renderComments(){
   const byParent = {};
   comments.forEach(c=>{ const key = c.parent_id || 'root'; byParent[key] = byParent[key] || []; byParent[key].push(c); });
 
-  /* === تعديل: عدّ كل الردود المتفرعة تحت تعليق معين (مش بس المباشرة) === */
   function countAllReplies(commentId){
     const direct = byParent[commentId] || [];
     let total = direct.length;
     direct.forEach(r => { total += countAllReplies(r.id); });
     return total;
   }
-  /* === نهاية تعديل === */
 
-  /* === تعديل: تلوين المنشن (@الاسم) في بداية نص الرد بلون مميز === */
   function renderCommentText(c){
     const rawText = c.content || '';
     if(c.mention_name && rawText.startsWith('@'+c.mention_name)){
@@ -2024,26 +2009,23 @@ async function renderComments(){
     }
     return escapeHtml(rawText);
   }
-  /* === نهاية تعديل === */
 
   function renderNode(c){
     const liked = myLikedSet.has(c.id);
     const replies = byParent[c.id] || [];
     const authorLabel = c.author_name ? escapeHtml(c.author_name) : (c.user_id === currentUser.id ? escapeHtml(currentProfile?.full_name || 'أنا') : 'طالب');
     const avatarUrl = c.author_avatar || getAvatarForName(c.author_name || authorLabel);
-    const repliesCount = countAllReplies(c.id); /* === تعديل === */
+    const repliesCount = countAllReplies(c.id);
     return `<div class="comment-item" data-comment-id="${c.id}" data-owner-id="${c.user_id}">
       <img class="comment-avatar" src="${escapeHtml(avatarUrl)}" alt="">
       <div class="comment-body">
         <div class="comment-bubble"><div class="comment-author">${authorLabel}</div><div class="comment-text">${renderCommentText(c)}</div></div>
         <div class="comment-foot"><button class="${liked?'liked':''}" onclick="toggleCommentLike('${c.id}', this)"><i class="${liked?'fas':'far'} fa-heart"></i> إعجاب <span>${likeCountMap[c.id]||0}</span></button><button onclick="startReply('${c.id}', '${c.user_id}', '${authorLabel.replace(/'/g,"\\'")}')"><i class="far fa-comment-dots"></i> رد</button></div>
         ${repliesCount > 0 ? `
-          <!-- === تعديل: زرار عرض/إخفاء الردود بدل ما تظهر مباشرة === -->
           <button class="toggle-replies-btn" onclick="toggleRepliesVisibility('${c.id}', this)">
             <span>عرض ${repliesCount} ${repliesCount === 1 ? 'رد' : 'ردود'}</span> <i class="fas fa-chevron-down"></i>
           </button>
           <div class="comment-replies" id="replies-${c.id}">${replies.map(renderNode).join('')}</div>
-          <!-- === نهاية تعديل === -->
         ` : ''}
       </div>
     </div>`;
@@ -2052,16 +2034,12 @@ async function renderComments(){
   list.innerHTML = roots.map(renderNode).join('');
 }
 
-/* === تعديل: دالة إظهار/إخفاء الردود عند الضغط على الزرار === */
 function toggleRepliesVisibility(commentId, btn){
   const box = document.getElementById('replies-'+commentId);
   const isOpen = box.classList.toggle('open');
   btn.classList.toggle('open', isOpen);
 }
-/* === نهاية تعديل === */
 
-  
-/* === تعديل: نظام المنشن للرد بدل صندوق رد منفصل لكل تعليق === */
 let replyingTo = null;
 
 function startReply(commentId, ownerId, authorName){
@@ -2091,10 +2069,9 @@ async function submitComment(){
     content: text,
     author_name: currentProfile?.full_name || currentUser.email,
     author_avatar: currentProfile?.avatar_url || getDefaultAvatar(),
-    mention_name: replyingTo ? replyingTo.name : null /* === تعديل: حفظ اسم الشخص المنشَن بشكل منفصل === */
+    mention_name: replyingTo ? replyingTo.name : null
   });
   if(error){ showToast('تعذر إرسال التعليق', 'error'); return; }
-  /* إشعار لصاحب التعليق الأصلي لو كنا بنرد عليه */
   if(parentOwnerId && parentOwnerId !== currentUser.id){
     await _supabase.from('notifications').insert({
       title: 'رد جديد',
@@ -2107,7 +2084,7 @@ async function submitComment(){
   await renderComments();
   await loadPosts();
 }
-/* === نهاية تعديل === */
+
 async function toggleCommentLike(commentId, btn){
   const liked = btn.classList.contains('liked');
   const ownerId = btn.closest('.comment-item')?.dataset.ownerId;
@@ -2115,7 +2092,6 @@ async function toggleCommentLike(commentId, btn){
     await _supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', currentUser.id);
   } else {
     await _supabase.from('comment_likes').insert({ comment_id: commentId, user_id: currentUser.id });
-    /* === تعديل: إشعار صاحب التعليق بالإعجاب === */
     if(ownerId && ownerId !== currentUser.id){
       await _supabase.from('notifications').insert({
         title: 'إعجاب جديد',
@@ -2123,10 +2099,9 @@ async function toggleCommentLike(commentId, btn){
         target_user_id: ownerId
       });
     }
-    /* === نهاية تعديل === */
   }
   await renderComments();
-  }
+}
 
 /* ================== الدرجات ================== */
 function setTerm(term, el){
@@ -2141,7 +2116,6 @@ function setExamType(type, el){
   if(el) el.classList.add('active');
   loadGrades();
 }
-/* === تعديل: تقديرات مختلفة حسب نوع الامتحان (كويز من 10، ميدترم من 20، فاينال من 70) === */
 function gradeInfoByScore(score, examType){
   let bands;
   if(examType === 'quiz'){
@@ -2171,7 +2145,15 @@ function gradeInfoByScore(score, examType){
   }
   return bands.find(b => score >= b.min);
 }
-/* === نهاية تعديل === */
+
+function gradeInfo(percent){
+  if(percent >= 85) return {label:'امتياز', cls:'excellent'};
+  if(percent >= 75) return {label:'جيد جدًا', cls:'vgood'};
+  if(percent >= 65) return {label:'جيد', cls:'good'};
+  if(percent >= 50) return {label:'مقبول', cls:'pass'};
+  return {label:'ضعيف', cls:'weak'};
+}
+
 async function loadGrades(){
   const container = document.getElementById('grades-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
@@ -2186,7 +2168,6 @@ async function loadGrades(){
   } catch(e) { container.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>تعذر الاتصال بقاعدة البيانات</p></div>'; }
 }
 
-/* === جديد: عرض الدرجات في شكل جدول حقيقي بدل الكروت === */
 function renderGradesTable(grades){
   const container = document.getElementById('grades-container');
   const year = currentProfile?.academic_year || '1';
@@ -2250,7 +2231,8 @@ function drawChart(grades){
   });
   svg.innerHTML = `<defs><linearGradient id="gradGrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient></defs><line x1="20" y1="${h-30}" x2="${w-10}" y2="${h-30}" stroke="#e2e8f0" stroke-width="1"/>${bars}`;
 }
-/* === نظام الشهادة الجديد === */
+
+/* ================== الشهادة ================== */
 function openCertificateOptions(){
   const termLabel = currentTerm === '1' ? 'الترم الأول' : 'الترم الثاني';
   const typeLabel = { quiz:'كويزات', midterm:'ميدترم', final:'فاينال' }[currentExamType];
@@ -2360,21 +2342,18 @@ function printSchedule(){
 }
 async function downloadSchedule(url){ try{ const res=await fetch(url); const blob=await res.blob(); const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download='الجدول-الدراسي.jpg'; link.click(); }catch(e){ window.open(url,'_blank'); } }
 
-/* ================== المحاضرات الكلية ================== */
+/* ================== المحاضرات ================== */
 function setLecturesTerm(term, el){
   currentLecturesTerm = term;
-  // إذا كانت الفئة الحالية هي programming، لا نغير المادة المختارة
   if (currentLectureCategory !== 'programming') {
     currentLectureSubject = '';
   }
   document.querySelectorAll('#view-lectures .term-toggle button').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
-  // إذا كانت الفئة ليست programming، نعرض تبويبات المواد
   if (currentLectureCategory !== 'programming') {
     renderLectureSubjectTabs();
     resetLecturesContainer();
   } else {
-    // في حالة programming، نعيد تحميل المحاضرات مع نفس اللغة المختارة
     loadLectures();
   }
 }
@@ -2388,28 +2367,26 @@ function setLectureCategory(cat, el){
   const subjTabs = document.getElementById('lectures-subject-tabs');
   if (cat === 'programming') {
     subjTabs.style.display = 'flex';
-    renderLectureSubjectTabs(); // تعرض اللغات
-    loadLectures(); // تحميل المحاضرات (بدون فلتر مادة في البداية)
+    renderLectureSubjectTabs();
+    loadLectures();
   } else {
     subjTabs.style.display = 'flex';
-    renderLectureSubjectTabs(); // تعرض مواد الترم
+    renderLectureSubjectTabs();
     resetLecturesContainer();
   }
 }
 
-function resetLecturesContainer(){ 
-  document.getElementById('lectures-container').innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحتوى</p></div>'; 
+function resetLecturesContainer(){
+  document.getElementById('lectures-container').innerHTML = '<div class="empty-state"><i class="fas fa-hand-pointer"></i><p>اختر المادة لعرض المحتوى</p></div>';
 }
 
 function renderLectureSubjectTabs() {
   const year = currentProfile?.academic_year || '1';
   let subjects = [];
 
-  // إذا كان التبويب الحالي هو "كورسات برمجة"، نعرض اللغات
   if (currentLectureCategory === 'programming') {
     subjects = PROGRAMMING_LANGUAGES;
   } else {
-    // وإلا نعرض مواد الترم حسب السنة والترم المختار
     subjects = LECTURE_SUBJECTS[year]?.[currentLecturesTerm] || [];
   }
 
@@ -2438,18 +2415,13 @@ async function loadLectures(){
 
   try {
     let query = _supabase.from('lectures').select('*');
-
-    // فلترة حسب الفئة (programming أو lecture أو section أو course)
     query = query.eq('category', currentLectureCategory);
 
-    // إذا كانت الفئة هي programming، نفلتر حسب اللغة إذا تم اختيارها
     if (currentLectureCategory === 'programming') {
       if (currentLectureSubject) {
         query = query.eq('subject_name', currentLectureSubject);
       }
-      // لا نستخدم الترم أو السنة في فلترة كورسات البرمجة
     } else {
-      // بالنسبة للفئات الأخرى، نفلتر حسب السنة والترم والمادة
       query = query
         .eq('academic_year', year)
         .eq('term', currentLecturesTerm);
@@ -2513,7 +2485,7 @@ async function loadLectures(){
 
 function getCategoryName(cat){ const map = { lecture:'محاضرة', section:'سكشن', course:'كورس', programming:'كورس برمجة' }; return map[cat] || cat; }
 
-/* ================== تعبئة قائمة مواد صفحة أسئلة الامتحانات ================== */
+/* ================== قوائم المواد ================== */
 function getSubjectsForTerm(year, term){
   if(term === '1') return LECTURE_SUBJECTS[year]?.['1'] || [];
   if(term === '2') return LECTURE_SUBJECTS[year]?.['2'] || [];
@@ -2572,6 +2544,7 @@ function rewindVideo(seconds){ const p=document.getElementById('custom-video-pla
 function forwardVideo(seconds){ const p=document.getElementById('custom-video-player'); if(!isNaN(p.duration)) p.currentTime = Math.min(p.duration, p.currentTime + seconds); }
 function toggleFullScreen(){ const p=document.getElementById('custom-video-player'); if(p.requestFullscreen) p.requestFullscreen(); else if(p.webkitRequestFullscreen) p.webkitRequestFullscreen(); }
 function formatTime(sec){ if(isNaN(sec)) return '00:00'; const m=Math.floor(sec/60); const s=Math.floor(sec%60); return `${m<10?'0'+m:m}:${s<10?'0'+s:s}`; }
+
 document.addEventListener('DOMContentLoaded', ()=>{
   const player = document.getElementById('custom-video-player');
   const progressInput = document.getElementById('video-progress');
@@ -2584,9 +2557,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
     player.addEventListener('ended', ()=> updatePlayBtnIcon(false));
   }
-  progressInput.addEventListener('input', ()=>{
-    if(player && !isNaN(player.duration)) player.currentTime = (progressInput.value / 100) * player.duration;
-  });
+  if(progressInput){
+    progressInput.addEventListener('input', ()=>{
+      if(player && !isNaN(player.duration)) player.currentTime = (progressInput.value / 100) * player.duration;
+    });
+  }
 });
 
 /* ================== شيت المشاركة ================== */
@@ -2601,7 +2576,6 @@ function openShareSheet(url, text){
 function closeShareSheet(){ document.getElementById('share-overlay').classList.remove('open'); }
 function copyShareLink(){ navigator.clipboard.writeText(shareTargetUrl); showToast('تم نسخ الرابط', 'success'); }
 function shareVia(platform){
-  /* === تعديل: تسجيل عملية المشاركة في عداد المنشور === */
   if(currentSharePostId){
     _supabase.from('post_shares').insert({ post_id: currentSharePostId, user_id: currentUser.id }).then(()=>{});
   }
@@ -2674,7 +2648,7 @@ async function confirmYearSelection(){
   btn.disabled = false; btn.innerText = 'تأكيد الاختيار';
   if(window._resolveYearSelection){ window._resolveYearSelection(); window._resolveYearSelection = null; }
 }
-/* === اختيار النوع مرة واحدة (يُستخدم بس في تصميم الشهادة) === */
+
 function ensureGenderSelected(){
   return new Promise((resolve) => {
     if(currentProfile?.gender){ resolve(); return; }
@@ -2713,20 +2687,9 @@ async function confirmGenderSelection(){
   currentProfile.gender = pendingGenderChoice;
   document.getElementById('gender-select-overlay').remove();
   if(window._resolveGenderSelection){ window._resolveGenderSelection(); window._resolveGenderSelection = null; }
-    }
+}
 
-
-
-
-  
 /* ============================================================
-   ========== نظام الحضور والغياب ==========
-   ============================================================ */
-
-/* دالة موحّدة لعرض حالة الحضور بأيقونة ملوّنة بدل الرموز التعبيرية */
-
-/* دالة موحّدة لعرض حالة الحضور بأيقونة ملوّنة بدل الرموز التعبيرية */
- /* ============================================================
    ========== نظام الحضور والغياب ==========
    ============================================================ */
 
@@ -2740,7 +2703,6 @@ function getStatusBadge(status){
   return `<span class="attendance-status-badge absent"><i class="fas fa-circle-xmark"></i> غائب</span>`;
 }
 
-/* === تحميل جلسات الحضور النشطة حالياً (بين start_time و end_time) === */
 async function loadAttendanceSessions() {
   const container = document.getElementById('attendance-active-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل جلسات الحضور...</p></div>';
@@ -2802,13 +2764,12 @@ async function loadAttendanceSessions() {
   }
 }
 
-/* === تحميل سجل الحضور الكامل الخاص بالطالب === */
+/* === ✅ تصحيح: تم إزالة السطرين الغلط اللي كانوا بيستخدموا متغير "g" غير معرّف === */
 async function loadAttendanceRecords() {
   const container = document.getElementById('attendance-records-container');
   container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
   const year = currentProfile?.academic_year || '1';
-      const percent = Math.round((g.score / g.max_score) * 1000)/10;
-      const info = gradeInfoByScore(g.score, g.exam_type); /* === تعديل === */
+
   try {
     const { data: yearSessions, error: sessionsError } = await _supabase
       .from('attendance_sessions')
@@ -3074,13 +3035,7 @@ function renderAttendanceChart(subjectStats = null) {
     ctx.fillText(`${Math.round(pct)}%`, textX, legendY + 38);
     legendY += 66;
   });
-                  }
-      
-
-
-
-
-
+}
 
 /* ============================================================
    ========== نظام العشرة الأوائل ==========
@@ -3172,7 +3127,6 @@ async function loadExamQuestions() {
     }
     const exam = exams[0];
 
-    /* === تعديل: هل الطالب سبق واخد المحاولة دي؟ لو أيوه اعرض مراجعة أخطائه بدل السماح بالإعادة === */
     const { data: existingGrade } = await _supabase
       .from('grades')
       .select('*')
@@ -3183,15 +3137,12 @@ async function loadExamQuestions() {
       renderWrongAnswersReview(container, existingGrade, exam);
       return;
     }
-    /* === نهاية تعديل === */
 
-    /* === تعديل: هل انتهى وقت الامتحان قبل ما الطالب ياخده أصلاً؟ === */
     const nowCheck = new Date();
     if (exam.end_date && nowCheck > new Date(exam.end_date)) {
       container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><p>انتهى وقت هذا الامتحان ولم تشارك فيه</p></div>`;
       return;
     }
-    /* === نهاية تعديل === */
 
     currentExamId = exam.id;
     examTimeLimit = exam.duration_seconds || 600;
@@ -3215,7 +3166,6 @@ async function loadExamQuestions() {
   }
 }
 
-/* === تعديل: عرض صندوق مراجعة الأسئلة الغلط بعد انتهاء المحاولة === */
 function renderWrongAnswersReview(container, gradeRow, exam){
   const answers = gradeRow.answers_json || [];
   const wrong = answers.filter(a => !a.isCorrect);
@@ -3242,7 +3192,6 @@ function renderWrongAnswersReview(container, gradeRow, exam){
   }
   container.innerHTML = html;
 }
-/* === نهاية تعديل === */
 
 function renderQuestion() {
   const container = document.getElementById('exam-questions-container');
@@ -3278,17 +3227,17 @@ function renderQuestion() {
   updateExamTimerDisplay();
 }
 
-/* === جديد: تحديد إجابة وتحديث تظليل الاختيار المحدد === */
 function selectExamOption(qId, input){
   studentAnswers[qId] = input.value;
   document.querySelectorAll(`input[name="question_${qId}"]`).forEach(r=>{
     r.closest('.exam-option-row').classList.toggle('selected', r.checked);
   });
-                   }
+}
 
 function prevQuestion() { if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); } }
 function nextQuestion() { if (currentQuestionIndex < currentExamQuestions.length - 1) { currentQuestionIndex++; renderQuestion(); } }
 
+/* === ✅ تصحيح: إغلاق دالة startExamTimer بشكل صحيح === */
 function startExamTimer() {
   if (examTimerInterval) clearInterval(examTimerInterval);
   let timeLeft = examTimeLimit;
@@ -3300,9 +3249,9 @@ function startExamTimer() {
   }
   examRemainingSeconds = timeLeft;
   updateExamTimerDisplay();
-    examTimerInterval = setInterval(() => {
+
+  examTimerInterval = setInterval(() => {
     timeLeft--;
-    /* === تعديل: عرض الوقت بصيغة ساعة:دقيقة:ثانية الحقيقية === */
     const hours = Math.floor(timeLeft / 3600);
     const minutes = Math.floor((timeLeft % 3600) / 60);
     const seconds = Math.floor(timeLeft % 60);
@@ -3311,9 +3260,13 @@ function startExamTimer() {
       : `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
     const timerEl = document.getElementById('exam-timer');
     if (timerEl) timerEl.innerText = `⏱️ ${timeStr}`;
-    /* === نهاية تعديل === */
-    if (timeLeft <= 0) { clearInterval(examTimerInterval); showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error'); submitExam(); }
+    if (timeLeft <= 0) {
+      clearInterval(examTimerInterval);
+      showToast('انتهى الوقت! سيتم إرسال الامتحان تلقائياً.', 'error');
+      submitExam();
+    }
   }, 1000);
+}
 
 function updateExamTimerDisplay(){
   const timerEl = document.getElementById('exam-timer');
@@ -3324,11 +3277,10 @@ function updateExamTimerDisplay(){
   const seconds = total % 60;
   const timeStr = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
   timerEl.innerHTML = `<i class="fas fa-stopwatch"></i> <span style="direction:ltr;display:inline-block;">${timeStr}</span>`;
-    }
+}
 
-
-  
- async function submitExam() {
+/* === ✅ تصحيح: تعريف متغير percent قبل استخدامه في resultHtml === */
+async function submitExam() {
   if (examTimerInterval) clearInterval(examTimerInterval);
   const total = currentExamQuestions.length;
   const answered = Object.keys(studentAnswers).length;
@@ -3345,9 +3297,7 @@ function updateExamTimerDisplay(){
     if (!confirmSubmit) { startExamTimer(); return; }
   }
 
-  /* === تعديل: حساب الدرجة من نقاط كل سؤال الفعلية بدل رقم ثابت === */
-    let correct = 0;
-  /* === تعديل: بناء قائمة مراجعة الإجابات لحفظها === */
+  let correct = 0;
   const answersReview = [];
   currentExamQuestions.forEach(q => {
     const isCorrect = studentAnswers[q.id] && studentAnswers[q.id] === q.correct_answer;
@@ -3360,12 +3310,12 @@ function updateExamTimerDisplay(){
       isCorrect: !!isCorrect
     });
   });
-  /* === نهاية تعديل === */
+
   const totalQuestions = currentExamQuestions.length;
   const maxScore = currentExamType === 'quiz' ? 10 : currentExamType === 'midterm' ? 20 : 70;
   const score = Math.round((correct / totalQuestions) * maxScore);
-  const info = gradeInfoByScore(score, currentExamType); /* === تعديل === */
-  /* === نهاية تعديل === */
+  const info = gradeInfoByScore(score, currentExamType);
+  const percent = Math.round((score / maxScore) * 100);
 
   const resultHtml = `
     <div class="exam-result-box">
@@ -3384,7 +3334,7 @@ function updateExamTimerDisplay(){
   modal.innerHTML = resultHtml;
   document.body.appendChild(modal);
 
-    const gradeData = {
+  const gradeData = {
     student_id: currentUser.id,
     subject_name: document.getElementById('questions-subject').value,
     term: parseInt(document.getElementById('questions-term').value),
@@ -3396,8 +3346,8 @@ function updateExamTimerDisplay(){
     result_date: new Date().toISOString().split('T')[0],
     academic_year: currentProfile.academic_year,
     created_at: new Date().toISOString(),
-    exam_id: currentExamId, /* === تعديل: ربط الدرجة بالامتحان لمنع إعادة المحاولة === */
-    answers_json: answersReview /* === تعديل: حفظ مراجعة الإجابات === */
+    exam_id: currentExamId,
+    answers_json: answersReview
   };
   try {
     const { error } = await _supabase.from('grades').insert([gradeData]);
@@ -3413,11 +3363,7 @@ function updateExamTimerDisplay(){
     showToast('تم حساب النتيجة لكن فشل الحفظ: ' + (e.message || 'خطأ غير معروف'), 'error');
   }
   window._resultModalClosed = () => { modal.remove(); loadGrades(); };
- }
-
-
-
-
+}
 
 function closeResultModal() { if (window._resultModalClosed) window._resultModalClosed(); }
 
@@ -3537,7 +3483,6 @@ function toggleTheme() {
     document.body.style.setProperty('--shadow-lg', '0 10px 40px rgba(0,0,0,0.12)');
     localStorage.setItem('theme', 'light');
   }
-  // إعادة رسم الشارت بألوان تناسب الوضع الحالي (فاتح/داكن) لو صفحة الحضور مفتوحة
   const attendanceView = document.getElementById('view-attendance');
   if (attendanceView && attendanceView.classList.contains('active')) {
     renderAttendanceChart(window._lastAttendanceStats || null);
@@ -3733,13 +3678,9 @@ function showAppInfo() {
                 </div>
             </div>
 
-            <!-- تم تعديل أيقونات التواصل الاجتماعي في دالة showAppInfo() -->
-<!-- أصبحت الشفافة والصغيرة مع تأثير hover بسيط -->
-
 <div style="text-align: center; margin-top: 4px;">
     <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">تابعني على:</p>
     <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
-        <!-- فيسبوك -->
         <a href="https://www.facebook.com/share/1DYizKo7qf/" target="_blank"
             style="color: var(--text-secondary); font-size: 28px; text-decoration: none; transition: all 0.3s ease; opacity: 0.7;"
             onmouseover="this.style.opacity='1'; this.style.color='#1877F2'"
@@ -3747,7 +3688,6 @@ function showAppInfo() {
             <i class="fab fa-facebook-f"></i>
         </a>
 
-        <!-- إنستا -->
         <a href="https://www.instagram.com/x_y_ayman_x?igsi=MWExM2Fmd2tjeWQ4bA==" target="_blank"
             style="color: var(--text-secondary); font-size: 28px; text-decoration: none; transition: all 0.3s ease; opacity: 0.7;"
             onmouseover="this.style.opacity='1'; this.style.color='#E4405F'"
@@ -3755,7 +3695,6 @@ function showAppInfo() {
             <i class="fab fa-instagram"></i>
         </a>
 
-        <!-- تيك توك -->
         <a href="https://www.tiktok.com/@x_y_ayman_x2?_r=1&_t=ZS-99MUugQlv5J" target="_blank"
             style="color: var(--text-secondary); font-size: 28px; text-decoration: none; transition: all 0.3s ease; opacity: 0.7;"
             onmouseover="this.style.opacity='1'; this.style.color='#000000'"
@@ -3807,14 +3746,14 @@ async function logoutUser() {
     try {
         const theme = localStorage.getItem('theme');
         const color = localStorage.getItem('app-primary-color');
-        
-        await _supabase.from('login_events').insert({ student_id: currentUser.id, action: 'logout' }); /* === تعديل: تسجيل عملية الخروج === */
+
+        await _supabase.from('login_events').insert({ student_id: currentUser.id, action: 'logout' });
         await _supabase.auth.signOut();
         sessionStorage.clear();
-        
+
         if (theme) localStorage.setItem('theme', theme);
         if (color) localStorage.setItem('app-primary-color', color);
-        
+
         window.location.href = 'login.html';
     } catch (e) {
         showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
@@ -3826,7 +3765,7 @@ async function quickLogout(){
     const theme = localStorage.getItem('theme');
     const color = localStorage.getItem('app-primary-color');
 
-    await _supabase.from('login_events').insert({ student_id: currentUser.id, action: 'logout' }); /* === تعديل: تسجيل عملية الخروج === */
+    await _supabase.from('login_events').insert({ student_id: currentUser.id, action: 'logout' });
     await _supabase.auth.signOut();
     sessionStorage.clear();
 
@@ -3841,10 +3780,10 @@ async function quickLogout(){
 
 function showConfirm(options) {
     return new Promise((resolve) => {
-        const { 
-            title = 'تأكيد', 
-            message = 'هل أنت متأكد؟', 
-            confirmText = 'حسناً', 
+        const {
+            title = 'تأكيد',
+            message = 'هل أنت متأكد؟',
+            confirmText = 'حسناً',
             cancelText = 'إلغاء',
             icon = 'fas fa-exclamation-triangle',
             iconClass = '',
@@ -3953,8 +3892,9 @@ function proceedToIdentityVerify(){
   if(!pendingNewYear) return;
   closeChangeYearModal();
   idCardFile = null;
-document.getElementById('id-upload-preview').style.display = 'none';
-document.getElementById('id-upload-placeholder').style.display = 'block';  document.getElementById('verify-name-input').value = currentProfile?.full_name || '';
+  document.getElementById('id-upload-preview').style.display = 'none';
+  document.getElementById('id-upload-placeholder').style.display = 'block';
+  document.getElementById('verify-name-input').value = currentProfile?.full_name || '';
   document.getElementById('verify-email-input').value = currentUser?.email || '';
   document.getElementById('verify-phone-input').value = currentProfile?.phone_number || '';
   document.getElementById('verify-idnum-input').value = '';
@@ -4058,6 +3998,7 @@ const FAQ_ANSWERS = {
     <a href="https://exexams.mans.edu.eg/" target="_blank" style="color:#38bdf8;font-weight:700;text-decoration:underline;">موقع الكويزات</a>
   </div>
 `};
+
 const FAQ_QUESTIONS = [
   { key: 'grades', label: 'إزاي أعرف درجاتي؟' },
   { key: 'attendance', label: 'إزاي أسجل حضوري؟' },
@@ -4095,9 +4036,6 @@ function addBotMessageModal(text) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-
-
-/* === جديد: عرض رسالة بوت بها HTML حقيقي (روابط قابلة للضغط) === */
 function addBotMessageHtmlModal(html) {
   const chatArea = document.getElementById('support-chat-modal');
   const bubble = document.createElement('div');
@@ -4107,8 +4045,6 @@ function addBotMessageHtmlModal(html) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-
-  
 function addUserMessageModal(text) {
   const chatArea = document.getElementById('support-chat-modal');
   const bubble = document.createElement('div');
@@ -4121,7 +4057,7 @@ function addUserMessageModal(text) {
 function renderFaqGridModal() {
   const grid = document.getElementById('support-faq-modal');
   grid.innerHTML = '';
-  
+
   const totalPages = Math.ceil(FAQ_QUESTIONS.length / 4);
   const start = faqPage * 4;
   const items = FAQ_QUESTIONS.slice(start, start + 4);
@@ -4207,16 +4143,14 @@ function submitSupportTextMessageModal() {
       addBotMessageModal('لا توجد هذه المعلومات لدينا حالياً تقدر تتواصل مع فريق الدعم مباشرة للمساعدة.');
     }
   }, 500);
-  } 
-  
-// دعم الضغط على Enter في شريط الإدخال
+}
+
 document.getElementById('support-text-input-modal')?.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
     submitSupportTextMessageModal();
   }
 });
-
 </script>
 </body>
 </html>
