@@ -946,6 +946,66 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
 .grades-real-table th{background:var(--primary);color:#fff;padding:9px 6px;text-align:center;}
 .grades-real-table td{padding:8px 6px;text-align:center;border:1px solid var(--border);}
 .grades-real-table tr:nth-child(odd) td{background:var(--bg);}
+
+  /* === Lightbox لعرض صور البوستات بالحجم الكامل === */
+.post-image-lightbox{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(0,0,0,.92);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  animation:fadeSlide .25s ease;
+}
+.post-image-lightbox.open{display:flex;}
+
+.post-image-lightbox .lightbox-img{
+  max-width:95vw;
+  max-height:90vh;
+  width:auto;
+  height:auto;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  object-fit:contain;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1);
+  cursor:zoom-out;
+}
+
+.post-image-lightbox .lightbox-close{
+  position:fixed;
+  top:18px;
+  left:18px;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:var(--transition);
+  backdrop-filter:blur(10px);
+  z-index:10000;
+}
+.post-image-lightbox .lightbox-close:hover{
+  background:rgba(255,255,255,.28);
+  transform:rotate(90deg);
+}
+
+/* خلي صورة البوست تبان كأنها قابلة للضغط */
+.post-image{
+  cursor:zoom-in;
+  transition:transform .25s ease, filter .25s ease;
+}
+.post-image:hover{
+  filter:brightness(.95);
+}
 .grade-row-empty td{color:var(--text-light);} 
 </style>
 </head>
@@ -1541,7 +1601,11 @@ body.dark .grade-badge.vgood { background: #1e3a5f; color: #93c5fd; }
 
 
 
-
+<!-- === Lightbox عرض صور البوستات === -->
+<div class="post-image-lightbox" id="post-image-lightbox" onclick="closePostImageLightbox(event)">
+  <button class="lightbox-close" onclick="closePostImageLightbox(event)"><i class="fas fa-xmark"></i></button>
+  <img class="lightbox-img" id="post-image-lightbox-img" src="" alt="" onclick="event.stopPropagation();">
+</div>
 
 
 <script>
@@ -1908,7 +1972,7 @@ async function buildPostCard(post){
       </div>
       <div class="post-content">${escapeHtml(post.content||'')}</div>
     </div>
-    ${post.image_url ? `<img class="post-image" src="${escapeHtml(post.image_url)}" alt="">` : ''}
+${post.image_url ? `<img class="post-image" src="${escapeHtml(post.image_url)}" alt="" onclick="openPostImageLightbox('${escapeHtml(post.image_url)}')">` : ''}
     <div class="post-actions">
       <div class="left-group">
         <button class="act-btn ${myLike?'liked':''}" onclick="toggleLike('${post.id}', this)"><i class="fa-heart ${myLike?'fas':'far'}"></i> <span class="like-count">${likeCount||0}</span></button>
@@ -4149,6 +4213,44 @@ document.getElementById('support-text-input-modal')?.addEventListener('keydown',
   if (e.key === 'Enter') {
     e.preventDefault();
     submitSupportTextMessageModal();
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+  /* === Lightbox عرض صور البوستات === */
+function openPostImageLightbox(url){
+  if(!url) return;
+  const lightbox = document.getElementById('post-image-lightbox');
+  const img = document.getElementById('post-image-lightbox-img');
+  img.src = url;
+  lightbox.classList.add('open');
+  document.body.style.overflow = 'hidden'; // منع التمرير في الخلفية
+}
+
+function closePostImageLightbox(e){
+  if(e && e.target && e.target.id === 'post-image-lightbox-img') return; // متقفلش لو ضغط على الصورة نفسها
+  const lightbox = document.getElementById('post-image-lightbox');
+  const img = document.getElementById('post-image-lightbox-img');
+  lightbox.classList.remove('open');
+  setTimeout(()=>{ img.src = ''; }, 250); // امسح الرابط بعد الأنيميشن
+  document.body.style.overflow = ''; // رجّع التمرير
+}
+
+/* اقفل الـ Lightbox بزر Escape */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    const lightbox = document.getElementById('post-image-lightbox');
+    if(lightbox && lightbox.classList.contains('open')) closePostImageLightbox();
   }
 });
 </script>
